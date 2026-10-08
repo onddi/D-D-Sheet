@@ -547,7 +547,8 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
           <ul class="g-ul">
             <li>You fall Unconscious and make a <b>death save</b> at the start of each turn: 10 or higher succeeds.</li>
             <li>Three successes and you stabilize; three failures and you die. A natural 20 brings you back with 1 HP; a natural 1 counts as two failures.</li>
-            <li>Any healing wakes you up. Taking damage while down counts as a failure.</li>
+            <li>Any healing wakes you up. Taking damage while down counts as a failure, or two if it was a critical hit.</li>
+            <li>Massive damage: if the damage left over after dropping to 0 HP, or taken while down, equals or exceeds your HP maximum, you die instantly.</li>
             <li>Concentration ends, so Hex is gone.</li>
           </ul>
         </section>
@@ -748,8 +749,8 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
       <div class="panel-head"><h2>When you can change things</h2></div>
       <div class="timeline">
         <div><span class="lv num">Lv 1</span><span>Now. One invocation (Pact of the Tome), 2 Warlock cantrips, 2 prepared spells.</span></div>
-        <div><span class="lv num">Lv 2</span><span>Two more invocations (3 total). Magical Cunning: regain half your pact slots with a 1-minute rite, once per long rest.</span></div>
-        <div><span class="lv num">Lv 3</span><span>Choose your patron. Third prepared spell, second pact slot.</span></div>
+        <div><span class="lv num">Lv 2</span><span>Two more invocations (3 total), a second pact slot and a third prepared spell. Magical Cunning: regain half your pact slots with a 1-minute rite, once per long rest.</span></div>
+        <div><span class="lv num">Lv 3</span><span>Choose your patron. Fourth prepared spell, and your pact slots become 2nd level.</span></div>
         <div><span class="lv num">Any level up</span><span>Swap one Warlock cantrip, one prepared spell and one invocation for another.</span></div>
         <div><span class="lv num">Every rest</span><span>Conjure a new Book of Shadows and choose different cantrips and rituals for it.</span></div>
       </div>
@@ -834,13 +835,14 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
 
       <section class="panel">
         <h2>Attacks</h2>
+        <div class="field" id="hex-row" hidden><label><input type="checkbox" id="hex-on" checked> Target is under Hex (+1d6 Necrotic)</label></div>
         <div class="tbl">
           <table>
             <thead><tr><th>Attack</th><th>Hit</th><th>Damage</th></tr></thead>
             <tbody id="attacks"></tbody>
           </table>
         </div>
-        <p class="fine">Hex adds 1d6 Necrotic to damage rolls automatically while you concentrate on it. On a critical hit, roll damage twice and add the dice.</p>
+        <p class="fine">While you concentrate on Hex, its 1d6 Necrotic is added to damage rolls. Untick the box above when attacking a creature that isn't cursed. A natural 20 on an attack makes the next damage roll for it a critical hit, with the dice doubled.</p>
       </section>
 
       <section class="panel">
@@ -878,7 +880,7 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
           <input id="pt-url" type="url" placeholder="https://…" style="flex:1;min-width:0">
           <button class="btn small" id="pt-url-btn">Use link</button>
         </div>
-        <p class="fine" id="pt-note">Uploaded images are shrunk and saved with the sheet, so they appear in backups too. Links only work in the downloaded file; the online version blocks images from other websites.</p>
+        <p class="fine" id="pt-note">Uploaded images are shrunk and saved with the sheet, so they appear in backups too. A link shows the image from another website, so it disappears if that site removes it or blocks embedding.</p>
       </section>
 
       <section class="panel">
@@ -964,10 +966,20 @@ const SKILLS=[['Acrobatics','dex'],['Animal Handling','wis'],['Arcana','int'],['
 const DEFAULT_PROF={'Arcana':'Warlock','Intimidation':'Warlock','Deception':'Charlatan','Sleight of Hand':'Charlatan','Insight':'Changeling','Persuasion':'Changeling','Perception':'Skilled','Stealth':'Skilled'};
 const TOOLS=[['Thieves’ Tools','dex','Skilled'],['Forgery Kit','dex','Charlatan']];
 
-const DEF={ab:{str:8,dex:14,con:14,int:10,wis:12,cha:17},prof:Object.assign({},DEFAULT_PROF),hp:10,temp:0,hd:1,slot:true,conc:null,aoa:false,ds:{},gold:23,lang:'Common, (choose two)',notes:'',mode:'norm'};
+const DEF={ab:{str:8,dex:14,con:14,int:10,wis:12,cha:17},prof:Object.assign({},DEFAULT_PROF),hp:10,temp:0,hd:1,slot:true,conc:null,aoa:false,hexOn:true,ds:{},fx:[],gold:23,lang:'Common, (choose two)',notes:'',mode:'norm'};
+const clone=o=>JSON.parse(JSON.stringify(o));
+// Fill in fields that saves from older versions of the sheet don't have yet.
+function normalize(d){
+  const n=Object.assign(clone(DEF),d);
+  n.ab=Object.assign({},DEF.ab,d.ab);
+  if(!n.prof||typeof n.prof!=='object')n.prof=clone(DEF.prof);
+  if(!n.ds||typeof n.ds!=='object')n.ds={};
+  if(!Array.isArray(n.fx))n.fx=[];
+  return n;
+}
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))||null}catch(e){S=null}
-if(!S)S=JSON.parse(JSON.stringify(DEF));
+S=S&&typeof S==='object'?normalize(S):clone(DEF);
 let storageOK=true;
 function save(){
   try{localStorage.setItem(KEY,JSON.stringify(S));storageOK=true}catch(e){storageOK=false}
@@ -1001,14 +1013,24 @@ function d20(title,bonus){
   toast(title,det,k+bonus,k===20?'crit':k===1?'fumble':'');
   return k;
 }
+// Hex's extra die only applies to the cursed creature; the Attacks panel has a toggle for it.
+const hexApplies=()=>S.conc==='Hex'&&S.hexOn!==false;
+// A natural 20 on an attack makes the next damage roll for that attack a critical hit.
+let critFor=null;
+function attackRoll(name,bonus){
+  const k=d20(name+' attack',bonus);
+  critFor=k===20?name:null;
+  if(k===20)toast('Critical hit','Roll damage next: the dice are doubled automatically.','×2','crit');
+}
 function dmg(title,dice,flat,type){
   // dice: [[count,sides,label]]
+  const crit=critFor===title;critFor=null;
   const all=dice.slice();
-  if(S.conc==='Hex')all.push([1,6,'Hex']);
+  if(hexApplies())all.push([1,6,'Hex']);
   let tot=flat||0;const parts=[];
-  all.forEach(([c,s,l])=>{const r=[];for(let i=0;i<c;i++)r.push(d(s));tot+=r.reduce((x,y)=>x+y,0);parts.push(`${c}d${s}${l?' '+l:''} [${r.join(',')}]`)});
+  all.forEach(([c,s,l])=>{c=crit?c*2:c;const r=[];for(let i=0;i<c;i++)r.push(d(s));tot+=r.reduce((x,y)=>x+y,0);parts.push(`${c}d${s}${l?' '+l:''} [${r.join(',')}]`)});
   if(flat)parts.push(sg(flat));
-  toast(title+' damage',parts.join(' ')+(type?' · '+type:''),Math.max(0,tot));
+  toast(title+(crit?' critical':'')+' damage',parts.join(' ')+(type?' · '+type:''),Math.max(0,tot),crit?'crit':'');
 }
 
 /* ---------- abilities ---------- */
@@ -1115,6 +1137,15 @@ window.addEventListener('scroll',()=>{if(!tip.hidden)hideTip()},{passive:true});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')hideTip()});
 
 /* ---------- HP ---------- */
+const dsN=p=>[0,1,2].filter(i=>S.ds[p+i]).length;
+// null while conscious; otherwise dying, stable (3 successes) or dead (3 failures)
+function dsState(){if(S.hp>0)return null;if(dsN('f')>=3)return 'dead';if(dsN('s')>=3)return 'stable';return 'dying'}
+function markDs(p){for(let i=0;i<3;i++){if(!S.ds[p+i]){S.ds[p+i]=true;return}}}
+function dsResult(){
+  const st=dsState();
+  if(st==='dead')toast('Three failures','Ash has died. Only magic like Revivify can bring them back.','✝','fumble');
+  else if(st==='stable')toast('Stable','Three successes. Ash stops making death saves and regains 1 HP after 1d4 hours.','✓');
+}
 function renderHP(){
   const m=maxHP();if(S.hp>m)S.hp=m;
   $('hp-cur').textContent=S.hp;$('hp-max').textContent=m;
@@ -1128,30 +1159,57 @@ function renderHP(){
   $('aoa-note').hidden=!S.aoa;
   const c=$('hp-chips');c.innerHTML='';
   const chip=(t,cl)=>{const s=document.createElement('span');s.className='chip '+cl;s.textContent=t;c.appendChild(s)};
-  if(S.hp===0)chip('Unconscious','bad');else if(S.hp<=m/2)chip('Bloodied','warn');
+  const st=dsState();
+  if(st==='dead')chip('Dead','bad');else if(st==='stable')chip('Stable','warn');else if(st==='dying')chip('Unconscious','bad');else if(S.hp<=m/2)chip('Bloodied','warn');
   if(S.aoa)chip('Armor of Agathys','on');
   $('ds-wrap').style.display=S.hp===0?'':'none';
+  $('ds-roll').disabled=st!=='dying';
   document.querySelectorAll('[data-ds]').forEach(b=>b.classList.toggle('on',!!S.ds[b.dataset.ds]));
 }
 const amt=()=>Math.max(0,parseInt($('hp-amt').value,10)||0);
+const DEAD={f0:true,f1:true,f2:true};
 $('hp-dmg').onclick=()=>{
-  let n=amt();const absorbed=Math.min(S.temp,n);S.temp-=absorbed;n-=absorbed;
-  const wasUp=S.hp>0;S.hp=Math.max(0,S.hp-n);
-  if(S.conc&&amt()>0){toast('Concentration check',`DC ${Math.max(10,Math.floor(amt()/2))} Con save for ${S.conc}`,'!')}
-  if(wasUp&&S.hp===0&&S.conc){S.conc=null}
+  const total=amt();if(!total)return;
+  let n=total;const absorbed=Math.min(S.temp,n);S.temp-=absorbed;n-=absorbed;
+  if(S.hp>0){
+    const left=n-S.hp;S.hp=Math.max(0,S.hp-n);
+    if(S.hp===0){
+      S.ds={};
+      if(S.conc){const c=S.conc;endFx(c);S.conc=null;toast(c+' ended','Concentration ends when you drop to 0 HP.','↺')}
+      // Massive damage: what's left after reaching 0 HP is at least your HP maximum.
+      if(left>=maxHP()){S.ds=Object.assign({},DEAD);toast('Massive damage',`${left} damage left over at 0 HP is at least your HP maximum (${maxHP()}). Ash dies instantly.`,'✝','fumble')}
+    }
+  }else if(n>0&&dsState()!=='dead'){
+    if(n>=maxHP()){S.ds=Object.assign({},DEAD);toast('Massive damage',`${n} damage at 0 HP is at least your HP maximum (${maxHP()}). Ash dies instantly.`,'✝','fumble')}
+    else{
+      if(dsState()==='stable')S.ds={};
+      markDs('f');toast('Damage while down','One death save failure. If it was a critical hit, it counts as two: mark another.','!','fumble');
+      dsResult();
+    }
+  }
+  if(S.conc)toast('Concentration check',`DC ${Math.min(30,Math.max(10,Math.floor(total/2)))} Con save for ${S.conc}`,'!');
   save();renderAll();
 };
-$('hp-heal').onclick=()=>{if(S.hp===0)S.ds={};S.hp=Math.min(maxHP(),S.hp+amt());save();renderAll()};
-$('hp-tmp').onclick=()=>{S.temp=Math.max(S.temp,amt());save();renderAll()};
+$('hp-heal').onclick=()=>{
+  if(dsState()==='dead'){toast('Ash is dead','Healing can’t help now; only magic like Revivify can. Untick the failure boxes if this was a mistake.','✝','fumble');return}
+  if(S.hp===0)S.ds={};S.hp=Math.min(maxHP(),S.hp+amt());save();renderAll();
+};
+// Temporary HP don't stack: new temp HP replace the old ones, so this sets the value outright.
+$('hp-tmp').onclick=()=>{
+  const v=amt();if(v===S.temp)return;
+  S.temp=v;
+  if(S.aoa){S.aoa=false;toast('Armor of Agathys ended','Its temporary HP were replaced.','↺')}
+  save();renderAll();
+};
 $('hd-spend').onclick=()=>{if(S.hd<1)return;S.hd--;const r=d(8),h=Math.max(0,r+mod('con'));S.hp=Math.min(maxHP(),S.hp+h);toast('Hit die',`1d8 [${r}] ${sg(mod('con'))}`,'+'+h);save();renderAll()};
 document.querySelectorAll('[data-ds]').forEach(b=>b.onclick=()=>{S.ds[b.dataset.ds]=!S.ds[b.dataset.ds];save();renderHP()});
 $('ds-roll').onclick=()=>{
+  if(dsState()!=='dying')return;
   const r=d(20);let msg;
-  const mark=p=>{for(let i=0;i<3;i++){if(!S.ds[p+i]){S.ds[p+i]=true;return}}};
   if(r===20){S.hp=1;S.ds={};msg='Natural 20: you regain 1 HP'}
-  else if(r===1){mark('f');mark('f');msg='Natural 1: two failures'}
-  else if(r>=10){mark('s');msg='Success'}else{mark('f');msg='Failure'}
-  toast('Death save',msg,r,r===20?'crit':r===1?'fumble':'');save();renderAll();
+  else if(r===1){markDs('f');markDs('f');msg='Natural 1: two failures'}
+  else if(r>=10){markDs('s');msg='Success'}else{markDs('f');msg='Failure'}
+  toast('Death save',msg,r,r===20?'crit':r===1?'fumble':'');dsResult();save();renderAll();
 };
 
 /* ---------- attacks ---------- */
@@ -1165,14 +1223,17 @@ function renderAttacks(){
   const tb=$('attacks');tb.innerHTML='';
   rows.forEach(a=>{
     const tr=document.createElement('tr');
-    const dl=a.dice.map(([c,s])=>`${c}d${s}`).join('+')+(a.flat?sg(a.flat):'')+(S.conc==='Hex'?' +1d6':'');
+    const dl=a.dice.map(([c,s])=>`${c}d${s}`).join('+')+(a.flat?sg(a.flat):'')+(hexApplies()?' +1d6':'');
     tr.innerHTML=`<td><strong>${a.n}</strong><span class="note">${a.note}</span></td><td><button class="rb">${sg(a.hit)}</button></td><td><button class="rb">${dl}</button></td>`;
     const [hb,db]=tr.querySelectorAll('.rb');
-    hb.onclick=()=>d20(a.n+' attack',a.hit);
+    hb.onclick=()=>attackRoll(a.n,a.hit);
     db.onclick=()=>dmg(a.n,a.dice,a.flat,a.type);
     tb.appendChild(tr);
   });
+  $('hex-row').hidden=S.conc!=='Hex';
+  $('hex-on').checked=S.hexOn!==false;
 }
+$('hex-on').onchange=e=>{S.hexOn=e.target.checked;save();renderAll()};
 
 /* ---------- spells ---------- */
 const SPELLS=[
@@ -1193,6 +1254,7 @@ const SPELLS=[
 function cast(sp){
   if(sp.slot){if(!S.slot){toast(sp.n,'No pact slot left. Take a short rest.','—','fumble');return}S.slot=false}
   if(sp.c){if(S.conc&&S.conc!==sp.n)toast('Concentration',`${S.conc} ends`,'↺');S.conc=sp.n}
+  if(sp.n==='Hex')S.hexOn=true;
   if(sp.aoa){S.temp=Math.max(S.temp,5);S.aoa=true}
   if(sp.ritual&&sp.castTime)advance(sp.castTime);
   if(sp.dur||sp.lasting)startFx(sp);
@@ -1264,7 +1326,7 @@ function renderSpells(){
     el.innerHTML=`<summary><span class="nm">${sp.n}${tags}</span><span class="meta">${sp.m}</span><span class="acts"></span></summary><div class="body"><p>${sp.t.replace('{dc}',dc)}</p></div>`;
     const acts=el.querySelector('.acts');
     const mk=(label,fn,primary)=>{const b=document.createElement('button');b.className='btn small'+(primary?' primary':'');b.textContent=label;b.onclick=e=>{e.preventDefault();fn()};acts.appendChild(b)};
-    if(sp.atk){mk('Attack',()=>d20(sp.n+' attack',spellAtk()),true);mk('Damage',()=>dmg(sp.n,sp.dice,0,sp.type))}
+    if(sp.atk){mk('Attack',()=>attackRoll(sp.n,spellAtk()),true);mk('Damage',()=>dmg(sp.n,sp.dice,0,sp.type))}
     else if(sp.c||sp.slot||sp.ritual||sp.dur){
       const run=fxList().find(f=>f.n===sp.n)||(sp.c&&S.conc===sp.n);
       if(run)mk('Active',()=>toast(sp.n+' is active',sp.n==='Hex'?'To curse a new target after this one drops, use a Bonus Action. No slot needed.':'End it under Active effects if you want to cast it again.','✦'),false);
@@ -1286,11 +1348,15 @@ $('conc-save').onclick=()=>d20('Constitution save (concentration)',mod('con'));
 
 /* ---------- rests & mode ---------- */
 $('btn-short').onclick=()=>{advance(3600);S.slot=true;save();renderAll();toast('Short rest','1 hour passed. Pact slot restored; spend hit dice to heal.','☾')};
-$('btn-long').onclick=()=>{advance(8*3600);S.fx=[];S.slot=true;S.hp=maxHP();S.temp=0;S.aoa=false;S.conc=null;S.hd=1;S.ds={};save();renderAll();toast('Long rest','HP, hit die and pact slot restored.','☾')};
+$('btn-long').onclick=()=>{
+  if(dsState()==='dead'){toast('Ash is dead','A rest can’t help now. Untick the failure boxes if this was a mistake.','✝','fumble');return}
+  advance(8*3600);S.fx=fxList().filter(f=>f.lasting);S.slot=true;S.hp=maxHP();S.temp=0;S.aoa=false;S.conc=null;S.hd=1;S.ds={};save();renderAll();toast('Long rest','HP, hit die and pact slot restored.','☾')};
 let resetArm=false;
 $('btn-reset').onclick=e=>{
-  if(!resetArm){resetArm=true;e.target.textContent='Click again to reset';setTimeout(()=>{resetArm=false;e.target.textContent='Reset sheet'},3000);return}
-  S=JSON.parse(JSON.stringify(DEF));save();loadFields();renderAll();e.target.textContent='Reset sheet';resetArm=false;
+  if(!resetArm){resetArm=true;e.target.textContent='Click again to reset stats';setTimeout(()=>{resetArm=false;e.target.textContent='Reset sheet'},3000);return}
+  // Story, portrait and the invocation plan aren't stats, so a reset keeps them.
+  const keep={};['threads','clues','faces','portrait','invPlan'].forEach(k=>{if(S[k]!==undefined)keep[k]=S[k]});
+  S=Object.assign(clone(DEF),keep);save();loadFields();renderAll();e.target.textContent='Reset sheet';resetArm=false;
 };
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{S.mode=b.dataset.mode;save();renderMode()});
 function renderMode(){document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===S.mode)))}
@@ -1306,7 +1372,7 @@ const DIRS=[
 const CATS={
  cw:['Warlock cantrips','Pick 2 now; you learn a third at level 4. These are your class list.'],
  bc:['Book of Shadows cantrips','Pact of the Tome lets you take 3 cantrips from any class’s list. A selection of strong picks.'],
- l1:['Warlock 1st-level spells','You prepare 2 now and 3 at level 3. Each cast uses your pact slot.'],
+ l1:['Warlock 1st-level spells','You prepare 2 now, 3 at level 2 and 4 at level 3. Each cast uses a pact slot.'],
  rit:['Book of Shadows rituals','2 level 1 spells with the Ritual tag, from any class. Cast without a slot, taking 10 extra minutes.'],
  inv:['Eldritch invocations','You have 1 at level 1 and gain 2 more at level 2. Level 1 options and the best level 2 options.'],
  pat:['Patrons at level 3','Your subclass. Each adds spells to your list and shapes the character.']
@@ -1326,7 +1392,7 @@ const OPTS=[
  ['cw','Poison Spray','Action · 30 ft','Ranged spell attack, 1d12 Poison. Many monsters resist it.',['Combat'],[],0],
  ['bc','Guidance','Cleric/Druid · Conc.','+1d4 to checks with one skill for a minute. Conflicts with Hex.',['Utility'],['mend','con'],1],
  ['bc','Shocking Grasp','Sorcerer/Wizard','1d8 Lightning, no Opportunity Attacks. Your escape button.',['Combat'],['blast','ghost'],1],
- ['bc','Mage Hand','Bard/Sorcerer/Wizard','Spectral hand at 30 ft. Plant evidence, lift keys, open doors.',['Utility'],['ghost','con'],1],
+ ['bc','Mage Hand','Bard/Sorcerer/Warlock/Wizard','Spectral hand at 30 ft. Plant evidence, lift keys, open doors.',['Utility'],['ghost','con'],1],
  ['bc','Vicious Mockery','Bard · 60 ft','Wis save or 1d6 Psychic and Disadvantage on its next attack. Insults as a weapon.',['Combat','Social'],['con','mend'],0],
  ['bc','Message','Bard/Sorcerer/Wizard','Whisper to someone 120 ft away; only they hear the reply. Perfect for heists.',['Utility','Stealth'],['mind','ghost','con'],0],
  ['bc','Thaumaturgy','Cleric','Booming voice, flickering flames, tremors. Sell a fake divine omen.',['Social'],['con','mend'],0],
@@ -1946,8 +2012,7 @@ function restore(txt){
   try{obj=JSON.parse(txt)}catch(e){toast('Restore failed','That text isn’t a valid backup. Paste the whole thing, including the braces.','✗','fumble');return}
   const d=obj&&obj.app==='ash-sheet'?obj.data:obj;
   if(!d||typeof d!=='object'||!d.ab||typeof d.hp!=='number'){toast('Restore failed','This doesn’t look like a backup from this sheet.','✗','fumble');return}
-  S=Object.assign(JSON.parse(JSON.stringify(DEF)),d);
-  S.ab=Object.assign({},DEF.ab,d.ab);
+  S=normalize(d);
   save();loadFields();renderAll();$('bk-text').value='';
   toast('Backup restored',obj.saved?'From '+new Date(obj.saved).toLocaleString():'Sheet updated','✓');
 }
@@ -1993,7 +2058,7 @@ $('gold').oninput=e=>{S.gold=parseInt(e.target.value,10)||0;save()};
 $('lang').oninput=e=>{S.lang=e.target.value;save()};
 $('notes').oninput=e=>{S.notes=e.target.value;save()};
 
-function renderAll(){renderPortrait();renderStory();renderHP();renderFx();renderAbil();renderSkills();renderVitals();renderHP();renderAttacks();renderSpells();renderMode()}
+function renderAll(){renderPortrait();renderStory();renderHP();renderFx();renderAbil();renderSkills();renderVitals();renderAttacks();renderSpells();renderMode()}
 loadFields();renderAll();renderOptions();renderRef();
 (function(){let ok=true;try{localStorage.setItem(KEY+'-probe','1');localStorage.removeItem(KEY+'-probe')}catch(e){ok=false}
   $('save-status').textContent=ok?'Saving in this browser':'Not saving: browser storage is blocked. Use a backup.';})();
