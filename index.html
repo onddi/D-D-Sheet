@@ -353,6 +353,42 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
 .tip strong{font-size:.9rem}
 .tip-math{font-family:var(--mono);font-size:.8rem;opacity:.75}
 .row .src.off{text-decoration:line-through;opacity:.8}
+/* equipment */
+.x{border:0;background:none;color:var(--muted);font-size:.8rem;padding:2px 6px;border-radius:4px}
+.x:hover{color:var(--ink);background:var(--sunk)}
+.x.del:hover{color:var(--danger);background:var(--danger-soft)}
+.eq{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.eq li,.eq-add{display:grid;grid-template-columns:3.4em minmax(0,1fr) auto;gap:6px;align-items:center}
+.eq input,.eq-add input{padding:4px 7px;min-width:0;width:100%}
+.eq li{align-items:start}
+.eq textarea{min-height:0;resize:none;overflow:hidden;padding:4px 7px;line-height:1.35;display:block}
+.eq li input,.eq li textarea{border-color:transparent;background:transparent}
+.eq li input:hover,.eq li input:focus,.eq li textarea:hover,.eq li textarea:focus{border-color:var(--line);background:var(--surface)}
+.eq-add{padding-top:8px;border-top:1px solid var(--line)}
+/* journal */
+.journal{display:flex;flex-direction:column;gap:16px}
+.j-meta{display:flex;gap:10px 18px;flex-wrap:wrap}
+.j-meta .field{flex:1 1 220px}
+.j-meta input{flex:1;min-width:0}
+.j-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;align-items:start}
+.j-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.j-item{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-top:1px dashed var(--line)}
+.j-item:first-child{border-top:0;padding-top:0}
+.j-item input[type=checkbox]{margin-top:3px;accent-color:var(--accent);flex:none}
+.j-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.j-txt b{font-weight:600}
+.j-txt .d{white-space:pre-wrap;overflow-wrap:anywhere}
+.j-txt .sess{font-size:.72rem;color:var(--muted);font-family:var(--mono)}
+.j-item.done .j-txt b,.j-item.done .j-txt .d{text-decoration:line-through;color:var(--muted)}
+.j-acts{display:flex;gap:2px;flex:none}
+.j-add,.j-editf{display:flex;flex-direction:column;gap:6px}
+.j-add{padding-top:10px;border-top:1px solid var(--line)}
+.j-editf{flex:1;min-width:0}
+.j-add input,.j-editf input{padding:6px 8px}
+.j-add textarea,.j-editf textarea{min-height:56px}
+.j-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.j-tools input{flex:1 1 240px;min-width:0;padding:7px 10px}
+.j-sum{white-space:pre-wrap;overflow-wrap:anywhere;margin:0}
 .rows-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding-top:6px}
 
 /* roll log */
@@ -391,11 +427,29 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
 
   <nav class="tabs" role="tablist" aria-label="Sheet sections">
     <button role="tab" id="tab-btn-sheet" data-tab="sheet" aria-selected="true">Character</button>
+    <button role="tab" id="tab-btn-journal" data-tab="journal" aria-selected="false">Journal</button>
     <button role="tab" id="tab-btn-story" data-tab="story" aria-selected="false">Story</button>
     <button role="tab" id="tab-btn-options" data-tab="options" aria-selected="false">Build options</button>
     <button role="tab" id="tab-btn-guide" data-tab="guide" aria-selected="false">Play guide</button>
     <button role="tab" id="tab-btn-ref" data-tab="ref" aria-selected="false">Reference</button>
   </nav>
+
+  <div id="tab-journal" class="journal" hidden>
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Campaign journal</h2>
+        <div class="toolbar">
+          <div class="seg" role="group" aria-label="Journal view">
+            <button data-jview="session" aria-pressed="true">By session</button>
+            <button data-jview="all" aria-pressed="false">All sessions</button>
+          </div>
+          <button class="btn small primary" id="j-new">New session</button>
+        </div>
+      </div>
+      <div class="filters" id="j-sessions" role="group" aria-label="Sessions"></div>
+    </section>
+    <div id="j-body" class="journal"></div>
+  </div>
 
   <div id="tab-story" class="story" hidden>
     <section class="panel s-hero">
@@ -911,17 +965,13 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
       </section>
 
       <section class="panel">
-        <h2>Equipment</h2>
-        <ul class="plain">
-          <li>Studded Leather Armor</li>
-          <li>Dagger</li>
-          <li>Arcane Focus (crystal, styled as charred bone)</li>
-          <li>Book of Shadows</li>
-          <li>Fine Clothes, Costume</li>
-          <li>Forgery Kit, Thieves' Tools</li>
-          <li>Explorer's Pack</li>
-          <li>Incense for Find Familiar (10 GP per casting)</li>
-        </ul>
+        <div class="panel-head"><h2>Equipment</h2><span class="fine">Edit a name or count in place</span></div>
+        <ul class="eq" id="eq-list"></ul>
+        <form class="eq-add" id="eq-form">
+          <input id="eq-qty" type="number" min="1" value="1" class="num" aria-label="Quantity">
+          <input id="eq-name" placeholder="Add an item, e.g. Rope (50 ft)" aria-label="New item name">
+          <button class="btn small primary" type="submit">Add</button>
+        </form>
         <div class="field">
           <label class="label" for="gold">Gold (GP)</label>
           <input id="gold" type="number" min="0" class="num" style="width:6em" value="23">
@@ -931,7 +981,7 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
 
       <section class="panel">
         <h2>Notes</h2>
-        <label class="label" for="notes">Session notes, current disguise, contacts</label>
+        <label class="label" for="notes">Quick notes: current disguise, reminders. Session notes go in the Journal tab.</label>
         <textarea id="notes" placeholder="Current face: …"></textarea>
       </section>
 
@@ -966,7 +1016,8 @@ const SKILLS=[['Acrobatics','dex'],['Animal Handling','wis'],['Arcana','int'],['
 const DEFAULT_PROF={'Arcana':'Warlock','Intimidation':'Warlock','Deception':'Charlatan','Sleight of Hand':'Charlatan','Insight':'Changeling','Persuasion':'Changeling','Perception':'Skilled','Stealth':'Skilled'};
 const TOOLS=[['Thieves’ Tools','dex','Skilled'],['Forgery Kit','dex','Charlatan']];
 
-const DEF={ab:{str:8,dex:14,con:14,int:10,wis:12,cha:17},prof:Object.assign({},DEFAULT_PROF),hp:10,temp:0,hd:1,slot:true,conc:null,aoa:false,hexOn:true,ds:{},fx:[],gold:23,lang:'Common, (choose two)',notes:'',mode:'norm'};
+const DEF_EQUIP=['Studded Leather Armor','Dagger','Arcane Focus (crystal, styled as charred bone)','Book of Shadows','Fine Clothes','Costume','Forgery Kit','Thieves’ Tools','Explorer’s Pack','Incense for Find Familiar (10 GP per casting)'].map(n=>({n:n,q:1}));
+const DEF={ab:{str:8,dex:14,con:14,int:10,wis:12,cha:17},prof:Object.assign({},DEFAULT_PROF),hp:10,temp:0,hd:1,slot:true,conc:null,aoa:false,hexOn:true,ds:{},fx:[],equip:DEF_EQUIP,journal:{sessions:[],entries:[],cur:null,view:'session'},gold:23,lang:'Common, (choose two)',notes:'',mode:'norm'};
 const clone=o=>JSON.parse(JSON.stringify(o));
 // Fill in fields that saves from older versions of the sheet don't have yet.
 function normalize(d){
@@ -975,6 +1026,10 @@ function normalize(d){
   if(!n.prof||typeof n.prof!=='object')n.prof=clone(DEF.prof);
   if(!n.ds||typeof n.ds!=='object')n.ds={};
   if(!Array.isArray(n.fx))n.fx=[];
+  if(!Array.isArray(n.equip))n.equip=clone(DEF_EQUIP);
+  if(!n.journal||typeof n.journal!=='object')n.journal=clone(DEF.journal);
+  if(!Array.isArray(n.journal.sessions))n.journal.sessions=[];
+  if(!Array.isArray(n.journal.entries))n.journal.entries=[];
   return n;
 }
 let S;
@@ -1354,8 +1409,8 @@ $('btn-long').onclick=()=>{
 let resetArm=false;
 $('btn-reset').onclick=e=>{
   if(!resetArm){resetArm=true;e.target.textContent='Click again to reset stats';setTimeout(()=>{resetArm=false;e.target.textContent='Reset sheet'},3000);return}
-  // Story, portrait and the invocation plan aren't stats, so a reset keeps them.
-  const keep={};['threads','clues','faces','portrait','invPlan'].forEach(k=>{if(S[k]!==undefined)keep[k]=S[k]});
+  // A reset puts the stats back to the build; notes, gear, story and plans are kept.
+  const keep={};['threads','clues','faces','portrait','invPlan','journal','equip','gold','lang','notes'].forEach(k=>{if(S[k]!==undefined)keep[k]=S[k]});
   S=Object.assign(clone(DEF),keep);save();loadFields();renderAll();e.target.textContent='Reset sheet';resetArm=false;
 };
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{S.mode=b.dataset.mode;save();renderMode()});
@@ -1885,7 +1940,8 @@ $('ref-q').oninput=()=>renderRef();
 
 function showTab(t){
   document.querySelectorAll('[data-tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===t)));
-  $('tab-sheet').hidden=t!=='sheet';$('tab-options').hidden=t!=='options';$('tab-ref').hidden=t!=='ref';$('tab-guide').hidden=t!=='guide';$('tab-story').hidden=t!=='story';
+  $('tab-sheet').hidden=t!=='sheet';$('tab-options').hidden=t!=='options';$('tab-ref').hidden=t!=='ref';$('tab-guide').hidden=t!=='guide';$('tab-story').hidden=t!=='story';$('tab-journal').hidden=t!=='journal';
+  if(t==='sheet')fitEquip();
   try{localStorage.setItem(KEY+'-tab',t)}catch(e){}
 }
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
@@ -1907,12 +1963,14 @@ const THREADS=[
 ];
 const STATUS=[['unknown','Unknown'],['clues','Clues'],['revealed','Revealed']];
 const stamp=()=>new Date().toLocaleDateString([], {day:'numeric',month:'short',year:'numeric'});
-function delBtn(onDel){
-  const b=document.createElement('button');b.type='button';b.className='x';b.textContent='Remove';
+// A button that needs a second click within a few seconds, for anything destructive.
+function armBtn(label,confirm,cls,onDo){
+  const b=document.createElement('button');b.type='button';b.className=cls;b.textContent=label;
   let armed=false;
-  b.onclick=()=>{if(!armed){armed=true;b.textContent='Sure?';setTimeout(()=>{armed=false;b.textContent='Remove'},2500);return}onDel()};
+  b.onclick=()=>{if(!armed){armed=true;b.textContent=confirm;setTimeout(()=>{armed=false;b.textContent=label},2500);return}onDo()};
   return b;
 }
+function delBtn(onDel){return armBtn('Remove','Sure?','x del',onDel)}
 function renderStory(){
   S.threads=S.threads||{};S.clues=S.clues||[];S.faces=S.faces||[];
   const tw=$('threads');tw.innerHTML='';
@@ -1954,6 +2012,215 @@ $('face-form').addEventListener('submit',e=>{
   S.faces=S.faces||[];S.faces.push({n:n,w:$('face-where').value.trim(),d:stamp()});
   $('face-name').value='';$('face-where').value='';save();renderStory();
 });
+
+/* ---------- equipment ---------- */
+function removeItem(it){S.equip=S.equip.filter(x=>x!==it);save();renderEquip()}
+function renderEquip(){
+  const l=$('eq-list');l.innerHTML='';
+  if(!S.equip.length){const li=document.createElement('li');li.className='s-empty';li.style.display='block';li.textContent='No items. Add what Ash carries below.';l.appendChild(li)}
+  S.equip.forEach(it=>{
+    const li=document.createElement('li');
+    const q=document.createElement('input');q.type='number';q.min='0';q.className='num';q.value=it.q;q.setAttribute('aria-label','How many: '+it.n);
+    q.oninput=()=>{it.q=Math.max(0,parseInt(q.value,10)||0);save()};
+    // a one-line text box that grows, so long names wrap instead of being cut off
+    const n=document.createElement('textarea');n.rows=1;n.value=it.n;n.setAttribute('aria-label','Item name');
+    n.oninput=()=>{n.value=n.value.replace(/\n/g,' ');it.n=n.value;save();fitEquip()};
+    n.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();n.blur()}};
+    n.onchange=()=>{if(!n.value.trim())removeItem(it)};
+    li.append(q,n,delBtn(()=>removeItem(it)));
+    l.appendChild(li);
+  });
+  requestAnimationFrame(fitEquip);
+}
+function fitEquip(){document.querySelectorAll('#eq-list textarea').forEach(t=>{t.style.height='auto';if(t.scrollHeight)t.style.height=t.scrollHeight+2+'px'})}
+window.addEventListener('resize',fitEquip);
+$('eq-form').addEventListener('submit',e=>{
+  e.preventDefault();const n=$('eq-name').value.trim();if(!n){$('eq-name').focus();return}
+  S.equip.push({n:n,q:Math.max(1,parseInt($('eq-qty').value,10)||1)});
+  $('eq-name').value='';$('eq-qty').value=1;save();renderEquip();$('eq-name').focus();
+});
+
+/* ---------- journal ---------- */
+// t: label for the short title field (none = details only); check: entries can be ticked off
+const JCATS=[
+ {id:'people',n:'Characters',t:'Name',d:'Who they are, what they want, how they feel about Ash'},
+ {id:'facts',n:'Learned facts',d:'Something you found out, e.g. The pendant’s crest belongs to House Vael'},
+ {id:'goals',n:'Goals',d:'Something Ash or the party wants to do',check:true},
+ {id:'targets',n:'Targets',t:'Who or what',d:'Why, and where to find them',check:true},
+ {id:'places',n:'Points of interest',t:'Place',d:'What’s there and why it matters'}
+];
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const todayISO=()=>{const t=new Date(),p=n=>String(n).padStart(2,'0');return t.getFullYear()+'-'+p(t.getMonth()+1)+'-'+p(t.getDate())};
+const fmtDate=iso=>{if(!iso)return '';const x=new Date(iso+'T00:00');return isNaN(x)?iso:x.toLocaleDateString([], {day:'numeric',month:'short',year:'numeric'})};
+let jEdit=null,jFocus=null,jQ='',jCat='all';
+const J=()=>S.journal;
+const jSession=id=>J().sessions.find(x=>x.id===id);
+const sessLabel=x=>'Session '+x.n+(x.title?': '+x.title:'');
+function renderJChips(){
+  const j=J(),w=$('j-sessions');w.innerHTML='';
+  w.hidden=j.view!=='session'||!j.sessions.length;
+  j.sessions.forEach(x=>{
+    const b=document.createElement('button');b.type='button';b.textContent=sessLabel(x);b.setAttribute('aria-pressed',String(x.id===j.cur));
+    b.onclick=()=>{j.cur=x.id;jEdit=null;save();renderJournal()};w.appendChild(b);
+  });
+}
+function renderJournal(){
+  const j=J();
+  if(!jSession(j.cur))j.cur=j.sessions.length?j.sessions[j.sessions.length-1].id:null;
+  document.querySelectorAll('[data-jview]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.jview===j.view)));
+  renderJChips();
+  const body=$('j-body');body.innerHTML='';
+  if(!j.sessions.length){
+    const p=document.createElement('section');p.className='panel';
+    p.innerHTML='<h2>No sessions yet</h2><p class="fine">Press <b>New session</b> at the start of each game night. Each session gets a summary plus notes on characters, learned facts, goals, targets and points of interest. <b>All sessions</b> gathers everything into one searchable view.</p>';
+    body.appendChild(p);return;
+  }
+  if(j.view==='all')renderJAll(body);else renderJSession(body,jSession(j.cur));
+  if(jFocus){const f=body.querySelector(`[data-jadd="${jFocus}"] input, [data-jadd="${jFocus}"] textarea`);if(f)f.focus();jFocus=null}
+}
+function renderJSession(body,x){
+  const j=J();
+  const p=document.createElement('section');p.className='panel';
+  p.innerHTML=`<div class="panel-head"><h2></h2><span class="j-del"></span></div>
+    <div class="j-meta">
+      <div class="field"><label class="label" for="j-title">Title</label><input id="j-title" placeholder="e.g. Arrival at Hollowmere"></div>
+      <div class="field"><label class="label" for="j-date">Played</label><input id="j-date" type="date"></div>
+    </div>
+    <label class="label" for="j-sum">What happened</label>
+    <textarea id="j-sum" placeholder="The session in your own words: where you went, who you met, what changed"></textarea>`;
+  p.querySelector('h2').textContent='Session '+x.n;
+  const ti=p.querySelector('#j-title'),da=p.querySelector('#j-date'),su=p.querySelector('#j-sum');
+  ti.value=x.title||'';da.value=x.date||'';su.value=x.sum||'';
+  ti.oninput=()=>{x.title=ti.value;save()};ti.onchange=renderJChips;
+  da.oninput=()=>{x.date=da.value;save()};
+  su.oninput=()=>{x.sum=su.value;save()};
+  const n=j.entries.filter(e=>e.sid===x.id).length;
+  p.querySelector('.j-del').appendChild(armBtn('Delete session',n?`Click again: deletes ${n} note${n===1?'':'s'} too`:'Click again to delete','btn small danger',()=>{
+    j.sessions=j.sessions.filter(y=>y!==x);j.entries=j.entries.filter(e=>e.sid!==x.id);j.cur=null;
+    save();renderJournal();toast('Session deleted',sessLabel(x),'✗');
+  }));
+  body.appendChild(p);
+  const g=document.createElement('div');g.className='j-grid';
+  JCATS.forEach(c=>g.appendChild(jPanel(c,j.entries.filter(e=>e.sid===x.id&&e.cat===c.id),x.id)));
+  body.appendChild(g);
+}
+function jPanel(c,list,sid,emptyMsg){
+  const p=document.createElement('section');p.className='panel';
+  p.innerHTML='<div class="panel-head"><h2></h2><span class="fine"></span></div><ul class="j-list"></ul>';
+  p.querySelector('h2').textContent=c.n;
+  const open=c.check?list.filter(e=>!e.done).length:0;
+  p.querySelector('.fine').textContent=list.length?(c.check?`${open} open of ${list.length}`:String(list.length)):'';
+  const ul=p.querySelector('ul');
+  if(!list.length){const li=document.createElement('li');li.className='s-empty';li.textContent=emptyMsg||'Nothing noted yet.';ul.appendChild(li)}
+  list.forEach(e=>ul.appendChild(jItem(e,c,!sid)));
+  if(sid){
+    const f=document.createElement('form');f.className='j-add';f.dataset.jadd=c.id;
+    if(c.t){const i=document.createElement('input');i.name='t';i.placeholder=c.t;i.setAttribute('aria-label',c.n+': '+c.t);f.appendChild(i)}
+    const ta=document.createElement('textarea');ta.name='d';ta.placeholder=c.d;ta.setAttribute('aria-label',c.n+': details');f.appendChild(ta);
+    const bar=document.createElement('div');bar.className='toolbar';bar.innerHTML='<button class="btn small primary" type="submit">Add</button><span class="fine">Ctrl+Enter adds from the text box</span>';f.appendChild(bar);
+    ta.onkeydown=ev=>{if(ev.key==='Enter'&&(ev.ctrlKey||ev.metaKey)){ev.preventDefault();f.requestSubmit()}};
+    f.onsubmit=ev=>{
+      ev.preventDefault();
+      const t=c.t?f.elements.t.value.trim():'',d=ta.value.trim();
+      if(!t&&!d){(c.t?f.elements.t:ta).focus();return}
+      J().entries.push({id:uid(),sid:sid,cat:c.id,t:t,d:d,done:false});
+      jFocus=c.id;save();renderJournal();
+    };
+    p.appendChild(f);
+  }
+  return p;
+}
+function jItem(e,c,showSess){
+  const li=document.createElement('li');li.className='j-item'+(e.done?' done':'');
+  if(jEdit===e.id){
+    const f=document.createElement('form');f.className='j-editf';
+    if(c.t){const i=document.createElement('input');i.name='t';i.value=e.t||'';i.placeholder=c.t;i.setAttribute('aria-label',c.t);f.appendChild(i)}
+    const ta=document.createElement('textarea');ta.name='d';ta.value=e.d||'';ta.placeholder=c.d;ta.setAttribute('aria-label','Details');f.appendChild(ta);
+    const bar=document.createElement('div');bar.className='toolbar';bar.innerHTML='<button class="btn small primary" type="submit">Save</button><button class="btn small" type="button">Cancel</button>';f.appendChild(bar);
+    bar.children[1].onclick=()=>{jEdit=null;renderJournal()};
+    f.onsubmit=ev=>{
+      ev.preventDefault();
+      const t=c.t?f.elements.t.value.trim():'',d=ta.value.trim();
+      if(!t&&!d){(c.t?f.elements.t:ta).focus();return}
+      e.t=t;e.d=d;jEdit=null;save();renderJournal();
+    };
+    li.appendChild(f);
+    setTimeout(()=>(c.t?f.elements.t:ta).focus(),0);
+    return li;
+  }
+  if(c.check){
+    const cb=document.createElement('input');cb.type='checkbox';cb.checked=!!e.done;cb.setAttribute('aria-label','Done: '+(e.t||e.d));
+    cb.onchange=()=>{e.done=cb.checked;save();renderJournal()};li.appendChild(cb);
+  }
+  const tx=document.createElement('div');tx.className='j-txt';
+  if(e.t){const b=document.createElement('b');b.textContent=e.t;tx.appendChild(b)}
+  if(e.d){const d=document.createElement('span');d.className='d';d.textContent=e.d;tx.appendChild(d)}
+  if(showSess){const x=jSession(e.sid);if(x){const m=document.createElement('span');m.className='sess';m.textContent=sessLabel(x)+(x.date?' · '+fmtDate(x.date):'');tx.appendChild(m)}}
+  const acts=document.createElement('span');acts.className='j-acts';
+  const ed=document.createElement('button');ed.type='button';ed.className='x';ed.textContent='Edit';ed.onclick=()=>{jEdit=e.id;renderJournal()};
+  acts.append(ed,delBtn(()=>{J().entries=J().entries.filter(y=>y!==e);if(jEdit===e.id)jEdit=null;save();renderJournal()}));
+  li.append(tx,acts);
+  return li;
+}
+function renderJAll(body){
+  const j=J();
+  const tools=document.createElement('section');tools.className='panel';
+  tools.innerHTML='<div class="j-tools"><input type="search" id="j-q" placeholder="Search every session: names, places, facts" aria-label="Search the journal"></div><div class="filters" role="group" aria-label="Show"></div>';
+  const qi=tools.querySelector('#j-q');qi.value=jQ;
+  const fw=tools.querySelector('.filters');
+  [['all','Everything']].concat(JCATS.map(c=>[c.id,c.n]),[['sum','Session summaries']]).forEach(([k,l])=>{
+    const b=document.createElement('button');b.type='button';b.textContent=l;b.setAttribute('aria-pressed',String(jCat===k));
+    b.onclick=()=>{jCat=k;renderJournal()};fw.appendChild(b);
+  });
+  body.appendChild(tools);
+  const res=document.createElement('div');res.className='journal';body.appendChild(res);
+  const order=Object.fromEntries(j.sessions.map((x,i)=>[x.id,i]));
+  const fill=()=>{
+    res.innerHTML='';
+    const q=jQ.trim().toLowerCase();
+    const m=(...xs)=>!q||xs.join(' ').toLowerCase().includes(q);
+    const g=document.createElement('div');g.className='j-grid';
+    JCATS.forEach(c=>{
+      if(jCat!=='all'&&jCat!==c.id)return;
+      let list=j.entries.filter(e=>e.cat===c.id&&m(e.t,e.d));
+      if(q&&!list.length&&jCat==='all')return;
+      // people and places read best alphabetically; the rest newest first, open items on top
+      if(c.t&&!c.check)list.sort((a,b)=>(a.t||'').localeCompare(b.t||'')||order[a.sid]-order[b.sid]);
+      else list.sort((a,b)=>(c.check?(a.done-b.done):0)||order[b.sid]-order[a.sid]);
+      g.appendChild(jPanel(c,list,null,q?'Nothing matches.':'Nothing noted yet.'));
+    });
+    if(g.children.length)res.appendChild(g);
+    if(jCat==='all'||jCat==='sum'){
+      const ss=j.sessions.slice().reverse().filter(x=>m(x.title,x.sum,'session '+x.n));
+      if(ss.length||!q){
+        const p=document.createElement('section');p.className='panel';
+        p.innerHTML='<h2>Session summaries</h2><ul class="j-list"></ul>';
+        const ul=p.querySelector('ul');
+        ss.forEach(x=>{
+          const li=document.createElement('li');li.className='j-item';
+          const tx=document.createElement('div');tx.className='j-txt';
+          const b=document.createElement('b');b.textContent=sessLabel(x);tx.appendChild(b);
+          if(x.date){const d=document.createElement('span');d.className='sess';d.textContent=fmtDate(x.date);tx.appendChild(d)}
+          const sm=document.createElement('p');sm.className='j-sum';sm.textContent=x.sum||'No summary written.';if(!x.sum)sm.classList.add('fine');tx.appendChild(sm);
+          const op=document.createElement('button');op.type='button';op.className='btn small';op.textContent='Open';
+          op.onclick=()=>{j.cur=x.id;j.view='session';save();renderJournal();window.scrollTo(0,0)};
+          li.append(tx,op);ul.appendChild(li);
+        });
+        res.appendChild(p);
+      }
+    }
+    if(!res.children.length){const p=document.createElement('section');p.className='panel';p.innerHTML='<p class="s-empty">Nothing matches your search.</p>';res.appendChild(p)}
+  };
+  qi.oninput=()=>{jQ=qi.value;fill()};
+  fill();
+}
+document.querySelectorAll('[data-jview]').forEach(b=>b.onclick=()=>{J().view=b.dataset.jview;jEdit=null;save();renderJournal()});
+$('j-new').onclick=()=>{
+  const j=J();const n=j.sessions.reduce((m,x)=>Math.max(m,x.n),0)+1;
+  const x={id:uid(),n:n,title:'',date:todayISO(),sum:''};
+  j.sessions.push(x);j.cur=x.id;j.view='session';jEdit=null;save();renderJournal();
+  const t=$('j-title');if(t)t.focus();
+};
 
 /* ---------- portrait ---------- */
 function renderPortrait(){
@@ -2058,7 +2325,7 @@ $('gold').oninput=e=>{S.gold=parseInt(e.target.value,10)||0;save()};
 $('lang').oninput=e=>{S.lang=e.target.value;save()};
 $('notes').oninput=e=>{S.notes=e.target.value;save()};
 
-function renderAll(){renderPortrait();renderStory();renderHP();renderFx();renderAbil();renderSkills();renderVitals();renderAttacks();renderSpells();renderMode()}
+function renderAll(){renderPortrait();renderStory();renderJournal();renderEquip();renderHP();renderFx();renderAbil();renderSkills();renderVitals();renderAttacks();renderSpells();renderMode()}
 loadFields();renderAll();renderOptions();renderRef();
 (function(){let ok=true;try{localStorage.setItem(KEY+'-probe','1');localStorage.removeItem(KEY+'-probe')}catch(e){ok=false}
   $('save-status').textContent=ok?'Saving in this browser':'Not saving: browser storage is blocked. Use a backup.';})();
@@ -2068,7 +2335,8 @@ if(location.hash==='#options')startTab='options';
 if(location.hash==='#reference')startTab='ref';
 if(location.hash==='#guide')startTab='guide';
 if(location.hash==='#story')startTab='story';
-showTab(['options','ref','guide','story'].includes(startTab)?startTab:'sheet');
+if(location.hash==='#journal')startTab='journal';
+showTab(['options','ref','guide','story','journal'].includes(startTab)?startTab:'sheet');
 })();
 </script>
 </body>
