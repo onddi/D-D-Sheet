@@ -386,6 +386,15 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
 .j-editf{flex:1;min-width:0}
 .j-add input,.j-editf input{padding:6px 8px}
 .j-add textarea,.j-editf textarea{min-height:56px}
+.j-row{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px}
+.j-row:has(> :only-child){grid-template-columns:minmax(0,1fr)}
+.j-add select,.j-editf select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:5px 6px;max-width:11em}
+.j-sub{padding-top:4px}
+.j-top{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 7px}
+.j-tag{align-self:center}
+.j-tag[data-k="party"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.j-tag[data-k="ally"]{border-color:var(--good);color:var(--good)}
+.j-tag[data-k="hostile"]{border-color:var(--danger);color:var(--danger)}
 .j-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .j-tools input{flex:1 1 240px;min-width:0;padding:7px 10px}
 .j-sum{white-space:pre-wrap;overflow-wrap:anywhere;margin:0}
@@ -1030,6 +1039,9 @@ function normalize(d){
   if(!n.journal||typeof n.journal!=='object')n.journal=clone(DEF.journal);
   if(!Array.isArray(n.journal.sessions))n.journal.sessions=[];
   if(!Array.isArray(n.journal.entries))n.journal.entries=[];
+  // goals, targets and places used to be separate lists; they're now types under Leads & places
+  const MOVED={goals:'goal',targets:'target',places:'place'};
+  n.journal.entries.forEach(e=>{if(MOVED[e.cat]){e.k=MOVED[e.cat];e.cat='leads'}else if(e.cat==='people'&&!e.k)e.k='unknown'});
   return n;
 }
 let S;
@@ -2041,18 +2053,25 @@ $('eq-form').addEventListener('submit',e=>{
 });
 
 /* ---------- journal ---------- */
-// t: label for the short title field (none = details only); check: entries can be ticked off
+// t: label for the short title field (none = details only). kinds: [id, label, hint] for the type selector.
+// check: kinds that can be ticked off once done. groups: fixed sub-lists inside the panel.
 const JCATS=[
- {id:'people',n:'Characters',t:'Name',d:'Who they are, what they want, how they feel about Ash'},
+ {id:'people',n:'Characters',t:'Name',d:'Who they are, what they want, how they feel about Ash',kl:'Who',def:'unknown',
+  kinds:[['party','Party member','A fellow adventurer'],['ally','Ally','Friendly to Ash, or owes them'],['neutral','Neutral','No side taken yet'],['hostile','Hostile','A rival or enemy'],['unknown','Unknown','Hard to read']],
+  groups:[['Party',k=>k==='party'],['Others',k=>k!=='party']]},
  {id:'facts',n:'Learned facts',d:'Something you found out, e.g. The pendant’s crest belongs to House Vael'},
- {id:'goals',n:'Goals',d:'Something Ash or the party wants to do',check:true},
- {id:'targets',n:'Targets',t:'Who or what',d:'Why, and where to find them',check:true},
- {id:'places',n:'Points of interest',t:'Place',d:'What’s there and why it matters'}
+ {id:'leads',n:'Leads & places',t:'Title',d:'Details: who, where, and why it matters',kl:'Type',def:'goal',
+  kinds:[['goal','Goal','Something Ash or the party wants to do'],['quest','Quest','A job someone gave you'],['target','Target','Someone or something to find, follow or stop'],['lead','Lead','A rumor or hint worth following up'],['question','Open question','Something you still don’t know'],['promise','Promise or debt','A favor owed, by Ash or to Ash'],['place','Place','A location worth remembering'],['item','Item','Loot, an heirloom, a key, a letter'],['faction','Faction','A group, guild, noble house or cult']],
+  check:['goal','quest','target','lead','question','promise']}
 ];
+const JCAT=id=>JCATS.find(c=>c.id===id);
+const kindOf=(c,k)=>c.kinds&&(c.kinds.find(x=>x[0]===k)||c.kinds.find(x=>x[0]===c.def));
+const canTick=(c,e)=>!!(c.check&&c.check.includes(e.k));
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const todayISO=()=>{const t=new Date(),p=n=>String(n).padStart(2,'0');return t.getFullYear()+'-'+p(t.getMonth()+1)+'-'+p(t.getDate())};
 const fmtDate=iso=>{if(!iso)return '';const x=new Date(iso+'T00:00');return isNaN(x)?iso:x.toLocaleDateString([], {day:'numeric',month:'short',year:'numeric'})};
-let jEdit=null,jFocus=null,jQ='',jCat='all';
+// jKind remembers the last type picked per category, so adding several of a kind is quick
+let jEdit=null,jFocus=null,jQ='',jCat='all',jKindF='all';const jKind={};
 const J=()=>S.journal;
 const jSession=id=>J().sessions.find(x=>x.id===id);
 const sessLabel=x=>'Session '+x.n+(x.title?': '+x.title:'');
@@ -2072,7 +2091,7 @@ function renderJournal(){
   const body=$('j-body');body.innerHTML='';
   if(!j.sessions.length){
     const p=document.createElement('section');p.className='panel';
-    p.innerHTML='<h2>No sessions yet</h2><p class="fine">Press <b>New session</b> at the start of each game night. Each session gets a summary plus notes on characters, learned facts, goals, targets and points of interest. <b>All sessions</b> gathers everything into one searchable view.</p>';
+    p.innerHTML='<h2>No sessions yet</h2><p class="fine">Press <b>New session</b> at the start of each game night. Each session gets a summary plus notes on characters, learned facts, and leads and places. <b>All sessions</b> gathers everything into one searchable view.</p>';
     body.appendChild(p);return;
   }
   if(j.view==='all')renderJAll(body);else renderJSession(body,jSession(j.cur));
@@ -2101,59 +2120,88 @@ function renderJSession(body,x){
   }));
   body.appendChild(p);
   const g=document.createElement('div');g.className='j-grid';
-  JCATS.forEach(c=>g.appendChild(jPanel(c,j.entries.filter(e=>e.sid===x.id&&e.cat===c.id),x.id)));
+  JCATS.forEach(c=>g.appendChild(jPanel(c,j.entries.filter(e=>e.sid===x.id&&e.cat===c.id),{sid:x.id})));
   body.appendChild(g);
 }
-function jPanel(c,list,sid,emptyMsg){
+// The type selector and title/details fields, shared by the add and edit forms.
+function jFields(f,c,e){
+  let sel=null,ti=null;
+  if(c.kinds){
+    sel=document.createElement('select');sel.name='k';sel.setAttribute('aria-label',c.n+': '+c.kl);
+    c.kinds.forEach(([k,l,h])=>{const o=document.createElement('option');o.value=k;o.textContent=l;o.title=h;sel.appendChild(o)});
+    sel.value=e?kindOf(c,e.k)[0]:(jKind[c.id]||c.def);
+  }
+  if(c.t){ti=document.createElement('input');ti.name='t';ti.setAttribute('aria-label',c.n+': '+c.t);if(e)ti.value=e.t||''}
+  const hint=()=>{if(ti)ti.placeholder=sel?kindOf(c,sel.value)[2]:c.t};hint();
+  if(sel)sel.addEventListener('change',hint);
+  if(sel||ti){const row=document.createElement('div');row.className='j-row';if(sel)row.appendChild(sel);if(ti)row.appendChild(ti);f.appendChild(row)}
+  const ta=document.createElement('textarea');ta.name='d';ta.placeholder=c.d;ta.setAttribute('aria-label',c.n+': details');if(e)ta.value=e.d||'';
+  f.appendChild(ta);
+  return {sel,ti,ta,first:ti||ta,read:()=>({k:sel?sel.value:undefined,t:ti?ti.value.trim():'',d:ta.value.trim()})};
+}
+// opts.sid: show the add form for that session. opts.all: notes from every session (shows where each came from).
+// opts.byKind: split the list by type. opts.hideTag: the type is obvious from the grouping.
+function jPanel(c,list,opts){
   const p=document.createElement('section');p.className='panel';
-  p.innerHTML='<div class="panel-head"><h2></h2><span class="fine"></span></div><ul class="j-list"></ul>';
+  p.innerHTML='<div class="panel-head"><h2></h2><span class="fine"></span></div>';
   p.querySelector('h2').textContent=c.n;
-  const open=c.check?list.filter(e=>!e.done).length:0;
-  p.querySelector('.fine').textContent=list.length?(c.check?`${open} open of ${list.length}`:String(list.length)):'';
-  const ul=p.querySelector('ul');
-  if(!list.length){const li=document.createElement('li');li.className='s-empty';li.textContent=emptyMsg||'Nothing noted yet.';ul.appendChild(li)}
-  list.forEach(e=>ul.appendChild(jItem(e,c,!sid)));
-  if(sid){
+  const ticks=list.filter(e=>canTick(c,e)),open=ticks.filter(e=>!e.done).length;
+  p.querySelector('.fine').textContent=list.length?list.length+(ticks.length?` · ${open} open`:''):'';
+  const groups=c.groups||(opts.byKind&&c.kinds?c.kinds.map(([k,l])=>[l,x=>x===k]):null);
+  const addList=(items,tagOff)=>{const ul=document.createElement('ul');ul.className='j-list';items.forEach(e=>ul.appendChild(jItem(e,c,opts.all,tagOff)));p.appendChild(ul)};
+  if(!list.length){const e=document.createElement('p');e.className='s-empty';e.textContent=opts.empty||'Nothing noted yet.';p.appendChild(e)}
+  else if(groups){
+    groups.forEach(([lab,f])=>{
+      const sub=list.filter(e=>f(kindOf(c,e.k)[0]));if(!sub.length)return;
+      const h=document.createElement('div');h.className='label j-sub';h.textContent=`${lab} · ${sub.length}`;p.appendChild(h);
+      // a tag that only repeats the heading is dropped; under "Others" it shows the attitude
+      addList(sub,opts.hideTag||lab==='Party'||(opts.byKind&&!c.groups));
+    });
+  }else addList(list,opts.hideTag);
+  if(opts.sid){
     const f=document.createElement('form');f.className='j-add';f.dataset.jadd=c.id;
-    if(c.t){const i=document.createElement('input');i.name='t';i.placeholder=c.t;i.setAttribute('aria-label',c.n+': '+c.t);f.appendChild(i)}
-    const ta=document.createElement('textarea');ta.name='d';ta.placeholder=c.d;ta.setAttribute('aria-label',c.n+': details');f.appendChild(ta);
+    const fl=jFields(f,c);
+    if(fl.sel)fl.sel.addEventListener('change',()=>{jKind[c.id]=fl.sel.value});
     const bar=document.createElement('div');bar.className='toolbar';bar.innerHTML='<button class="btn small primary" type="submit">Add</button><span class="fine">Ctrl+Enter adds from the text box</span>';f.appendChild(bar);
-    ta.onkeydown=ev=>{if(ev.key==='Enter'&&(ev.ctrlKey||ev.metaKey)){ev.preventDefault();f.requestSubmit()}};
+    fl.ta.onkeydown=ev=>{if(ev.key==='Enter'&&(ev.ctrlKey||ev.metaKey)){ev.preventDefault();f.requestSubmit()}};
     f.onsubmit=ev=>{
-      ev.preventDefault();
-      const t=c.t?f.elements.t.value.trim():'',d=ta.value.trim();
-      if(!t&&!d){(c.t?f.elements.t:ta).focus();return}
-      J().entries.push({id:uid(),sid:sid,cat:c.id,t:t,d:d,done:false});
-      jFocus=c.id;save();renderJournal();
+      ev.preventDefault();const v=fl.read();
+      if(!v.t&&!v.d){fl.first.focus();return}
+      const e={id:uid(),sid:opts.sid,cat:c.id,t:v.t,d:v.d,done:false};if(v.k)e.k=v.k;
+      J().entries.push(e);jFocus=c.id;save();renderJournal();
     };
     p.appendChild(f);
   }
   return p;
 }
-function jItem(e,c,showSess){
-  const li=document.createElement('li');li.className='j-item'+(e.done?' done':'');
+function jItem(e,c,showSess,hideTag){
+  const li=document.createElement('li');li.className='j-item'+(e.done&&canTick(c,e)?' done':'');
   if(jEdit===e.id){
     const f=document.createElement('form');f.className='j-editf';
-    if(c.t){const i=document.createElement('input');i.name='t';i.value=e.t||'';i.placeholder=c.t;i.setAttribute('aria-label',c.t);f.appendChild(i)}
-    const ta=document.createElement('textarea');ta.name='d';ta.value=e.d||'';ta.placeholder=c.d;ta.setAttribute('aria-label','Details');f.appendChild(ta);
+    const fl=jFields(f,c,e);
     const bar=document.createElement('div');bar.className='toolbar';bar.innerHTML='<button class="btn small primary" type="submit">Save</button><button class="btn small" type="button">Cancel</button>';f.appendChild(bar);
     bar.children[1].onclick=()=>{jEdit=null;renderJournal()};
     f.onsubmit=ev=>{
-      ev.preventDefault();
-      const t=c.t?f.elements.t.value.trim():'',d=ta.value.trim();
-      if(!t&&!d){(c.t?f.elements.t:ta).focus();return}
-      e.t=t;e.d=d;jEdit=null;save();renderJournal();
+      ev.preventDefault();const v=fl.read();
+      if(!v.t&&!v.d){fl.first.focus();return}
+      e.t=v.t;e.d=v.d;if(v.k)e.k=v.k;jEdit=null;save();renderJournal();
     };
     li.appendChild(f);
-    setTimeout(()=>(c.t?f.elements.t:ta).focus(),0);
+    setTimeout(()=>fl.first.focus(),0);
     return li;
   }
-  if(c.check){
+  if(canTick(c,e)){
     const cb=document.createElement('input');cb.type='checkbox';cb.checked=!!e.done;cb.setAttribute('aria-label','Done: '+(e.t||e.d));
     cb.onchange=()=>{e.done=cb.checked;save();renderJournal()};li.appendChild(cb);
   }
   const tx=document.createElement('div');tx.className='j-txt';
-  if(e.t){const b=document.createElement('b');b.textContent=e.t;tx.appendChild(b)}
+  const kd=kindOf(c,e.k);
+  if(e.t||(kd&&!hideTag)){
+    const top=document.createElement('span');top.className='j-top';
+    if(kd&&!hideTag){const tg=document.createElement('span');tg.className='pill j-tag';tg.dataset.k=kd[0];tg.textContent=kd[1];top.appendChild(tg)}
+    if(e.t){const b=document.createElement('b');b.textContent=e.t;top.appendChild(b)}
+    tx.appendChild(top);
+  }
   if(e.d){const d=document.createElement('span');d.className='d';d.textContent=e.d;tx.appendChild(d)}
   if(showSess){const x=jSession(e.sid);if(x){const m=document.createElement('span');m.className='sess';m.textContent=sessLabel(x)+(x.date?' · '+fmtDate(x.date):'');tx.appendChild(m)}}
   const acts=document.createElement('span');acts.className='j-acts';
@@ -2165,13 +2213,13 @@ function jItem(e,c,showSess){
 function renderJAll(body){
   const j=J();
   const tools=document.createElement('section');tools.className='panel';
-  tools.innerHTML='<div class="j-tools"><input type="search" id="j-q" placeholder="Search every session: names, places, facts" aria-label="Search the journal"></div><div class="filters" role="group" aria-label="Show"></div>';
+  tools.innerHTML='<div class="j-tools"><input type="search" id="j-q" placeholder="Search every session: names, places, facts" aria-label="Search the journal"></div><div class="filters" role="group" aria-label="Show"></div><div class="filters j-kf" role="group" aria-label="Type" hidden></div>';
   const qi=tools.querySelector('#j-q');qi.value=jQ;
-  const fw=tools.querySelector('.filters');
-  [['all','Everything']].concat(JCATS.map(c=>[c.id,c.n]),[['sum','Session summaries']]).forEach(([k,l])=>{
-    const b=document.createElement('button');b.type='button';b.textContent=l;b.setAttribute('aria-pressed',String(jCat===k));
-    b.onclick=()=>{jCat=k;renderJournal()};fw.appendChild(b);
-  });
+  const chips=(w,list,cur,set)=>list.forEach(([k,l])=>{const b=document.createElement('button');b.type='button';b.textContent=l;b.setAttribute('aria-pressed',String(cur===k));b.onclick=()=>{set(k);renderJournal()};w.appendChild(b)});
+  chips(tools.querySelector('.filters'),[['all','Everything']].concat(JCATS.map(c=>[c.id,c.n]),[['sum','Session summaries']]),jCat,k=>{jCat=k;jKindF='all'});
+  // a second row narrows Characters or Leads & places to one type
+  const cc=JCAT(jCat);
+  if(cc&&cc.kinds){const kw=tools.querySelector('.j-kf');kw.hidden=false;chips(kw,[['all','All types']].concat(cc.kinds.map(([k,l])=>[k,l])),jKindF,k=>{jKindF=k})}
   body.appendChild(tools);
   const res=document.createElement('div');res.className='journal';body.appendChild(res);
   const order=Object.fromEntries(j.sessions.map((x,i)=>[x.id,i]));
@@ -2182,12 +2230,12 @@ function renderJAll(body){
     const g=document.createElement('div');g.className='j-grid';
     JCATS.forEach(c=>{
       if(jCat!=='all'&&jCat!==c.id)return;
-      let list=j.entries.filter(e=>e.cat===c.id&&m(e.t,e.d));
+      let list=j.entries.filter(e=>e.cat===c.id&&(jKindF==='all'||!c.kinds||kindOf(c,e.k)[0]===jKindF)&&m(e.t,e.d,c.kinds?kindOf(c,e.k)[1]:''));
       if(q&&!list.length&&jCat==='all')return;
-      // people and places read best alphabetically; the rest newest first, open items on top
-      if(c.t&&!c.check)list.sort((a,b)=>(a.t||'').localeCompare(b.t||'')||order[a.sid]-order[b.sid]);
-      else list.sort((a,b)=>(c.check?(a.done-b.done):0)||order[b.sid]-order[a.sid]);
-      g.appendChild(jPanel(c,list,null,q?'Nothing matches.':'Nothing noted yet.'));
+      // characters read best alphabetically; everything else newest first, with open items on top
+      if(c.id==='people')list.sort((a,b)=>(a.t||'').localeCompare(b.t||'')||order[a.sid]-order[b.sid]);
+      else list.sort((a,b)=>(canTick(c,a)&&a.done)-(canTick(c,b)&&b.done)||order[b.sid]-order[a.sid]);
+      g.appendChild(jPanel(c,list,{all:true,byKind:jKindF==='all',hideTag:jKindF!=='all',empty:q?'Nothing matches.':'Nothing noted yet.'}));
     });
     if(g.children.length)res.appendChild(g);
     if(jCat==='all'||jCat==='sum'){
