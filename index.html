@@ -376,6 +376,17 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
 .dlg-in{padding:16px;display:flex;flex-direction:column;gap:12px}
 .dlg-sum{margin:0;padding:10px 12px;background:var(--accent-soft);border-radius:8px}
 .dlg h3{margin:0;font-family:var(--display);font-size:1.25rem}
+.bk-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:8px}
+.bk-cmp{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
+.bk-card{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:9px 11px;display:flex;flex-direction:column;gap:3px;align-items:flex-start;min-width:0}
+.bk-card .k{font-size:.64rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.bk-card .top{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.bk-card .mt{font-size:.74rem;color:var(--muted)}
+.bk-card .sd{font-size:.86rem}
+.bk-card .facts{display:flex;flex-direction:column;gap:1px;font-size:.78rem;color:var(--accent);font-family:var(--mono)}
+.bk-card .facts:empty{display:none}
+.bk-card .x{padding-left:0}
+.bk-card .full{margin:0;font-size:.86rem;border-top:1px dashed var(--line);padding-top:6px}
 .bk-chips{display:flex;flex-wrap:wrap;gap:6px}
 .bk-chips span{font-size:.82rem;padding:3px 10px;border-radius:999px;border:1px solid var(--line);background:var(--bg)}
 .bk-chips span.r{border-style:dashed}
@@ -1590,14 +1601,40 @@ function openRest(kind){
 function closeRest(){const d=$('rest-dlg');if(d.open)d.close()}
 $('rest-dlg').addEventListener('close',()=>{bk=null});
 $('rest-x').onclick=closeRest;
+// What a spell does for Ash, in numbers: how it hits, and what it costs.
+function spellFacts(n){
+  const d=SPELL_DB[n];if(!d)return [];
+  const dc=8+PB+mod('cha'),dl=x=>x.map(([c,s])=>`${c}d${s}`).join('+'),f=[];
+  if(d.weapon)f.push(`Dagger attack ${sg(spellAtk())} · 1d4${sg(mod('cha'))} Piercing or Radiant`);
+  else if(d.atk&&d.dice)f.push(`Spell attack ${sg(spellAtk())} · ${dl(d.dice)} ${d.type}`);
+  else if(d.save)f.push(`DC ${dc} ${d.save[0].toUpperCase()+d.save.slice(1,3)} save`+(d.dice?` · ${dl(d.dice)} ${d.type}`+(d.alt?` (${dl(d.alt.dice)} ${d.alt.label})`:''):''));
+  if(d.c)f.push('Concentration: ends Hex');
+  if(d.ritual)f.push('Ritual: no slot, +10 min');
+  return f;
+}
+// A compact card for one spell, with its full rules behind More.
+function spellCard(k,n,label){
+  const d=SPELL_DB[n]||{},o=bookOptions(k).find(x=>x.n===n)||{},c=catOf(k,n);
+  const el=document.createElement('div');el.className='bk-card';
+  el.innerHTML='<span class="k"></span><span class="top"><b></b></span><span class="mt"></span><span class="sd"></span><span class="facts"></span><button type="button" class="x">More</button><p class="full" hidden></p>';
+  el.querySelector('.k').textContent=label;
+  el.querySelector('b').textContent=n;
+  if(c){const t=document.createElement('span');t.className='pill';t.textContent=c.n;el.querySelector('.top').appendChild(t)}
+  el.querySelector('.mt').textContent=d.m||'';
+  el.querySelector('.sd').textContent=o.s||'';
+  const fx=el.querySelector('.facts');spellFacts(n).forEach(t=>{const x=document.createElement('span');x.textContent=t;fx.appendChild(x)});
+  const full=el.querySelector('.full');full.textContent=(d.t||'').replace(/\{dc\}/g,8+PB+mod('cha'));
+  const more=el.querySelector('.x');more.setAttribute('aria-expanded','false');
+  more.onclick=()=>{full.hidden=!full.hidden;more.textContent=full.hidden?'More':'Less';more.setAttribute('aria-expanded',String(!full.hidden))};
+  return el;
+}
 function renderBook(){
   const w=$('book-ed');w.innerHTML='';
   const h=document.createElement('h3');h.textContent='Book of Shadows';w.appendChild(h);
   if(!bk.edit){
     const p=document.createElement('p');p.className='fine';p.textContent='At the end of a rest you can conjure a new book with different cantrips and rituals, or keep the one you have.';w.appendChild(p);
-    const ch=document.createElement('div');ch.className='bk-chips';
-    book().cantrips.forEach(n=>{const x=document.createElement('span');x.textContent=n;ch.appendChild(x)});
-    book().rituals.forEach(n=>{const x=document.createElement('span');x.className='r';x.textContent=n+' (ritual)';ch.appendChild(x)});
+    const ch=document.createElement('div');ch.className='bk-cards';
+    Object.keys(BK_KINDS).forEach(k=>book()[k].forEach((n,i)=>ch.appendChild(spellCard(k,n,`${BK_KINDS[k][0]} ${i+1}`))));
     w.appendChild(ch);
     const bar=document.createElement('div');bar.className='toolbar';
     const keep=document.createElement('button');keep.className='btn primary';keep.textContent='Keep this book';keep.onclick=closeRest;
@@ -1619,6 +1656,14 @@ function renderBook(){
     slots.appendChild(b);
   }));
   w.appendChild(slots);
+  // the selected slot's spell now, next to its replacement if one is picked, to compare before saving
+  {
+    const k0=bk.slot.k,i0=bk.slot.i,was=book()[k0][i0],now=bk.draft[k0][i0];
+    const cmp=document.createElement('div');cmp.className='bk-cards bk-cmp';
+    cmp.appendChild(spellCard(k0,was,`In your book now · ${BK_KINDS[k0][0]} ${i0+1}`));
+    if(now!==was)cmp.appendChild(spellCard(k0,now,'Swapping in'));
+    w.appendChild(cmp);
+  }
   // the picker for the selected slot
   const k=bk.slot.k;
   const pick=document.createElement('div');pick.className='bk-pick';
