@@ -370,6 +370,36 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
 .eq li input,.eq li textarea{border-color:transparent;background:transparent}
 .eq li input:hover,.eq li input:focus,.eq li textarea:hover,.eq li textarea:focus{border-color:var(--line);background:var(--surface)}
 .eq-add{padding-top:8px;border-top:1px solid var(--line)}
+/* rest dialog and Book of Shadows editor */
+.dlg{border:1px solid var(--line);border-radius:12px;padding:0;background:var(--surface);color:var(--ink);width:min(720px,calc(100vw - 24px));max-height:calc(100dvh - 24px)}
+.dlg::backdrop{background:rgba(0,0,0,.5)}
+.dlg-in{padding:16px;display:flex;flex-direction:column;gap:12px}
+.dlg-sum{margin:0;padding:10px 12px;background:var(--accent-soft);border-radius:8px}
+.dlg h3{margin:0;font-family:var(--display);font-size:1.25rem}
+.bk-chips{display:flex;flex-wrap:wrap;gap:6px}
+.bk-chips span{font-size:.82rem;padding:3px 10px;border-radius:999px;border:1px solid var(--line);background:var(--bg)}
+.bk-chips span.r{border-style:dashed}
+.bk-slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.bk-slot{text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:7px 10px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.bk-slot[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.bk-slot .k{font-size:.64rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.bk-slot b{overflow-wrap:anywhere}
+.bk-slot .was{font-size:.72rem;color:var(--warn)}
+.bk-pick{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);padding-top:10px}
+.bk-pick input[type=search]{padding:7px 10px;width:100%}
+.bk-list{display:flex;flex-direction:column}
+.bk-opt{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;padding:8px 6px;border-top:1px dashed var(--line);align-items:start}
+.bk-opt:first-child{border-top:0}
+.bk-opt.cur{background:var(--accent-soft);border-radius:6px}
+.bk-opt .nm{font-weight:600}
+.bk-opt .mt{font-size:.74rem;color:var(--muted)}
+.bk-opt .why{font-size:.74rem;color:var(--warn)}
+.bk-opt .acts{display:flex;gap:4px;grid-row:1/4;grid-column:2;align-items:flex-start}
+.bk-opt .full{grid-column:1/-1;font-size:.86rem;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;margin-top:4px;display:flex;flex-direction:column;gap:4px}
+.bk-opt .full p{margin:0}
+.bk-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;position:sticky;bottom:0;background:var(--surface);padding:10px 0;margin-bottom:-16px;border-top:1px solid var(--line)}
+.dlg-in:has(.bk-foot){padding-bottom:16px}
+.dc{font-size:.85rem;color:var(--muted)}
 /* journal */
 .journal{display:flex;flex-direction:column;gap:16px}
 .j-meta{display:flex;gap:10px 18px;flex-wrap:wrap}
@@ -558,7 +588,7 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
           <h2>Each turn you get</h2>
           <dl class="g-list">
             <dt>Move</dt><dd>Up to 30 ft, which you can split before and after your action.</dd>
-            <dt>1 Action</dt><dd>Usually casting a spell (Eldritch Blast, Shocking Grasp, Minor Illusion).</dd>
+            <dt>1 Action</dt><dd>Usually casting a spell: Eldritch Blast, Minor Illusion, or a cantrip from your Book of Shadows (<span data-g="bookc">Guidance, Shocking Grasp, Mage Hand</span>).</dd>
             <dt>1 Bonus Action</dt><dd>Only if something gives you one. For Ash: casting Hex, moving Hex, or casting Armor of Agathys.</dd>
             <dt>1 Reaction</dt><dd>One per round, even on other turns. For Ash, usually an Opportunity Attack with the dagger.</dd>
             <dt>Free interaction</dt><dd>One small thing, like drawing your dagger or opening a door.</dd>
@@ -571,7 +601,8 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
             <li><b>First turn:</b> Bonus Action <i>Hex</i> on the most dangerous enemy you can see, then Action <i>Eldritch Blast</i> it. Your slot is now spent.</li>
             <li><b>Every turn after:</b> Eldritch Blast. Each hit adds Hex's 1d6.</li>
             <li><b>Target drops?</b> On a later turn, use your Bonus Action to move Hex to a new enemy. No slot needed while you keep concentrating.</li>
-            <li><b>Enemy next to you?</b> Ranged attacks have Disadvantage when an enemy is within 5 ft. Use <i>Shocking Grasp</i> so it can't make Opportunity Attacks, then walk away.</li>
+            <li data-book="Shocking Grasp"><b>Enemy next to you?</b> Ranged attacks have Disadvantage when an enemy is within 5 ft. Use <i>Shocking Grasp</i> so it can't make Opportunity Attacks, then walk away.</li>
+            <li data-nobook="Shocking Grasp"><b>Enemy next to you?</b> Ranged attacks have Disadvantage when an enemy is within 5 ft. Take the Disengage action and walk away, or put <i>Shocking Grasp</i> in your book at the next rest.</li>
             <li><b>Expecting melee?</b> Cast <i>Armor of Agathys</i> before the fight instead of Hex.</li>
           </ol>
           <p class="fine">Hex lasts up to 1 hour. If you keep concentrating, it can carry into the next fight.</p>
@@ -579,7 +610,7 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
         <section class="panel">
           <h2>Concentration</h2>
           <ul class="g-ul">
-            <li>You can hold <b>one</b> Concentration spell at a time. Ash's are <i>Hex</i> and <i>Guidance</i>; starting one ends the other.</li>
+            <li>You can hold <b>one</b> Concentration spell at a time. Ash's are <i>Hex</i> and any Book of Shadows spell marked Conc.; starting one ends the other.</li>
             <li>When you take damage, make a Constitution save (<span data-g="con">+2</span>). The DC is 10 or half the damage, whichever is higher (max 30). Fail and the spell ends.</li>
             <li>It also ends if you're Incapacitated or drop to 0 HP.</li>
             <li>The sheet's Concentrating box tracks which spell is active and reminds you to save when you take damage.</li>
@@ -599,9 +630,9 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
           <ul class="g-ul g-warn">
             <li>Casting Hex and Armor of Agathys on the same turn.</li>
             <li>Forgetting Hex's 1d6 on every hit.</li>
-            <li>Blasting while an enemy stands next to you. That's Disadvantage; Shocking Grasp first.</li>
+            <li>Blasting while an enemy stands next to you. That's Disadvantage; <span data-book="Shocking Grasp">Shocking Grasp</span><span data-nobook="Shocking Grasp">Disengage</span> first.</li>
             <li>Holding the slot "for later". It comes back on a Short Rest.</li>
-            <li>Casting Guidance in combat and losing Hex.</li>
+            <li>Casting a Concentration cantrip like Guidance in combat and losing Hex.</li>
           </ul>
         </section>
         <section class="panel">
@@ -656,7 +687,7 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
           <ul class="g-ul">
             <li><i>Deception</i> (+5) keeps a disguise or a lie believable. <i>Persuasion</i> (+5) for honest asks, <i>Intimidation</i> (+5) for threats.</li>
             <li><i>Insight</i> (+3) tells you if someone is lying or suspicious of you.</li>
-            <li>Cast <i>Guidance</i> before an important check: +1d4. It needs Concentration, so drop Hex first.</li>
+            <li data-book="Guidance">Cast <i>Guidance</i> before an important check: +1d4. It needs Concentration, so drop Hex first.</li>
             <li>In the Feywild, words and bargains matter. Listen for exact wording in any deal.</li>
           </ul>
         </section>
@@ -664,7 +695,7 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
           <h2>Quiet magic</h2>
           <ul class="g-ul">
             <li><i>Minor Illusion</i>: a voice calling from another room, a crate to hide behind. Physical contact or a careful look reveals it.</li>
-            <li><i>Mage Hand</i>: lift keys, open doors and plant small items from 30 ft away.</li>
+            <li data-book="Mage Hand"><i>Mage Hand</i>: lift keys, open doors and plant small items from 30 ft away.</li>
             <li>Cantrips never use your slot, so use them freely.</li>
           </ul>
         </section>
@@ -672,8 +703,9 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
           <h2>Rituals from your book</h2>
           <ul class="g-ul">
             <li>Rituals cost no slot but take <b>10 extra minutes</b>. Plan them for quiet moments.</li>
-            <li><i>Comprehend Languages</i>: read a letter or understand a conversation for an hour (Sylvan is common here).</li>
-            <li><i>Find Familiar</i>: takes about 1 hour 10 minutes as a ritual and burns 10 GP of incense.</li>
+            <li>Your book's rituals right now: <i data-g="rituals">Find Familiar and Comprehend Languages</i>. Cast one with your pact slot instead to skip the extra 10 minutes.</li>
+            <li data-book="Comprehend Languages"><i>Comprehend Languages</i>: read a letter or understand a conversation for an hour (Sylvan is common here).</li>
+            <li data-book="Find Familiar"><i>Find Familiar</i>: takes about 1 hour 10 minutes as a ritual and burns 10 GP of incense.</li>
             <li>Casting a ritual interrupts a Short or Long Rest. Do it before or after.</li>
           </ul>
         </section>
@@ -743,11 +775,11 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
           <ul class="g-ul">
             <li><b>Pact slot comes back.</b> The big one for a Warlock.</li>
             <li>Spend Hit Point Dice to heal: roll <span data-g="hd">1d8+2</span> per die. Ash has 1 die at level 1.</li>
-            <li>Conjure a new Book of Shadows with fresh picks, if you like.</li>
+            <li>Conjure a new Book of Shadows with fresh picks, if you like. The sheet asks after every rest.</li>
             <li>Interrupted by rolling Initiative, taking damage, or casting any spell except a cantrip, including rituals.</li>
             <li>Ask for one whenever your slot is spent. Most groups take one or two per day.</li>
           </ul>
-          <p class="fine">On the sheet: <b>Short rest</b> restores the slot; then use <b>Spend &amp; roll</b> under Hit Points.</p>
+          <p class="fine">On the sheet: <b>Short rest</b> restores the slot and offers to rewrite your book; then use <b>Spend &amp; roll</b> under Hit Points.</p>
         </section>
         <section class="panel g-rest">
           <h2>Long Rest <span class="g-tag">8 hours</span></h2>
@@ -755,7 +787,7 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
             <li>Regain <b>all HP</b>, <b>all Hit Point Dice</b> and all pact slots.</li>
             <li>Magical Cunning (level 2+) can be used again.</li>
             <li>Remove 1 level of Exhaustion.</li>
-            <li>Conjure a new Book of Shadows with fresh picks, if you like.</li>
+            <li>Conjure a new Book of Shadows with fresh picks, if you like. The sheet asks after every rest.</li>
             <li>At least 6 hours of sleep; up to 2 hours of light activity like talking, reading or keeping watch.</li>
             <li>Interrupted by Initiative, damage, casting a non-cantrip spell, or an hour of walking or hard work. If at least 1 hour passed first, you still get Short Rest benefits.</li>
             <li>Only one Long Rest per 24 hours.</li>
@@ -904,11 +936,11 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
             <tbody id="attacks"></tbody>
           </table>
         </div>
-        <p class="fine">While you concentrate on Hex, its 1d6 Necrotic is added to damage rolls. Untick the box above when attacking a creature that isn't cursed. A natural 20 on an attack makes the next damage roll for it a critical hit, with the dice doubled.</p>
+        <p class="fine">While you concentrate on Hex, its 1d6 Necrotic is added to attack damage (not to saving-throw spells). Untick the box above when attacking a creature that isn't cursed. A natural 20 on an attack makes the next damage roll for it a critical hit, with the dice doubled.</p>
       </section>
 
       <section class="panel">
-        <div class="panel-head"><h2>Spellcasting</h2><span class="fine">Charisma · Arcane focus</span></div>
+        <div class="panel-head"><h2>Spellcasting</h2><span class="toolbar"><span class="fine">Charisma · Arcane focus</span><button class="btn small" id="book-edit">Change book</button></span></div>
         <div class="slots">
           <span class="label">Pact slot (1st level)</span>
           <button class="pip" id="pip" aria-label="Pact slot"></button>
@@ -1011,6 +1043,14 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
   </div>
 </div>
 
+<dialog class="dlg" id="rest-dlg" aria-labelledby="rest-h">
+  <div class="dlg-in">
+    <div class="panel-head"><h2 id="rest-h"></h2><button class="x" type="button" id="rest-x">Close</button></div>
+    <p class="dlg-sum" id="rest-sum"></p>
+    <div id="book-ed"></div>
+  </div>
+</dialog>
+
 <div class="log" id="log" aria-live="polite"></div>
 <div class="tip" id="tip" role="tooltip" hidden><strong id="tip-h"></strong><span class="tip-math" id="tip-m"></span><span id="tip-b"></span></div>
 
@@ -1024,8 +1064,9 @@ const SKILLS=[['Acrobatics','dex'],['Animal Handling','wis'],['Arcana','int'],['
 const DEFAULT_PROF={'Arcana':'Warlock','Intimidation':'Warlock','Deception':'Charlatan','Sleight of Hand':'Charlatan','Insight':'Changeling','Persuasion':'Changeling','Perception':'Skilled','Stealth':'Skilled'};
 const TOOLS=[['Thieves’ Tools','dex','Skilled'],['Forgery Kit','dex','Charlatan']];
 
+const DEF_BOOK={cantrips:['Guidance','Shocking Grasp','Mage Hand'],rituals:['Find Familiar','Comprehend Languages']};
 const DEF_EQUIP=['Studded Leather Armor','Dagger','Arcane Focus (crystal, styled as charred bone)','Book of Shadows','Fine Clothes','Costume','Forgery Kit','Thieves’ Tools','Explorer’s Pack','Incense for Find Familiar (10 GP per casting)'].map(n=>({n:n,q:1}));
-const DEF={ab:{str:8,dex:14,con:14,int:10,wis:12,cha:17},prof:Object.assign({},DEFAULT_PROF),hp:10,temp:0,hd:1,slot:true,conc:null,aoa:false,hexOn:true,ds:{},fx:[],equip:DEF_EQUIP,journal:{sessions:[],entries:[],cur:null,view:'session'},gold:23,lang:'Common, (choose two)',notes:''};
+const DEF={ab:{str:8,dex:14,con:14,int:10,wis:12,cha:17},prof:Object.assign({},DEFAULT_PROF),hp:10,temp:0,hd:1,slot:true,conc:null,aoa:false,hexOn:true,ds:{},fx:[],equip:DEF_EQUIP,book:DEF_BOOK,journal:{sessions:[],entries:[],cur:null,view:'session'},gold:23,lang:'Common, (choose two)',notes:''};
 const clone=o=>JSON.parse(JSON.stringify(o));
 // Fill in fields that saves from older versions of the sheet don't have yet.
 function normalize(d){
@@ -1036,6 +1077,7 @@ function normalize(d){
   if(!Array.isArray(n.fx))n.fx=[];
   delete n.mode; // the roll-mode switch was removed
   if(!Array.isArray(n.equip))n.equip=clone(DEF_EQUIP);
+  if(!n.book||!Array.isArray(n.book.cantrips)||!Array.isArray(n.book.rituals))n.book=clone(DEF_BOOK);
   if(!n.journal||typeof n.journal!=='object')n.journal=clone(DEF.journal);
   if(!Array.isArray(n.journal.sessions))n.journal.sessions=[];
   if(!Array.isArray(n.journal.entries))n.journal.entries=[];
@@ -1086,11 +1128,11 @@ function attackRoll(name,bonus){
   critFor=k===20?name:null;
   if(k===20)toast('Critical hit','Roll damage next: the dice are doubled automatically.','×2','crit');
 }
-function dmg(title,dice,flat,type){
-  // dice: [[count,sides,label]]
-  const crit=critFor===title;critFor=null;
+function dmg(title,dice,flat,type,isSave){
+  // dice: [[count,sides,label]]. isSave: damage from a saving throw, which Hex and critical hits don't touch.
+  const crit=!isSave&&critFor===title;critFor=null;
   const all=dice.slice();
-  if(hexApplies())all.push([1,6,'Hex']);
+  if(hexApplies()&&!isSave)all.push([1,6,'Hex']);
   let tot=flat||0;const parts=[];
   all.forEach(([c,s,l])=>{c=crit?c*2:c;const r=[];for(let i=0;i<c;i++)r.push(d(s));tot+=r.reduce((x,y)=>x+y,0);parts.push(`${c}d${s}${l?' '+l:''} [${r.join(',')}]`)});
   if(flat)parts.push(sg(flat));
@@ -1156,7 +1198,9 @@ function renderVitals(){
   $('v-dc').textContent=8+PB+mod('cha');
   $('v-sa').textContent=sg(spellAtk());
   // keep the play guide's numbers in step with the sheet
-  const g={dc:String(8+PB+mod('cha')),atk:sg(spellAtk()),con:sg(mod('con')),hd:'1d8'+sg(mod('con')),lvlhp:String(Math.max(1,5+mod('con')))};
+  const g={dc:String(8+PB+mod('cha')),atk:sg(spellAtk()),con:sg(mod('con')),hd:'1d8'+sg(mod('con')),lvlhp:String(Math.max(1,5+mod('con'))),rituals:book().rituals.join(' and '),bookc:book().cantrips.join(', ')};
+  document.querySelectorAll('[data-book]').forEach(el=>el.hidden=!inBook(el.dataset.book));
+  document.querySelectorAll('[data-nobook]').forEach(el=>el.hidden=inBook(el.dataset.nobook));
   document.querySelectorAll('[data-g]').forEach(el=>{if(g[el.dataset.g])el.textContent=g[el.dataset.g]});
 }
 $('v-init-btn').onclick=()=>d20('Initiative',mod('dex'));
@@ -1277,21 +1321,27 @@ $('ds-roll').onclick=()=>{
 };
 
 /* ---------- attacks ---------- */
+// How a damaging spell rolls: an attack (hit bonus) or a saving throw (save ability). Null if it deals no damage.
+function atkRow(sp){
+  if(sp.weapon)return {n:sp.n,note:sp.note,hit:spellAtk(),dice:[[1,4]],flat:mod('cha'),type:'Piercing or Radiant'};
+  if(!sp.dice)return null;
+  return {n:sp.n,note:sp.note||'',hit:sp.atk?spellAtk():null,save:sp.save?sp.save.toUpperCase().slice(0,1)+sp.save.slice(1,3):null,dice:sp.dice,flat:0,type:sp.type,alt:sp.alt};
+}
 function renderAttacks(){
-  const fin=Math.max(mod('str'),mod('dex'));
-  const rows=[
-    {n:'Eldritch Blast',note:'120 ft · Force',hit:spellAtk(),dice:[[1,10]],flat:0,type:'Force'},
-    {n:'Shocking Grasp',note:'Touch · no Opportunity Attacks',hit:spellAtk(),dice:[[1,8]],flat:0,type:'Lightning'},
-    {n:'Dagger',note:'Finesse, light, thrown 20/60',hit:PB+fin,dice:[[1,4]],flat:fin,type:'Piercing'}
-  ];
+  const fin=Math.max(mod('str'),mod('dex')),dc=8+PB+mod('cha');
+  const rows=spellList().filter(x=>!x.g&&x.lvl===0).map(atkRow).filter(Boolean)
+    .concat([{n:'Dagger',note:'Finesse, light, thrown 20/60',hit:PB+fin,dice:[[1,4]],flat:fin,type:'Piercing'}]);
   const tb=$('attacks');tb.innerHTML='';
   rows.forEach(a=>{
     const tr=document.createElement('tr');
-    const dl=a.dice.map(([c,s])=>`${c}d${s}`).join('+')+(a.flat?sg(a.flat):'')+(hexApplies()?' +1d6':'');
-    tr.innerHTML=`<td><strong>${a.n}</strong><span class="note">${a.note}</span></td><td><button class="rb">${sg(a.hit)}</button></td><td><button class="rb">${dl}</button></td>`;
-    const [hb,db]=tr.querySelectorAll('.rb');
-    hb.onclick=()=>attackRoll(a.n,a.hit);
-    db.onclick=()=>dmg(a.n,a.dice,a.flat,a.type);
+    // Hex only adds to attack rolls, never to saving-throw damage
+    const dl=d=>d.map(([c,s])=>`${c}d${s}`).join('+')+(a.flat?sg(a.flat):'')+(hexApplies()&&!a.save?' +1d6':'');
+    tr.innerHTML=`<td><strong></strong><span class="note"></span></td><td>${a.save?`<span class="dc num">DC ${dc} ${a.save}</span>`:`<button class="rb">${sg(a.hit)}</button>`}</td><td><button class="rb">${dl(a.dice)}</button>${a.alt?` <button class="rb">${dl(a.alt.dice)} ${a.alt.label}</button>`:''}</td>`;
+    tr.querySelector('strong').textContent=a.n;tr.querySelector('.note').textContent=a.note;
+    const bs=[...tr.querySelectorAll('.rb')];
+    if(!a.save)bs.shift().onclick=()=>attackRoll(a.n,a.hit);
+    bs[0].onclick=()=>dmg(a.n,a.dice,a.flat,a.type,!!a.save);
+    if(a.alt)bs[1].onclick=()=>dmg(a.n,a.alt.dice,0,a.type,!!a.save);
     tb.appendChild(tr);
   });
   $('hex-row').hidden=S.conc!=='Hex';
@@ -1300,29 +1350,86 @@ function renderAttacks(){
 $('hex-on').onchange=e=>{S.hexOn=e.target.checked;save();renderAll()};
 
 /* ---------- spells ---------- */
-const SPELLS=[
- {g:'Cantrips · Warlock'},
- {n:'Eldritch Blast',m:'Action · 120 ft · Instant',atk:true,dice:[[1,10]],type:'Force',t:'Ranged spell attack. On a hit, 1d10 Force damage. You fire more beams at levels 5, 11 and 17.'},
- {n:'Minor Illusion',dur:60,m:'Action · 30 ft · 1 minute',t:'Create a sound or an image within range. A sound can be anything from a whisper to a scream, at whatever volume you choose. An image is an object no larger than a 5-ft cube; it can’t create sound, light or smell, and physical contact reveals it as an illusion. A creature can take the Study action and make an Intelligence (Investigation) check against your DC ({dc}) to see through it. Components: gesture and a bit of fleece. No Concentration, so it works alongside Hex.'},
- {g:'Cantrips · Book of Shadows'},
- {n:'Guidance',dur:60,m:'Action · Touch · Conc. up to 1 min',c:true,t:'Touch a willing creature and choose a skill. Until the spell ends, the creature adds 1d4 to any ability check using that skill.'},
- {n:'Shocking Grasp',m:'Action · Touch · Instant',atk:true,dice:[[1,8]],type:'Lightning',t:'Melee spell attack. On a hit, 1d8 Lightning damage, and the target can’t make Opportunity Attacks until the start of its next turn.'},
- {n:'Mage Hand',dur:60,m:'Action · 30 ft · 1 minute',t:'A spectral hand appears. As a Magic action you can move it up to 30 ft and manipulate an object, open a container, or retrieve an item. It can’t attack, activate magic items, or carry more than 10 lb. Using tools through it is the DM’s call.'},
- {g:'1st level · Prepared (uses pact slot)'},
- {n:'Hex',dur:3600,m:'Bonus Action · 90 ft · Conc. up to 1 hr',c:true,slot:true,t:'Curse a creature. You deal an extra 1d6 Necrotic damage whenever you hit it with an attack roll, and it has Disadvantage on ability checks with one ability you choose. If it drops to 0 HP, you can move the curse to a new creature with a Bonus Action.'},
- {n:'Armor of Agathys',dur:3600,m:'Bonus Action · Self · 1 hour',slot:true,aoa:true,t:'You gain 5 Temporary Hit Points. While you have them, any creature that hits you with a melee attack roll takes 5 Cold damage. The spell ends early when the temp HP are gone.'},
- {g:'Rituals · Book of Shadows (no slot)'},
- {n:'Find Familiar',lasting:true,castTime:4200,m:'1 hr + 10 min ritual · 10 ft · Instant',ritual:true,t:'Summon a spirit in the form of a CR 0 Beast (cat, owl, raven, spider, and so on) with the Celestial, Fey or Fiend type. Telepathic link within 100 ft; you can see through its senses. It can deliver your touch spells. Consumes 10 GP of burning incense.'},
- {n:'Comprehend Languages',dur:3600,castTime:600,m:'1 action + 10 min ritual · Self · 1 hour',ritual:true,t:'You understand the literal meaning of any spoken or signed language you hear or see, and any written language you touch. Ciphers and secret codes are not deciphered.'}
-];
-function cast(sp){
-  if(sp.slot){if(!S.slot){toast(sp.n,'No pact slot left. Take a short rest.','—','fumble');return}S.slot=false}
+// Sheet-ready entries for Ash's Warlock spells and everything the Book of Shadows can hold.
+// m: casting time · range · duration. t: rules text ({dc} becomes the spell save DC).
+// c: Concentration. dur: seconds the effect lasts (shown under Active effects). lasting: stays until dismissed.
+// atk: spell attack roll. save: the ability the target saves with. dice/type: damage. alt: a second damage roll.
+// note: short line for the Attacks table. ct: normal casting time in seconds (a ritual adds 10 minutes).
+const SPELL_DB={
+ // Warlock cantrips and prepared spells
+ 'Eldritch Blast':{lvl:0,m:'Action · 120 ft · Instant',atk:true,dice:[[1,10]],type:'Force',note:'120 ft · Force',t:'Ranged spell attack. On a hit, 1d10 Force damage. You fire more beams at levels 5, 11 and 17.'},
+ 'Minor Illusion':{lvl:0,dur:60,m:'Action · 30 ft · 1 minute',t:'Create a sound or an image within range. A sound can be anything from a whisper to a scream, at whatever volume you choose. An image is an object no larger than a 5-ft cube; it can’t create sound, light or smell, and physical contact reveals it as an illusion. A creature can take the Study action and make an Intelligence (Investigation) check against your DC ({dc}) to see through it. Components: gesture and a bit of fleece. No Concentration, so it works alongside Hex.'},
+ 'Hex':{lvl:1,dur:3600,c:true,slot:true,m:'Bonus Action · 90 ft · Conc. up to 1 hr',t:'Curse a creature. You deal an extra 1d6 Necrotic damage whenever you hit it with an attack roll, and it has Disadvantage on ability checks with one ability you choose. If it drops to 0 HP, you can move the curse to a new creature with a Bonus Action.'},
+ 'Armor of Agathys':{lvl:1,dur:3600,slot:true,aoa:true,m:'Bonus Action · Self · 1 hour',t:'You gain 5 Temporary Hit Points. While you have them, any creature that hits you with a melee attack roll takes 5 Cold damage. The spell ends early when the temp HP are gone.'},
+ // Cantrips from any class
+ 'Acid Splash':{lvl:0,m:'Action · 60 ft · Instant',save:'dex',dice:[[1,6]],type:'Acid',note:'60 ft · 5-ft radius · Dex save',t:'Hurl a bubble of acid at a point. Each creature in a 5-ft-radius sphere there makes a Dexterity save (DC {dc}) or takes 1d6 Acid damage. Damage grows at levels 5, 11 and 17.'},
+ 'Blade Ward':{lvl:0,c:true,dur:60,m:'Action · Self · Conc. up to 1 min',t:'Until the spell ends, any creature that makes an attack roll against you subtracts 1d4 from the roll. Needs Concentration, so it ends Hex.'},
+ 'Chill Touch':{lvl:0,m:'Action · Touch · Instant',atk:true,dice:[[1,10]],type:'Necrotic',note:'Touch · no healing until your next turn ends',t:'Melee spell attack. On a hit, 1d10 Necrotic damage, and the target can’t regain Hit Points until the end of your next turn. Damage grows at levels 5, 11 and 17.'},
+ 'Dancing Lights':{lvl:0,c:true,dur:60,m:'Action · 120 ft · Conc. up to 1 min',t:'Create up to four torch-sized lights, each shedding Dim Light in a 10-ft radius, or merge them into one glowing, vaguely humanoid Medium form. As a Bonus Action you can move the lights up to 60 ft. They must stay within 20 ft of each other and wink out if they leave the spell’s range.'},
+ 'Druidcraft':{lvl:0,m:'Action · 30 ft · Instant',t:'Whisper to the spirits of nature for one small effect: predict the weather at your location for the next 24 hours; make a flower bloom, a seed pod open or a leaf bud bloom; create a harmless sensory effect in a 5-ft cube, like falling leaves or a puff of wind; or light or snuff out a candle, torch or small campfire.'},
+ 'Elementalism':{lvl:0,m:'Action · 30 ft · Instant',t:'Exert a little control over the elements. Air: a breeze in a 5-ft cube. Earth: a thin cloud of dust or sand, or a word traced in dirt. Fire: harmless embers and smoke, or light a candle, torch or lamp. Water: a cool mist, or a cup of clean water in a container. Sculpt: shape dirt, sand, fire, smoke, mist or water in a 1-ft cube into a crude form for an hour.'},
+ 'Fire Bolt':{lvl:0,m:'Action · 120 ft · Instant',atk:true,dice:[[1,10]],type:'Fire',note:'120 ft · ignites objects',t:'Ranged spell attack against a creature or object. On a hit, 1d10 Fire damage. A flammable object hit by it starts burning if no one is wearing or carrying it. Damage grows at levels 5, 11 and 17.'},
+ 'Friends':{lvl:0,c:true,dur:60,save:'wis',m:'Action · 10 ft · Conc. up to 1 min',t:'Emanate a sense of friendship toward one creature you can see. It makes a Wisdom save (DC {dc}) or is Charmed by you for the duration. It succeeds automatically if it isn’t a Humanoid, if you’re fighting it, or if you cast this on it in the past 24 hours. The spell ends early if the target takes damage or you attack, deal damage or force anyone to save. When it ends, the target knows it was charmed. Components: gesture and a little makeup.'},
+ 'Guidance':{lvl:0,c:true,dur:60,m:'Action · Touch · Conc. up to 1 min',t:'Touch a willing creature and choose a skill. Until the spell ends, the creature adds 1d4 to any ability check using that skill. Needs Concentration, so it ends Hex.'},
+ 'Light':{lvl:0,dur:3600,m:'Action · Touch · 1 hour',t:'Touch an object no larger than 10 ft. It sheds Bright Light in a 20-ft radius and Dim Light for another 20 ft, in a color you choose. Covering it blocks the light. The spell ends if you cast it again. If a hostile creature holds or wears the object, it makes a Dexterity save (DC {dc}) to avoid the spell.'},
+ 'Mage Hand':{lvl:0,dur:60,m:'Action · 30 ft · 1 minute',t:'A spectral hand appears. As a Magic action you can move it up to 30 ft and manipulate an object, open a container, or retrieve an item. It can’t attack, activate magic items, or carry more than 10 lb. Using tools through it is the DM’s call.'},
+ 'Mending':{lvl:0,m:'1 minute · Touch · Instant',t:'Repair a single break or tear in an object you touch, no larger than 1 ft in any direction: a broken chain link, two halves of a key, a torn cloak, a leaking wineskin. No trace of the damage remains. It can fix a magic item’s body but not restore its magic.'},
+ 'Message':{lvl:0,dur:6,m:'Action · 120 ft · 1 round',t:'Point at a creature and whisper a message. Only it hears, and it can whisper a reply that only you hear. You can cast it through solid objects if you know the target is beyond them, but 1 ft of stone, 1 inch of metal, a sheet of lead or 3 ft of wood blocks it. The magic needn’t follow a straight line.'},
+ 'Mind Sliver':{lvl:0,save:'int',dice:[[1,6]],type:'Psychic',m:'Action · 60 ft · 1 round',note:'60 ft · Int save · −1d4 on its next save',t:'Drive a spike of psychic energy into a creature you can see. It makes an Intelligence save (DC {dc}) or takes 1d6 Psychic damage and subtracts 1d4 from the next saving throw it makes before the end of your next turn. Damage grows at levels 5, 11 and 17.'},
+ 'Poison Spray':{lvl:0,m:'Action · 30 ft · Instant',atk:true,dice:[[1,12]],type:'Poison',note:'30 ft · Poison',t:'Ranged spell attack. On a hit, 1d12 Poison damage. Many monsters resist or ignore Poison. Damage grows at levels 5, 11 and 17.'},
+ 'Prestidigitation':{lvl:0,m:'Action · 10 ft · Up to 1 hour',t:'A minor magical trick: a harmless sensory effect like sparks, a puff of wind or faint music; light or snuff a small flame; clean or soil an object up to 1 cubic ft; chill, warm or flavor up to 1 cubic ft of nonliving material for an hour; make a color, small mark or symbol appear on an object or surface for an hour; or create a trinket or illusory image that fits in your hand, lasting until the end of your next turn. Up to three of the lasting effects can be active at once.'},
+ 'Produce Flame':{lvl:0,dur:600,atk:true,dice:[[1,8]],type:'Fire',m:'Bonus Action · Self · 10 minutes',note:'Hurl it: 60 ft · Magic action',t:'A flame appears in your hand, shedding Bright Light in a 20-ft radius and Dim Light for another 20 ft. Until the spell ends, you can take a Magic action to hurl it at a creature or object within 60 ft: a ranged spell attack dealing 1d8 Fire damage on a hit. Damage grows at levels 5, 11 and 17.'},
+ 'Ray of Frost':{lvl:0,m:'Action · 60 ft · Instant',atk:true,dice:[[1,8]],type:'Cold',note:'60 ft · −10 ft Speed',t:'Ranged spell attack. On a hit, 1d8 Cold damage, and the target’s Speed drops by 10 ft until the start of your next turn. Damage grows at levels 5, 11 and 17.'},
+ 'Resistance':{lvl:0,c:true,dur:60,m:'Action · Touch · Conc. up to 1 min',t:'Touch a willing creature and choose a damage type: Acid, Bludgeoning, Cold, Fire, Lightning, Necrotic, Piercing, Poison, Radiant, Slashing or Thunder. Once per turn, when it takes that type of damage before the spell ends, it reduces the total by 1d4.'},
+ 'Sacred Flame':{lvl:0,save:'dex',dice:[[1,8]],type:'Radiant',m:'Action · 60 ft · Instant',note:'60 ft · Dex save · ignores cover',t:'Flame-like radiance descends on a creature you can see. It makes a Dexterity save (DC {dc}) or takes 1d8 Radiant damage. Half and three-quarters cover don’t help it. Damage grows at levels 5, 11 and 17.'},
+ 'Shillelagh':{lvl:0,dur:60,m:'Bonus Action · Self · 1 minute',t:'A club or quarterstaff you hold is imbued with nature’s power. You use your spellcasting ability for its attack and damage rolls, its damage die becomes a d8, and it can deal Force damage instead of its usual type. The die grows at levels 5, 11 and 17. Ends if you cast it again or let go. Ash would need a club or staff.'},
+ 'Shocking Grasp':{lvl:0,atk:true,dice:[[1,8]],type:'Lightning',m:'Action · Touch · Instant',note:'Touch · no Opportunity Attacks',t:'Melee spell attack. On a hit, 1d8 Lightning damage, and the target can’t make Opportunity Attacks until the start of its next turn. Damage grows at levels 5, 11 and 17.'},
+ 'Sorcerous Burst':{lvl:0,atk:true,dice:[[1,8]],type:'chosen type',m:'Action · 120 ft · Instant',note:'120 ft · each 8 rolled adds a d8',t:'Ranged spell attack. On a hit, 1d8 damage of a type you choose: Acid, Cold, Fire, Lightning, Poison, Psychic or Thunder. Each time you roll an 8 on a d8 for it, roll another d8 and add it, up to your spellcasting modifier in extra dice. Damage grows at levels 5, 11 and 17.'},
+ 'Spare the Dying':{lvl:0,m:'Bonus Action · 15 ft · Instant',t:'Choose a creature at 0 Hit Points that isn’t dead. It becomes Stable. The range doubles at levels 5, 11 and 17.'},
+ 'Starry Wisp':{lvl:0,atk:true,dice:[[1,8]],type:'Radiant',m:'Action · 60 ft · Instant',note:'60 ft · reveals the Invisible',t:'Ranged spell attack. On a hit, 1d8 Radiant damage, and until the end of your next turn the target sheds Dim Light in a 10-ft radius and can’t benefit from being Invisible. Damage grows at levels 5, 11 and 17.'},
+ 'Thaumaturgy':{lvl:0,dur:60,m:'Action · 30 ft · Up to 1 minute',t:'A minor wonder, a sign of supernatural power: your eyes change appearance for a minute; your voice booms three times louder for a minute; flames flicker, brighten, dim or change color; an unlocked door or window flies open or slams shut; an instant sound like a rumble of thunder or an ominous whisper; or harmless tremors in the ground. Up to three of the one-minute effects can be active at once.'},
+ 'Thorn Whip':{lvl:0,atk:true,dice:[[1,6]],type:'Piercing',m:'Action · 30 ft · Instant',note:'30 ft · pulls 10 ft closer',t:'Melee spell attack with a thorny vine against a creature within 30 ft. On a hit, 1d6 Piercing damage, and if it’s Large or smaller you can pull it up to 10 ft closer. Damage grows at levels 5, 11 and 17.'},
+ 'Thunderclap':{lvl:0,save:'con',dice:[[1,6]],type:'Thunder',m:'Action · 5-ft emanation · Instant',note:'Everyone within 5 ft · Con save',t:'Each creature within 5 ft of you makes a Constitution save (DC {dc}) or takes 1d6 Thunder damage. The sound carries up to 100 ft, so it’s bad for sneaking. Damage grows at levels 5, 11 and 17.'},
+ 'Toll the Dead':{lvl:0,save:'wis',dice:[[1,8]],type:'Necrotic',alt:{dice:[[1,12]],label:'if hurt'},m:'Action · 60 ft · Instant',note:'60 ft · Wis save · d12 if hurt',t:'A dolorous bell sounds near a creature you can see. It makes a Wisdom save (DC {dc}) or takes 1d8 Necrotic damage, or 1d12 if it’s already missing any Hit Points. Damage grows at levels 5, 11 and 17.'},
+ 'True Strike':{lvl:0,weapon:true,m:'Action · Self · Instant',note:'Dagger attack using Charisma',t:'As part of casting, make one attack with a weapon you’re proficient with, using your spellcasting ability for the attack and damage rolls. The damage can be Radiant or the weapon’s normal type. At level 5 and up the hit deals extra Radiant damage. For Ash: a dagger attack with Charisma instead of Dexterity.'},
+ 'Vicious Mockery':{lvl:0,save:'wis',dice:[[1,6]],type:'Psychic',m:'Action · 60 ft · Instant',note:'60 ft · Wis save · Disadvantage on its next attack',t:'Unleash a string of insults laced with subtle enchantment at a creature you can see that can hear you. It makes a Wisdom save (DC {dc}) or takes 1d6 Psychic damage and has Disadvantage on its next attack roll before the end of its next turn. Damage grows at levels 5, 11 and 17.'},
+ 'Word of Radiance':{lvl:0,save:'con',dice:[[1,6]],type:'Radiant',m:'Action · 5-ft emanation · Instant',note:'Chosen foes within 5 ft · Con save',t:'Burning radiance flares from you. Each creature you choose within 5 ft makes a Constitution save (DC {dc}) or takes 1d6 Radiant damage. Damage grows at levels 5, 11 and 17.'},
+ // Level 1 rituals from any class (cast as a ritual with no slot, or normally with a slot)
+ 'Alarm':{lvl:1,ritual:true,ct:60,dur:28800,m:'1 minute · 30 ft · 8 hours',t:'Ward a door, a window, or an area no larger than a 20-ft cube. Until the spell ends, an alarm alerts you whenever a creature touches or enters it. You can name creatures that won’t set it off. Audible: a hand bell rings for 10 seconds within 60 ft. Mental: a ping in your mind if you’re within 1 mile, which wakes you if you’re asleep.'},
+ 'Comprehend Languages':{lvl:1,ritual:true,ct:0,dur:3600,m:'Action · Self · 1 hour',t:'You understand the literal meaning of any spoken or signed language you hear or see, and any written language you touch (about a minute per page). Ciphers and secret codes are not deciphered.'},
+ 'Detect Magic':{lvl:1,ritual:true,ct:0,c:true,dur:600,m:'Action · Self · Conc. up to 10 min',t:'You sense the presence of magic within 30 ft. When you do, you can take a Magic action to see a faint aura around any visible creature or object there that bears magic, and learn its school of magic if any. Blocked by 1 ft of stone, dirt or wood, 1 inch of metal, or a thin sheet of lead. Needs Concentration, so it ends Hex.'},
+ 'Detect Poison and Disease':{lvl:1,ritual:true,ct:0,c:true,dur:600,m:'Action · Self · Conc. up to 10 min',t:'You sense the location of poisons, poisonous or venomous creatures, and magical contagions within 30 ft, and identify the kind of each. Blocked by 1 ft of stone, dirt or wood, 1 inch of metal, or a thin sheet of lead.'},
+ 'Find Familiar':{lvl:1,ritual:true,ct:3600,lasting:true,m:'1 hour · 10 ft · Instant',t:'Summon a spirit in the form of a CR 0 Beast (cat, owl, raven, spider, and so on) with the Celestial, Fey or Fiend type. Telepathic link within 100 ft; you can see through its senses. It can deliver your touch spells. Consumes 10 GP of burning incense.'},
+ 'Identify':{lvl:1,ritual:true,ct:60,m:'1 minute · Touch · Instant',t:'Touch an object: learn whether it’s a magic item, its properties and how to use them, whether it needs Attunement, how many charges it has, and any spells affecting it. Touch a creature instead to learn the spells currently affecting it. Needs a pearl worth 100+ GP, which isn’t used up. Ash doesn’t carry one yet.'},
+ 'Illusory Script':{lvl:1,ritual:true,ct:60,m:'1 minute · Touch · 10 days',t:'Write on parchment or paper. Creatures you choose read your real message; to everyone else it looks like unintelligible script, or a different message you write. Truesight reveals the hidden text. Needs ink worth 10+ GP, which is used up. Perfect for a forger.'},
+ 'Purify Food and Drink':{lvl:1,ritual:true,ct:0,m:'Action · 10 ft · Instant',t:'Remove poison and rot from nonmagical food and drink in a 5-ft-radius sphere.'},
+ 'Speak with Animals':{lvl:1,ritual:true,ct:0,dur:600,m:'Action · Self · 10 minutes',t:'You can understand and talk with Beasts. Their knowledge is limited by their intelligence, but most can tell you about nearby places and monsters and anything they saw in the past day. The DM may let you talk one into a small favor.'},
+ 'Tenser’s Floating Disk':{lvl:1,ritual:true,ct:0,dur:3600,m:'Action · 30 ft · 1 hour',t:'A flat, 3-ft-wide disk of force floats 3 ft off the ground and holds up to 500 lb. It follows you, staying within 20 ft, and can cross height changes of up to 10 ft. It ends if you get more than 100 ft away. Needs a drop of mercury.'},
+ 'Unseen Servant':{lvl:1,ritual:true,ct:0,dur:3600,m:'Action · 60 ft · 1 hour',t:'An invisible, mindless helper appears: AC 10, 1 HP, Strength 2, and it can’t attack. As a Bonus Action you can command it to move up to 15 ft and interact with an object: fetch things, clean, mend, fold clothes, light fires, serve food, pour wine. It ends if it drops to 0 HP or goes more than 60 ft from you.'}
+};
+// Ash's fixed Warlock picks; they change only on level up.
+const WL_FIXED={cantrips:['Eldritch Blast','Minor Illusion'],prepared:['Hex','Armor of Agathys']};
+const spOf=n=>Object.assign({n:n},SPELL_DB[n]);
+const book=()=>S.book;
+const inBook=n=>book().cantrips.includes(n)||book().rituals.includes(n);
+// Everything Ash can cast right now, in sheet order.
+function spellList(){
+  return [{g:'Cantrips · Warlock'}].concat(WL_FIXED.cantrips.map(spOf),
+    [{g:'Cantrips · Book of Shadows'}],book().cantrips.filter(n=>SPELL_DB[n]).map(spOf),
+    [{g:'1st level · Prepared (uses pact slot)'}],WL_FIXED.prepared.map(spOf),
+    [{g:'Rituals · Book of Shadows'}],book().rituals.filter(n=>SPELL_DB[n]).map(spOf));
+}
+// asRitual: cast a ritual spell without a slot, taking 10 extra minutes
+function cast(sp,asRitual){
+  const useSlot=sp.slot||(sp.ritual&&!asRitual);
+  if(useSlot){if(!S.slot){toast(sp.n,'No pact slot left. Take a short rest'+(sp.ritual?', or cast it as a ritual.':'.'),'—','fumble');return}S.slot=false}
   if(sp.c){if(S.conc&&S.conc!==sp.n)toast('Concentration',`${S.conc} ends`,'↺');S.conc=sp.n}
   if(sp.n==='Hex')S.hexOn=true;
   if(sp.aoa){S.temp=Math.max(S.temp,5);S.aoa=true}
-  if(sp.ritual&&sp.castTime)advance(sp.castTime);
+  const time=sp.ritual?(sp.ct||0)+(asRitual?600:0):0;
+  if(time)advance(time);
   if(sp.dur||sp.lasting)startFx(sp);
-  toast(sp.n,sp.slot?'Pact slot spent':sp.ritual?`Cast as a ritual: ${fmtLeft(sp.castTime||600)} passed`:'Cast','✦');
+  toast(sp.n,useSlot?'Pact slot spent'+(time?` · ${fmtLeft(time)} passed`:''):asRitual?`Cast as a ritual: ${fmtLeft(time)} passed`:'Cast','✦');
   save();renderAll();
 }
 /* ---------- active effects (game-time countdown) ---------- */
@@ -1383,21 +1490,27 @@ document.querySelectorAll('[data-adv]').forEach(b=>b.onclick=()=>advance(+b.data
 function renderSpells(){
   const w=$('spells');const open=new Set([...w.querySelectorAll('details[open]')].map(x=>x.dataset.n));w.innerHTML='';
   const dc=8+PB+mod('cha');
-  SPELLS.forEach(sp=>{
+  spellList().forEach(sp=>{
     if(sp.g){const h=document.createElement('div');h.className='label group-title';h.textContent=sp.g;w.appendChild(h);return}
     const el=document.createElement('details');el.className='spell';el.dataset.n=sp.n;if(open.has(sp.n))el.open=true;
     const tags=(sp.c?'<span class="tag c">Conc.</span>':'')+(sp.ritual?'<span class="tag">Ritual</span>':'');
-    el.innerHTML=`<summary><span class="nm">${sp.n}${tags}</span><span class="meta">${sp.m}</span><span class="acts"></span></summary><div class="body"><p>${sp.t.replace('{dc}',dc)}</p></div>`;
+    el.innerHTML=`<summary><span class="nm">${sp.n}${tags}</span><span class="meta">${sp.m}</span><span class="acts"></span></summary><div class="body"><p>${sp.t.replace(/\{dc\}/g,dc)}</p></div>`;
     const acts=el.querySelector('.acts');
     const mk=(label,fn,primary)=>{const b=document.createElement('button');b.className='btn small'+(primary?' primary':'');b.textContent=label;b.onclick=e=>{e.preventDefault();fn()};acts.appendChild(b)};
-    if(sp.atk){mk('Attack',()=>attackRoll(sp.n,spellAtk()),true);mk('Damage',()=>dmg(sp.n,sp.dice,0,sp.type))}
-    else if(sp.c||sp.slot||sp.ritual||sp.dur){
-      const run=fxList().find(f=>f.n===sp.n)||(sp.c&&S.conc===sp.n);
-      if(run)mk('Active',()=>toast(sp.n+' is active',sp.n==='Hex'?'To curse a new target after this one drops, use a Bonus Action. No slot needed.':'End it under Active effects if you want to cast it again.','✦'),false);
-      else mk('Cast',()=>cast(sp),true);
+    const ar=atkRow(sp);
+    const run=fxList().find(f=>f.n===sp.n)||(sp.c&&S.conc===sp.n);
+    if(run)mk('Active',()=>toast(sp.n+' is active',sp.n==='Hex'?'To curse a new target after this one drops, use a Bonus Action. No slot needed.':'End it under Active effects if you want to cast it again.','✦'),false);
+    else if(sp.dur&&ar)mk('Cast',()=>cast(sp),false);
+    if(ar){
+      if(ar.save)mk('DC '+dc+' '+ar.save,()=>toast(sp.n,`The target makes a ${ar.save} save against DC ${dc}.`,'DC'),false);
+      else mk('Attack',()=>attackRoll(sp.n,ar.hit),true);
+      mk('Damage',()=>dmg(sp.n,ar.dice,ar.flat,ar.type,!!ar.save));
+      if(ar.alt)mk(ar.alt.label,()=>dmg(sp.n,ar.alt.dice,0,ar.type,!!ar.save));
     }
-    const run=fxList().find(f=>f.n===sp.n);
-    if(run){const t=document.createElement('span');t.className='tag on';t.textContent=run.lasting?'Summoned':'Active \u00b7 '+fmtLeft(run.left);el.querySelector('.nm').appendChild(t)}
+    else if(!run&&sp.ritual){mk('Ritual',()=>cast(sp,true),true);mk('Use slot',()=>cast(sp))}
+    else if(!run&&(sp.c||sp.slot||sp.dur||sp.lasting))mk('Cast',()=>cast(sp),true);
+    const fx=fxList().find(f=>f.n===sp.n);
+    if(fx){const run=fx,t=document.createElement('span');t.className='tag on';t.textContent=run.lasting?'Summoned':'Active \u00b7 '+fmtLeft(run.left);el.querySelector('.nm').appendChild(t)}
     w.appendChild(el);
   });
   $('pip').classList.toggle('spent',!S.slot);
@@ -1411,10 +1524,153 @@ $('conc-drop').onclick=()=>{if(S.conc)endFx(S.conc);S.conc=null;save();renderAll
 $('conc-save').onclick=()=>d20('Constitution save (concentration)',mod('con'));
 
 /* ---------- rests ---------- */
-$('btn-short').onclick=()=>{advance(3600);S.slot=true;save();renderAll();toast('Short rest','1 hour passed. Pact slot restored; spend hit dice to heal.','☾')};
+$('btn-short').onclick=()=>{advance(3600);S.slot=true;save();renderAll();openRest('short')};
 $('btn-long').onclick=()=>{
   if(dsState()==='dead'){toast('Ash is dead','A rest can’t help now. Untick the failure boxes if this was a mistake.','✝','fumble');return}
-  advance(8*3600);S.fx=fxList().filter(f=>f.lasting);S.slot=true;S.hp=maxHP();S.temp=0;S.aoa=false;S.conc=null;S.hd=1;S.ds={};save();renderAll();toast('Long rest','HP, hit die and pact slot restored.','☾')};
+  advance(8*3600);S.fx=fxList().filter(f=>f.lasting);S.slot=true;S.hp=maxHP();S.temp=0;S.aoa=false;S.conc=null;S.hd=1;S.ds={};save();renderAll();openRest('long')};
+
+/* ---------- rest prompt and Book of Shadows editor ---------- */
+// bk: the open dialog's state. draft is the book being edited; slot is which pick the list fills.
+let bk=null;
+const BK_KINDS={cantrips:['Cantrip',3],rituals:['Ritual',2]};
+const REST_SUM={
+ short:'1 hour passed. Your pact slot is back. Spend Hit Point Dice under Hit Points to heal.',
+ long:'8 hours passed. Hit Points, Hit Point Dice and your pact slot are all restored.',
+ manual:'You normally rewrite the book at the end of a Short or Long Rest. Use this to catch up or fix a pick.'
+};
+function bookOptions(k){
+  if(k==='cantrips')return CANTRIPS.map(c=>({n:c[0],mt:c[1]+' · '+c[2],s:c[4],conc:!!c[3],wl:WL_CANTRIPS.has(c[0]),dmg:!!(SPELL_DB[c[0]]&&(SPELL_DB[c[0]].dice||SPELL_DB[c[0]].weapon))}));
+  return RITUALS.filter(r=>r[1]===1).map(r=>({n:r[0],mt:r[2],s:r[4],conc:!!r[3]}));
+}
+// Why a pick breaks the Pact of the Tome rules (empty if it doesn't). The sheet allows it anyway.
+function bookWhy(k,n){
+  if(WL_FIXED.cantrips.includes(n)||WL_FIXED.prepared.includes(n))return 'Already prepared as a Warlock spell';
+  const i=bk.draft[k].indexOf(n);
+  if(i>=0&&!(k===bk.slot.k&&i===bk.slot.i))return `Already in ${BK_KINDS[k][0].toLowerCase()} slot ${i+1}`;
+  return '';
+}
+function bookChanges(a,b){
+  const out=[];
+  Object.keys(BK_KINDS).forEach(k=>b[k].forEach((n,i)=>{if(a[k][i]!==n)out.push(`${a[k][i]||'(empty)'} → ${n}`)}));
+  return out;
+}
+function openRest(kind){
+  bk={kind:kind,draft:clone(book()),edit:kind==='manual',slot:{k:'cantrips',i:0},q:'',f:'all',more:new Set()};
+  $('rest-h').textContent=kind==='short'?'Short rest':kind==='long'?'Long rest':'Change Book of Shadows';
+  $('rest-sum').textContent=REST_SUM[kind];
+  renderBook();
+  const d=$('rest-dlg');if(!d.open)d.showModal();
+}
+function closeRest(){const d=$('rest-dlg');if(d.open)d.close()}
+$('rest-dlg').addEventListener('close',()=>{bk=null});
+$('rest-x').onclick=closeRest;
+function renderBook(){
+  const w=$('book-ed');w.innerHTML='';
+  const h=document.createElement('h3');h.textContent='Book of Shadows';w.appendChild(h);
+  if(!bk.edit){
+    const p=document.createElement('p');p.className='fine';p.textContent='At the end of a rest you can conjure a new book with different cantrips and rituals, or keep the one you have.';w.appendChild(p);
+    const ch=document.createElement('div');ch.className='bk-chips';
+    book().cantrips.forEach(n=>{const x=document.createElement('span');x.textContent=n;ch.appendChild(x)});
+    book().rituals.forEach(n=>{const x=document.createElement('span');x.className='r';x.textContent=n+' (ritual)';ch.appendChild(x)});
+    w.appendChild(ch);
+    const bar=document.createElement('div');bar.className='toolbar';
+    const keep=document.createElement('button');keep.className='btn primary';keep.textContent='Keep this book';keep.onclick=closeRest;
+    const re=document.createElement('button');re.className='btn';re.textContent='Re-pick spells';re.onclick=()=>{bk.edit=true;renderBook()};
+    bar.append(keep,re);w.appendChild(bar);
+    setTimeout(()=>keep.focus(),0);
+    return;
+  }
+  const p=document.createElement('p');p.className='fine';p.textContent='Choose a slot, then pick its spell. Any class’s list works. The rules say no spells you already have prepared, and rituals must be level 1; the sheet warns but lets you break them.';w.appendChild(p);
+  const slots=document.createElement('div');slots.className='bk-slots';
+  Object.keys(BK_KINDS).forEach(k=>bk.draft[k].forEach((n,i)=>{
+    const b=document.createElement('button');b.type='button';b.className='bk-slot';
+    const on=bk.slot.k===k&&bk.slot.i===i;b.setAttribute('aria-pressed',String(on));
+    b.innerHTML='<span class="k"></span><b></b>';
+    b.querySelector('.k').textContent=`${BK_KINDS[k][0]} ${i+1}`;b.querySelector('b').textContent=n;
+    const was=book()[k][i];
+    if(was!==n){const x=document.createElement('span');x.className='was';x.textContent='was '+was;b.appendChild(x)}
+    b.onclick=()=>{if(bk.slot.k!==k)bk.f='all';bk.slot={k:k,i:i};renderBook()};
+    slots.appendChild(b);
+  }));
+  w.appendChild(slots);
+  // the picker for the selected slot
+  const k=bk.slot.k;
+  const pick=document.createElement('div');pick.className='bk-pick';
+  pick.innerHTML=`<span class="label"></span><input type="search" placeholder="Search names and descriptions" aria-label="Search spells"><div class="filters" role="group" aria-label="Filter"></div><div class="bk-list"></div>`;
+  pick.querySelector('.label').textContent=`Choose ${k==='cantrips'?'a cantrip':'a level 1 ritual'} for slot ${bk.slot.i+1}`;
+  const qi=pick.querySelector('input');qi.value=bk.q;
+  const fw=pick.querySelector('.filters');
+  if(k==='cantrips')[['all','All'],['notwl','Not on Warlock list'],['dmg','Deals damage'],['util','Utility'],['noconc','No Concentration']].forEach(([f,l])=>{
+    const b=document.createElement('button');b.type='button';b.textContent=l;b.setAttribute('aria-pressed',String(bk.f===f));
+    b.onclick=()=>{bk.f=f;renderBook()};fw.appendChild(b);
+  });else fw.hidden=true;
+  const list=pick.querySelector('.bk-list');
+  const dc=8+PB+mod('cha');
+  const fill=()=>{
+    list.innerHTML='';
+    const q=bk.q.trim().toLowerCase();
+    const cur=bk.draft[k][bk.slot.i];
+    const opts=bookOptions(k).filter(o=>{
+      if(bk.f==='notwl'&&o.wl)return false;if(bk.f==='dmg'&&!o.dmg)return false;
+      if(bk.f==='util'&&o.dmg)return false;if(bk.f==='noconc'&&o.conc)return false;
+      return !q||[o.n,o.mt,o.s].join(' ').toLowerCase().includes(q);
+    });
+    if(!opts.length){const e=document.createElement('p');e.className='s-empty';e.textContent='Nothing matches.';list.appendChild(e)}
+    opts.forEach(o=>{
+      const row=document.createElement('div');row.className='bk-opt'+(o.n===cur?' cur':'');
+      const why=o.n===cur?'':bookWhy(k,o.n);
+      row.innerHTML='<span class="nm"></span><span class="mt"></span><span class="sd"></span><span class="acts"></span>';
+      row.querySelector('.nm').textContent=o.n+(o.conc?' · Conc.':'');
+      row.querySelector('.mt').textContent=o.mt;
+      row.querySelector('.sd').textContent=o.s;
+      if(why){const x=document.createElement('span');x.className='why';x.textContent=why;row.insertBefore(x,row.querySelector('.acts'))}
+      const acts=row.querySelector('.acts');
+      const more=document.createElement('button');more.type='button';more.className='x';
+      const open=bk.more.has(o.n);more.textContent=open?'Less':'More';more.setAttribute('aria-expanded',String(open));
+      more.onclick=()=>{open?bk.more.delete(o.n):bk.more.add(o.n);fill()};
+      acts.appendChild(more);
+      if(o.n===cur){const t=document.createElement('span');t.className='pill ok';t.textContent='Chosen';acts.appendChild(t)}
+      else{
+        const ch=document.createElement('button');ch.type='button';ch.className='btn small'+(why?'':' primary');ch.textContent=why?'Choose anyway':'Choose';
+        ch.onclick=()=>{
+          bk.draft[k][bk.slot.i]=o.n;
+          // move on to the next slot that hasn't been changed yet
+          const order=[];Object.keys(BK_KINDS).forEach(kk=>bk.draft[kk].forEach((_,i)=>order.push({k:kk,i:i})));
+          const at=order.findIndex(x=>x.k===k&&x.i===bk.slot.i);
+          const next=order.slice(at+1).find(x=>bk.draft[x.k][x.i]===book()[x.k][x.i]);
+          if(next){if(next.k!==k){bk.f='all';bk.q=''}bk.slot=next}
+          renderBook();
+        };
+        acts.appendChild(ch);
+      }
+      if(open){
+        const d=SPELL_DB[o.n];
+        const f=document.createElement('div');f.className='full';
+        const m=document.createElement('span');m.className='mt';m.textContent=d?d.m:'';
+        const t=document.createElement('p');t.textContent=d?d.t.replace(/\{dc\}/g,dc):o.s;
+        f.append(m,t);row.appendChild(f);
+      }
+      list.appendChild(row);
+    });
+  };
+  qi.oninput=()=>{bk.q=qi.value;fill()};
+  fill();
+  w.appendChild(pick);
+  // save bar
+  const changes=bookChanges(book(),bk.draft);
+  const foot=document.createElement('div');foot.className='bk-foot';
+  foot.innerHTML='<span class="fine"></span><span class="toolbar"></span>';
+  foot.querySelector('.fine').textContent=changes.length?changes.join(' · '):'No changes yet';
+  const cancel=document.createElement('button');cancel.className='btn small';cancel.type='button';cancel.textContent=bk.kind==='manual'?'Cancel':'Keep old book';cancel.onclick=closeRest;
+  const sv=document.createElement('button');sv.className='btn small primary';sv.type='button';sv.textContent='Save book';sv.disabled=!changes.length;
+  sv.onclick=()=>{
+    S.book=bk.draft;save();closeRest();renderAll();renderOptions();renderRef();
+    toast('Book of Shadows rewritten',changes.join(', '),'✦');
+  };
+  foot.querySelector('.toolbar').append(cancel,sv);
+  w.appendChild(foot);
+}
+$('book-edit').onclick=()=>openRest('manual');
 
 /* ---------- build options tab ---------- */
 const DIRS=[
@@ -1513,8 +1769,9 @@ function renderOptions(){
     const cw=g.querySelector('.ocards');
     items.forEach(o=>{
       const c=document.createElement('article');
-      c.className='ocard'+(o[6]?' have':'')+(dirSel&&o[5].includes(dirSel)?' match':'');
-      c.innerHTML='<div class="top"><span class="nm"></span>'+(o[6]?'<span class="have-tag">On sheet</span>':'')+'</div><span class="meta"></span><p></p><div class="ttags"></div>';
+      const has=o[0]==='bc'||o[0]==='rit'?inBook(o[1]):o[6];
+      c.className='ocard'+(has?' have':'')+(dirSel&&o[5].includes(dirSel)?' match':'');
+      c.innerHTML='<div class="top"><span class="nm"></span>'+(has?'<span class="have-tag">On sheet</span>':'')+'</div><span class="meta"></span><p></p><div class="ttags"></div>';
       c.querySelector('.nm').textContent=o[1];c.querySelector('.meta').textContent=o[2];c.querySelector('p').textContent=o[3];
       const tg=c.querySelector('.ttags');o[4].forEach(t=>{const s=document.createElement('span');s.className='tt';s.textContent=t;tg.appendChild(s)});
       cw.appendChild(c);
@@ -1626,7 +1883,7 @@ function renderInvPlanner(){
 }
 
 /* ---------- reference tab ---------- */
-const HAVE=new Set(['Eldritch Blast','Minor Illusion','Guidance','Shocking Grasp','Mage Hand','Find Familiar','Comprehend Languages','Hex','Armor of Agathys','Pact of the Tome']);
+const haveIt=n=>n==='Pact of the Tome'||WL_FIXED.cantrips.includes(n)||WL_FIXED.prepared.includes(n)||inBook(n);
 const WL_CANTRIPS=new Set(['Blade Ward','Chill Touch','Eldritch Blast','Friends','Mage Hand','Mind Sliver','Minor Illusion','Poison Spray','Prestidigitation','Thunderclap','Toll the Dead','True Strike']);
 // name, school, classes, conc, description
 const CANTRIPS=[
@@ -1840,7 +2097,7 @@ let refSec='all',refFilter='all';
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function pill(t,cls){return `<span class="pill ${cls||''}">${esc(t)}</span>`}
 function row(name,meta,desc,pills){
-  const mine=HAVE.has(name);
+  const mine=haveIt(name);
   return `<div class="rrow${mine?' mine':''}"><div class="rn"><b>${esc(name)}</b><span class="rm">${esc(meta)}</span><div class="pills">${mine?pill('Ash has','have'):''}${pills||''}</div></div><div class="rd">${esc(desc)}</div></div>`;
 }
 function group(title,sub,rows){
