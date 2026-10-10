@@ -388,6 +388,15 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
 .bk-pick{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);padding-top:10px}
 .bk-pick input[type=search]{padding:7px 10px;width:100%}
 .bk-list{display:flex;flex-direction:column}
+.bk-cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:8px}
+.bk-cat{text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:9px 11px;display:flex;flex-direction:column;gap:3px}
+.bk-cat:hover{border-color:var(--accent)}
+.bk-cat .d{font-size:.84rem}
+.bk-cat .sp{font-size:.74rem;color:var(--muted)}
+.bk-cat .now{font-size:.72rem;color:var(--accent);font-weight:600}
+.bk-head{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.bk-head:empty{display:none}
+.bk-ct{display:flex;flex-direction:column;gap:2px;flex:1;min-width:200px}
 .bk-opt{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;padding:8px 6px;border-top:1px dashed var(--line);align-items:start}
 .bk-opt:first-child{border-top:0}
 .bk-opt.cur{background:var(--accent-soft);border-radius:6px}
@@ -828,7 +837,7 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
       <div class="filters" id="ref-filters" role="group" aria-label="Filter"></div>
     </div>
     <div id="ref-list"></div>
-    <p class="fine">Based on the 2024 Player's Handbook. Artificer appears on class lists but comes from a separate book; ask your DM before using it. Other books add more spells, invocations and patrons.</p>
+    <p class="fine">Based on the 2024 Player's Handbook. Other books add more spells, invocations and patrons.</p>
   </div>
 
   <div id="tab-options" class="opts" hidden>
@@ -1533,6 +1542,23 @@ $('btn-long').onclick=()=>{
 // bk: the open dialog's state. draft is the book being edited; slot is which pick the list fills.
 let bk=null;
 const BK_KINDS={cantrips:['Cantrip',3],rituals:['Ritual',2]};
+// What each spell is for, so the picker starts with a handful of kinds instead of a long list.
+const BK_CATS={
+ cantrips:[
+  {id:'ranged',n:'Ranged damage',d:'Hit from a distance with an attack roll.',tip:'Eldritch Blast already does this. Pick one only for a different damage type or a side effect, like Ray of Frost’s slow.',sp:['Eldritch Blast','Fire Bolt','Ray of Frost','Sorcerous Burst','Starry Wisp','Poison Spray','Produce Flame']},
+  {id:'weaken',n:'Damage that weakens',d:'The target makes a save instead of you rolling to hit, and suffers a drawback.',tip:'Good against well-armored foes. Hex doesn’t add to these.',sp:['Mind Sliver','Vicious Mockery','Toll the Dead','Sacred Flame','Acid Splash']},
+  {id:'close',n:'Up close',d:'For when something is right next to you.',tip:'Shocking Grasp lets Ash walk away without Opportunity Attacks.',sp:['Shocking Grasp','Chill Touch','Thunderclap','Word of Radiance','Thorn Whip','True Strike','Shillelagh']},
+  {id:'support',n:'Protect & support',d:'Help an ally, or keep yourself and others alive.',tip:'Guidance, Resistance and Blade Ward need Concentration, so they end Hex.',sp:['Guidance','Resistance','Blade Ward','Spare the Dying']},
+  {id:'social',n:'Social & trickery',d:'Cons, distractions and a bit of theater.',tip:'Pairs with Shapechanger and Deception. Friends only works on Humanoids.',sp:['Minor Illusion','Friends','Message','Prestidigitation','Thaumaturgy']},
+  {id:'explore',n:'Exploration & tools',d:'Light, repairs, lifting things and small elemental tricks.',tip:'Light matters: as a changeling, Ash has no Darkvision.',sp:['Light','Dancing Lights','Mage Hand','Mending','Druidcraft','Elementalism']}
+ ],
+ rituals:[
+  {id:'scout',n:'Scouting & senses',d:'See, sense or listen beyond your own eyes.',tip:'Find Familiar is the standout scout for an infiltrator.',sp:['Find Familiar','Detect Magic','Detect Poison and Disease','Speak with Animals','Alarm']},
+  {id:'words',n:'Words & secrets',d:'Read, identify and hide information.',tip:'Illusory Script suits a forger. Identify needs a 100 GP pearl.',sp:['Comprehend Languages','Identify','Illusory Script']},
+  {id:'helpers',n:'Helpers & camp',d:'Carry, fetch and keep supplies safe.',tip:'Handy, but rarely the best use of a page in the book.',sp:['Unseen Servant','Tenser’s Floating Disk','Purify Food and Drink']}
+ ]
+};
+const catOf=(k,n)=>BK_CATS[k].find(c=>c.sp.includes(n));
 const REST_SUM={
  short:'1 hour passed. Your pact slot is back. Spend Hit Point Dice under Hit Points to heal.',
  long:'8 hours passed. Hit Points, Hit Point Dice and your pact slot are all restored.',
@@ -1555,7 +1581,7 @@ function bookChanges(a,b){
   return out;
 }
 function openRest(kind){
-  bk={kind:kind,draft:clone(book()),edit:kind==='manual',slot:{k:'cantrips',i:0},q:'',f:'all',more:new Set()};
+  bk={kind:kind,draft:clone(book()),edit:kind==='manual',slot:{k:'cantrips',i:0},q:'',cat:null,more:new Set()};
   $('rest-h').textContent=kind==='short'?'Short rest':kind==='long'?'Long rest':'Change Book of Shadows';
   $('rest-sum').textContent=REST_SUM[kind];
   renderBook();
@@ -1589,39 +1615,58 @@ function renderBook(){
     b.querySelector('.k').textContent=`${BK_KINDS[k][0]} ${i+1}`;b.querySelector('b').textContent=n;
     const was=book()[k][i];
     if(was!==n){const x=document.createElement('span');x.className='was';x.textContent='was '+was;b.appendChild(x)}
-    b.onclick=()=>{if(bk.slot.k!==k)bk.f='all';bk.slot={k:k,i:i};renderBook()};
+    b.onclick=()=>{bk.slot={k:k,i:i};bk.cat=null;bk.q='';renderBook()};
     slots.appendChild(b);
   }));
   w.appendChild(slots);
   // the picker for the selected slot
   const k=bk.slot.k;
   const pick=document.createElement('div');pick.className='bk-pick';
-  pick.innerHTML=`<span class="label"></span><input type="search" placeholder="Search names and descriptions" aria-label="Search spells"><div class="filters" role="group" aria-label="Filter"></div><div class="bk-list"></div>`;
+  pick.innerHTML=`<span class="label"></span><input type="search" placeholder="Search all ${k==='cantrips'?'cantrips':'rituals'} by name or effect" aria-label="Search spells"><div class="bk-head"></div><div class="bk-list"></div>`;
   pick.querySelector('.label').textContent=`Choose ${k==='cantrips'?'a cantrip':'a level 1 ritual'} for slot ${bk.slot.i+1}`;
   const qi=pick.querySelector('input');qi.value=bk.q;
-  const fw=pick.querySelector('.filters');
-  if(k==='cantrips')[['all','All'],['notwl','Not on Warlock list'],['dmg','Deals damage'],['util','Utility'],['noconc','No Concentration']].forEach(([f,l])=>{
-    const b=document.createElement('button');b.type='button';b.textContent=l;b.setAttribute('aria-pressed',String(bk.f===f));
-    b.onclick=()=>{bk.f=f;renderBook()};fw.appendChild(b);
-  });else fw.hidden=true;
+  const head=pick.querySelector('.bk-head');
   const list=pick.querySelector('.bk-list');
   const dc=8+PB+mod('cha');
   const fill=()=>{
-    list.innerHTML='';
+    list.innerHTML='';head.innerHTML='';
     const q=bk.q.trim().toLowerCase();
     const cur=bk.draft[k][bk.slot.i];
-    const opts=bookOptions(k).filter(o=>{
-      if(bk.f==='notwl'&&o.wl)return false;if(bk.f==='dmg'&&!o.dmg)return false;
-      if(bk.f==='util'&&o.dmg)return false;if(bk.f==='noconc'&&o.conc)return false;
-      return !q||[o.n,o.mt,o.s].join(' ').toLowerCase().includes(q);
-    });
+    // step 1: pick a kind of spell (skipped while searching)
+    if(!q&&!bk.cat){
+      const grid=document.createElement('div');grid.className='bk-cats';
+      BK_CATS[k].forEach(c=>{
+        const b=document.createElement('button');b.type='button';b.className='bk-cat';
+        b.innerHTML='<b></b><span class="d"></span><span class="sp"></span>';
+        b.querySelector('b').textContent=`${c.n} · ${c.sp.length}`;
+        b.querySelector('.d').textContent=c.d;
+        b.querySelector('.sp').textContent=c.sp.join(', ');
+        if(c.sp.includes(cur)){const x=document.createElement('span');x.className='now';x.textContent='Current pick: '+cur;b.appendChild(x)}
+        b.onclick=()=>{bk.cat=c.id;fill()};
+        grid.appendChild(b);
+      });
+      list.appendChild(grid);
+      return;
+    }
+    // step 2: the spells of that kind, or search results across every kind
+    const cat=!q&&BK_CATS[k].find(c=>c.id===bk.cat);
+    if(cat){
+      const back=document.createElement('button');back.type='button';back.className='btn small';back.textContent='‹ All kinds';back.onclick=()=>{bk.cat=null;fill()};
+      const t=document.createElement('div');t.className='bk-ct';t.innerHTML='<b></b><span class="fine"></span>';
+      t.querySelector('b').textContent=cat.n;t.querySelector('.fine').textContent=cat.tip;
+      head.append(back,t);
+    }
+    const all=bookOptions(k);
+    const opts=cat?cat.sp.map(n=>all.find(o=>o.n===n)).filter(Boolean):all.filter(o=>[o.n,o.mt,o.s,(catOf(k,o.n)||{}).n].join(' ').toLowerCase().includes(q));
     if(!opts.length){const e=document.createElement('p');e.className='s-empty';e.textContent='Nothing matches.';list.appendChild(e)}
     opts.forEach(o=>{
       const row=document.createElement('div');row.className='bk-opt'+(o.n===cur?' cur':'');
       const why=o.n===cur?'':bookWhy(k,o.n);
       row.innerHTML='<span class="nm"></span><span class="mt"></span><span class="sd"></span><span class="acts"></span>';
       row.querySelector('.nm').textContent=o.n+(o.conc?' · Conc.':'');
-      row.querySelector('.mt').textContent=o.mt;
+      if(o.wl){const x=document.createElement('span');x.className='pill';x.textContent='Warlock list';row.querySelector('.nm').append(' ',x)}
+      const oc=catOf(k,o.n);
+      row.querySelector('.mt').textContent=(q&&oc?oc.n+' · ':'')+o.mt;
       row.querySelector('.sd').textContent=o.s;
       if(why){const x=document.createElement('span');x.className='why';x.textContent=why;row.insertBefore(x,row.querySelector('.acts'))}
       const acts=row.querySelector('.acts');
@@ -1638,7 +1683,7 @@ function renderBook(){
           const order=[];Object.keys(BK_KINDS).forEach(kk=>bk.draft[kk].forEach((_,i)=>order.push({k:kk,i:i})));
           const at=order.findIndex(x=>x.k===k&&x.i===bk.slot.i);
           const next=order.slice(at+1).find(x=>bk.draft[x.k][x.i]===book()[x.k][x.i]);
-          if(next){if(next.k!==k){bk.f='all';bk.q=''}bk.slot=next}
+          if(next){bk.slot=next;bk.cat=null;bk.q=''}
           renderBook();
         };
         acts.appendChild(ch);
@@ -1887,51 +1932,51 @@ const haveIt=n=>n==='Pact of the Tome'||WL_FIXED.cantrips.includes(n)||WL_FIXED.
 const WL_CANTRIPS=new Set(['Blade Ward','Chill Touch','Eldritch Blast','Friends','Mage Hand','Mind Sliver','Minor Illusion','Poison Spray','Prestidigitation','Thunderclap','Toll the Dead','True Strike']);
 // name, school, classes, conc, description
 const CANTRIPS=[
- ['Acid Splash','Evocation','Artificer, Sorcerer, Wizard',0,'Dex save or 1d6 Acid to each creature in a 5-ft-radius sphere within 60 ft.'],
+ ['Acid Splash','Evocation','Sorcerer, Wizard',0,'Dex save or 1d6 Acid to each creature in a 5-ft-radius sphere within 60 ft.'],
  ['Blade Ward','Abjuration','Bard, Sorcerer, Warlock, Wizard',1,'For up to a minute, attackers subtract 1d4 from attack rolls against you.'],
  ['Chill Touch','Necromancy','Sorcerer, Warlock, Wizard',0,'Melee spell attack, 1d10 Necrotic. The target can’t regain HP until the end of your next turn.'],
- ['Dancing Lights','Illusion','Artificer, Bard, Sorcerer, Wizard',1,'Up to four floating lights you can move around, or merge into a glowing humanoid shape.'],
+ ['Dancing Lights','Illusion','Bard, Sorcerer, Wizard',1,'Up to four floating lights you can move around, or merge into a glowing humanoid shape.'],
  ['Druidcraft','Transmutation','Druid',0,'Small nature effects: predict weather, bloom a flower, light or snuff a candle.'],
  ['Eldritch Blast','Evocation','Warlock',0,'Ranged spell attack at 120 ft, 1d10 Force. More beams at levels 5, 11 and 17.'],
- ['Elementalism','Transmutation','Artificer, Druid, Sorcerer, Wizard',0,'Minor air, earth, fire or water effects: a gust, a dust cloud, a flame, a mist.'],
- ['Fire Bolt','Evocation','Artificer, Sorcerer, Wizard',0,'Ranged spell attack at 120 ft, 1d10 Fire. Can ignite objects.'],
+ ['Elementalism','Transmutation','Druid, Sorcerer, Wizard',0,'Minor air, earth, fire or water effects: a gust, a dust cloud, a flame, a mist.'],
+ ['Fire Bolt','Evocation','Sorcerer, Wizard',0,'Ranged spell attack at 120 ft, 1d10 Fire. Can ignite objects.'],
  ['Friends','Enchantment','Bard, Sorcerer, Warlock, Wizard',1,'A Humanoid within 10 ft makes a Wis save or is Charmed. Ends if you turn hostile; the target knows afterward.'],
- ['Guidance','Divination','Artificer, Cleric, Druid',1,'Touch an ally; they add 1d4 to checks with one chosen skill for up to a minute.'],
- ['Light','Evocation','Artificer, Bard, Cleric, Sorcerer, Wizard',0,'An object sheds bright light in a 20-ft radius for an hour.'],
- ['Mage Hand','Conjuration','Artificer, Bard, Sorcerer, Warlock, Wizard',0,'A spectral hand within 30 ft manipulates objects up to 10 lb.'],
+ ['Guidance','Divination','Cleric, Druid',1,'Touch an ally; they add 1d4 to checks with one chosen skill for up to a minute.'],
+ ['Light','Evocation','Bard, Cleric, Sorcerer, Wizard',0,'An object sheds bright light in a 20-ft radius for an hour.'],
+ ['Mage Hand','Conjuration','Bard, Sorcerer, Warlock, Wizard',0,'A spectral hand within 30 ft manipulates objects up to 10 lb.'],
  ['Mending','Transmutation','Bard, Cleric, Druid, Sorcerer, Wizard',0,'Repair a single break or tear in an object.'],
- ['Message','Transmutation','Artificer, Bard, Druid, Sorcerer, Wizard',0,'Whisper to a creature within 120 ft; only it hears, and it can whisper back.'],
+ ['Message','Transmutation','Bard, Druid, Sorcerer, Wizard',0,'Whisper to a creature within 120 ft; only it hears, and it can whisper back.'],
  ['Mind Sliver','Enchantment','Sorcerer, Warlock, Wizard',0,'Int save or 1d6 Psychic within 60 ft, and the target subtracts 1d4 from its next save.'],
  ['Minor Illusion','Illusion','Bard, Sorcerer, Warlock, Wizard',0,'Create a sound or a still image up to a 5-ft cube for a minute.'],
- ['Poison Spray','Necromancy','Artificer, Druid, Sorcerer, Warlock, Wizard',0,'Ranged spell attack at 30 ft, 1d12 Poison.'],
- ['Prestidigitation','Transmutation','Artificer, Bard, Sorcerer, Warlock, Wizard',0,'Small magical tricks: clean, soil, chill, warm, flavor, mark, sparks or sounds.'],
+ ['Poison Spray','Necromancy','Druid, Sorcerer, Warlock, Wizard',0,'Ranged spell attack at 30 ft, 1d12 Poison.'],
+ ['Prestidigitation','Transmutation','Bard, Sorcerer, Warlock, Wizard',0,'Small magical tricks: clean, soil, chill, warm, flavor, mark, sparks or sounds.'],
  ['Produce Flame','Conjuration','Druid',0,'A flame in your hand gives light; you can hurl it at 60 ft for 1d8 Fire.'],
- ['Ray of Frost','Evocation','Artificer, Sorcerer, Wizard',0,'Ranged spell attack at 60 ft, 1d8 Cold, and the target loses 10 ft of Speed.'],
- ['Resistance','Abjuration','Artificer, Cleric, Druid',1,'Touch an ally; once per turn they reduce damage of one chosen type by 1d4.'],
+ ['Ray of Frost','Evocation','Sorcerer, Wizard',0,'Ranged spell attack at 60 ft, 1d8 Cold, and the target loses 10 ft of Speed.'],
+ ['Resistance','Abjuration','Cleric, Druid',1,'Touch an ally; once per turn they reduce damage of one chosen type by 1d4.'],
  ['Sacred Flame','Evocation','Cleric',0,'Dex save or 1d8 Radiant within 60 ft. Cover doesn’t help the target.'],
  ['Shillelagh','Transmutation','Druid',0,'Bonus Action. Your club or staff attacks with your spellcasting ability, deals a d8 and can deal Force damage.'],
- ['Shocking Grasp','Evocation','Artificer, Sorcerer, Wizard',0,'Melee spell attack, 1d8 Lightning, and the target can’t make Opportunity Attacks.'],
+ ['Shocking Grasp','Evocation','Sorcerer, Wizard',0,'Melee spell attack, 1d8 Lightning, and the target can’t make Opportunity Attacks.'],
  ['Sorcerous Burst','Evocation','Sorcerer',0,'Ranged spell attack at 120 ft, 1d8 of a chosen element. Rolling an 8 adds another die.'],
- ['Spare the Dying','Necromancy','Artificer, Cleric, Druid',0,'Stabilize a creature at 0 HP within 15 ft.'],
+ ['Spare the Dying','Necromancy','Cleric, Druid',0,'Stabilize a creature at 0 HP within 15 ft.'],
  ['Starry Wisp','Evocation','Bard, Druid',0,'Ranged spell attack at 60 ft, 1d8 Radiant, and the target can’t benefit from being Invisible.'],
  ['Thaumaturgy','Transmutation','Cleric',0,'Minor wonders: a booming voice, flickering flames, tremors, doors slamming.'],
- ['Thorn Whip','Transmutation','Artificer, Druid',0,'Melee spell attack at 30 ft, 1d6 Piercing, and pull the target 10 ft closer.'],
- ['Thunderclap','Evocation','Artificer, Bard, Druid, Sorcerer, Warlock, Wizard',0,'Every creature within 5 ft makes a Con save or takes 1d6 Thunder. Audible far away.'],
+ ['Thorn Whip','Transmutation','Druid',0,'Melee spell attack at 30 ft, 1d6 Piercing, and pull the target 10 ft closer.'],
+ ['Thunderclap','Evocation','Bard, Druid, Sorcerer, Warlock, Wizard',0,'Every creature within 5 ft makes a Con save or takes 1d6 Thunder. Audible far away.'],
  ['Toll the Dead','Necromancy','Cleric, Warlock, Wizard',0,'Wis save or 1d8 Necrotic within 60 ft, or 1d12 if the target is missing HP.'],
- ['True Strike','Divination','Artificer, Bard, Sorcerer, Warlock, Wizard',0,'Make a weapon attack using your spellcasting ability, optionally dealing Radiant.'],
+ ['True Strike','Divination','Bard, Sorcerer, Warlock, Wizard',0,'Make a weapon attack using your spellcasting ability, optionally dealing Radiant.'],
  ['Vicious Mockery','Enchantment','Bard',0,'Wis save or 1d6 Psychic within 60 ft and Disadvantage on its next attack roll.'],
  ['Word of Radiance','Evocation','Cleric',0,'Chosen creatures within 5 ft make a Con save or take 1d6 Radiant.']
 ];
 // name, level, classes, conc, description
 const RITUALS=[
- ['Alarm',1,'Artificer, Ranger, Wizard',0,'Ward an area for 8 hours. You get a mental or audible alert when something enters.'],
+ ['Alarm',1,'Ranger, Wizard',0,'Ward an area for 8 hours. You get a mental or audible alert when something enters.'],
  ['Comprehend Languages',1,'Bard, Sorcerer, Warlock, Wizard',0,'Understand any spoken, signed or written language for an hour.'],
- ['Detect Magic',1,'Artificer, Bard, Cleric, Druid, Paladin, Ranger, Sorcerer, Warlock, Wizard',1,'Sense magic within 30 ft and see its aura and school.'],
+ ['Detect Magic',1,'Bard, Cleric, Druid, Paladin, Ranger, Sorcerer, Warlock, Wizard',1,'Sense magic within 30 ft and see its aura and school.'],
  ['Detect Poison and Disease',1,'Cleric, Druid, Paladin, Ranger',1,'Sense poisons, poisonous creatures and diseases within 30 ft.'],
  ['Find Familiar',1,'Wizard',0,'Summon a spirit in a small animal form that scouts and shares its senses with you.'],
- ['Identify',1,'Artificer, Bard, Wizard',0,'Learn a magic item’s properties and how to use it, or the spells affecting a creature.'],
+ ['Identify',1,'Bard, Wizard',0,'Learn a magic item’s properties and how to use it, or the spells affecting a creature.'],
  ['Illusory Script',1,'Bard, Warlock, Wizard',0,'Write a message only chosen readers can see; others see gibberish or a fake text.'],
- ['Purify Food and Drink',1,'Artificer, Cleric, Druid, Paladin',0,'Remove poison and rot from food and drink in a 5-ft sphere.'],
+ ['Purify Food and Drink',1,'Cleric, Druid, Paladin',0,'Remove poison and rot from food and drink in a 5-ft sphere.'],
  ['Speak with Animals',1,'Bard, Druid, Ranger, Warlock',0,'Talk with Beasts for 10 minutes.'],
  ['Tenser’s Floating Disk',1,'Wizard',0,'A floating disk carries up to 500 lb and follows you for an hour.'],
  ['Unseen Servant',1,'Bard, Warlock, Wizard',0,'An invisible, mindless helper performs simple tasks for an hour.'],
@@ -1940,14 +1985,14 @@ const RITUALS=[
  ['Beast Sense',2,'Druid, Ranger',1,'See and hear through a willing Beast’s senses.'],
  ['Gentle Repose',2,'Cleric, Paladin, Wizard',0,'Protect a corpse from decay and from becoming undead for 10 days.'],
  ['Locate Animals or Plants',2,'Bard, Druid, Ranger',0,'Learn the direction and distance to a kind of animal or plant within 5 miles.'],
- ['Magic Mouth',2,'Artificer, Bard, Wizard',0,'Plant a message that speaks when a trigger condition happens.'],
+ ['Magic Mouth',2,'Bard, Wizard',0,'Plant a message that speaks when a trigger condition happens.'],
  ['Silence',2,'Bard, Cleric, Ranger',1,'A 20-ft sphere where no sound can be made or pass through.'],
  ['Feign Death',3,'Bard, Cleric, Druid, Wizard',0,'A willing creature appears dead for an hour.'],
  ['Leomund’s Tiny Hut',3,'Bard, Wizard',0,'A protective dome for a safe rest for 8 hours.'],
  ['Meld into Stone',3,'Cleric, Druid, Ranger',0,'Step into stone and hide inside it for up to 8 hours.'],
  ['Phantom Steed',3,'Wizard',0,'A quasi-real horse for an hour.'],
- ['Water Breathing',3,'Artificer, Druid, Ranger, Sorcerer, Wizard',0,'Up to ten creatures breathe underwater for 24 hours.'],
- ['Water Walk',3,'Artificer, Cleric, Druid, Ranger, Sorcerer',0,'Up to ten creatures walk on liquid surfaces for an hour.'],
+ ['Water Breathing',3,'Druid, Ranger, Sorcerer, Wizard',0,'Up to ten creatures breathe underwater for 24 hours.'],
+ ['Water Walk',3,'Cleric, Druid, Ranger, Sorcerer',0,'Up to ten creatures walk on liquid surfaces for an hour.'],
  ['Divination',4,'Cleric, Druid, Wizard',0,'Ask a god or servant one question about a goal or event in the next week.'],
  ['Commune',5,'Cleric',0,'Ask your deity three yes-or-no questions.'],
  ['Commune with Nature',5,'Druid, Ranger',0,'Learn facts about the surrounding land.'],
