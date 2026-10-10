@@ -39,7 +39,12 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 input,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px}
 
 /* header */
-.head{display:flex;flex-wrap:wrap;gap:16px 28px;align-items:flex-end;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:14px}
+.rests{display:flex;gap:6px;flex:none}
+.rest{display:flex;flex-direction:column;align-items:center;gap:1px;width:44px;padding:5px 0 3px;border:1px solid var(--line);background:var(--surface);border-radius:8px;color:var(--muted)}
+.rest:hover{border-color:var(--accent);color:var(--ink)}
+.rest svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.rest span{font-size:.62rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.head{display:flex;gap:16px;align-items:flex-end;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:14px}
 .ident p{margin:4px 0 0;color:var(--muted)}
 .ident .true{font-style:italic}
 .toolbar{display:flex;flex-wrap:wrap;gap:8px}
@@ -422,15 +427,9 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
         <p>Changeling Warlock 1 · Charlatan · Pact of the Tome · Chaotic Neutral <span class="true">· true name unknown</span></p>
       </div>
     </div>
-    <div class="toolbar">
-      <div class="seg" role="group" aria-label="Roll mode">
-        <button id="m-dis" data-mode="dis" aria-pressed="false">Disadv.</button>
-        <button id="m-norm" data-mode="norm" aria-pressed="true">Normal</button>
-        <button id="m-adv" data-mode="adv" aria-pressed="false">Adv.</button>
-      </div>
-      <button class="btn" id="btn-short">Short rest</button>
-      <button class="btn" id="btn-long">Long rest</button>
-      <button class="btn danger" id="btn-reset">Reset sheet</button>
+    <div class="rests" role="group" aria-label="Rest">
+      <button class="rest" id="btn-short" title="Short rest: 1 hour, restores the pact slot" aria-label="Short rest"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12M6 21h12M7 3c0 5 10 5 10 9s-10 4-10 9M17 3c0 5-10 5-10 9s10 4 10 9"/></svg><span>Short</span></button>
+      <button class="rest" id="btn-long" title="Long rest: 8 hours, restores HP, hit die and pact slot" aria-label="Long rest"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg><span>Long</span></button>
     </div>
   </header>
 
@@ -1026,7 +1025,7 @@ const DEFAULT_PROF={'Arcana':'Warlock','Intimidation':'Warlock','Deception':'Cha
 const TOOLS=[['Thieves’ Tools','dex','Skilled'],['Forgery Kit','dex','Charlatan']];
 
 const DEF_EQUIP=['Studded Leather Armor','Dagger','Arcane Focus (crystal, styled as charred bone)','Book of Shadows','Fine Clothes','Costume','Forgery Kit','Thieves’ Tools','Explorer’s Pack','Incense for Find Familiar (10 GP per casting)'].map(n=>({n:n,q:1}));
-const DEF={ab:{str:8,dex:14,con:14,int:10,wis:12,cha:17},prof:Object.assign({},DEFAULT_PROF),hp:10,temp:0,hd:1,slot:true,conc:null,aoa:false,hexOn:true,ds:{},fx:[],equip:DEF_EQUIP,journal:{sessions:[],entries:[],cur:null,view:'session'},gold:23,lang:'Common, (choose two)',notes:'',mode:'norm'};
+const DEF={ab:{str:8,dex:14,con:14,int:10,wis:12,cha:17},prof:Object.assign({},DEFAULT_PROF),hp:10,temp:0,hd:1,slot:true,conc:null,aoa:false,hexOn:true,ds:{},fx:[],equip:DEF_EQUIP,journal:{sessions:[],entries:[],cur:null,view:'session'},gold:23,lang:'Common, (choose two)',notes:''};
 const clone=o=>JSON.parse(JSON.stringify(o));
 // Fill in fields that saves from older versions of the sheet don't have yet.
 function normalize(d){
@@ -1035,6 +1034,7 @@ function normalize(d){
   if(!n.prof||typeof n.prof!=='object')n.prof=clone(DEF.prof);
   if(!n.ds||typeof n.ds!=='object')n.ds={};
   if(!Array.isArray(n.fx))n.fx=[];
+  delete n.mode; // the roll-mode switch was removed
   if(!Array.isArray(n.equip))n.equip=clone(DEF_EQUIP);
   if(!n.journal||typeof n.journal!=='object')n.journal=clone(DEF.journal);
   if(!Array.isArray(n.journal.sessions))n.journal.sessions=[];
@@ -1072,11 +1072,8 @@ function toast(title,detail,total,cls){
   setTimeout(()=>el.remove(),9000);
 }
 function d20(title,bonus){
-  const a=d(20),b=d(20);let k=a,det;
-  if(S.mode==='adv'){k=Math.max(a,b);det=`adv [${a}, ${b}]`}
-  else if(S.mode==='dis'){k=Math.min(a,b);det=`dis [${a}, ${b}]`}
-  else det=`d20 [${a}]`;
-  det+=' '+sg(bonus).replace('+','+ ').replace('-','− ');
+  const k=d(20);
+  const det=`d20 [${k}] `+sg(bonus).replace('+','+ ').replace('-','− ');
   toast(title,det,k+bonus,k===20?'crit':k===1?'fumble':'');
   return k;
 }
@@ -1413,20 +1410,11 @@ $('pip').onclick=()=>{S.slot=!S.slot;save();renderAll()};
 $('conc-drop').onclick=()=>{if(S.conc)endFx(S.conc);S.conc=null;save();renderAll()};
 $('conc-save').onclick=()=>d20('Constitution save (concentration)',mod('con'));
 
-/* ---------- rests & mode ---------- */
+/* ---------- rests ---------- */
 $('btn-short').onclick=()=>{advance(3600);S.slot=true;save();renderAll();toast('Short rest','1 hour passed. Pact slot restored; spend hit dice to heal.','☾')};
 $('btn-long').onclick=()=>{
   if(dsState()==='dead'){toast('Ash is dead','A rest can’t help now. Untick the failure boxes if this was a mistake.','✝','fumble');return}
   advance(8*3600);S.fx=fxList().filter(f=>f.lasting);S.slot=true;S.hp=maxHP();S.temp=0;S.aoa=false;S.conc=null;S.hd=1;S.ds={};save();renderAll();toast('Long rest','HP, hit die and pact slot restored.','☾')};
-let resetArm=false;
-$('btn-reset').onclick=e=>{
-  if(!resetArm){resetArm=true;e.target.textContent='Click again to reset stats';setTimeout(()=>{resetArm=false;e.target.textContent='Reset sheet'},3000);return}
-  // A reset puts the stats back to the build; notes, gear, story and plans are kept.
-  const keep={};['threads','clues','faces','portrait','invPlan','journal','equip','gold','lang','notes'].forEach(k=>{if(S[k]!==undefined)keep[k]=S[k]});
-  S=Object.assign(clone(DEF),keep);save();loadFields();renderAll();e.target.textContent='Reset sheet';resetArm=false;
-};
-document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{S.mode=b.dataset.mode;save();renderMode()});
-function renderMode(){document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===S.mode)))}
 
 /* ---------- build options tab ---------- */
 const DIRS=[
@@ -2373,7 +2361,7 @@ $('gold').oninput=e=>{S.gold=parseInt(e.target.value,10)||0;save()};
 $('lang').oninput=e=>{S.lang=e.target.value;save()};
 $('notes').oninput=e=>{S.notes=e.target.value;save()};
 
-function renderAll(){renderPortrait();renderStory();renderJournal();renderEquip();renderHP();renderFx();renderAbil();renderSkills();renderVitals();renderAttacks();renderSpells();renderMode()}
+function renderAll(){renderPortrait();renderStory();renderJournal();renderEquip();renderHP();renderFx();renderAbil();renderSkills();renderVitals();renderAttacks();renderSpells()}
 loadFields();renderAll();renderOptions();renderRef();
 (function(){let ok=true;try{localStorage.setItem(KEY+'-probe','1');localStorage.removeItem(KEY+'-probe')}catch(e){ok=false}
   $('save-status').textContent=ok?'Saving in this browser':'Not saving: browser storage is blocked. Use a backup.';})();
