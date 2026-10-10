@@ -418,15 +418,9 @@ body:has(dialog[open]){overflow:hidden}
 .bk-pick{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);padding-top:10px}
 .bk-pick input[type=search]{padding:7px 10px;width:100%}
 .bk-list{display:flex;flex-direction:column}
-.bk-cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:8px}
-.bk-cat{text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:9px 11px;display:flex;flex-direction:column;gap:3px}
-.bk-cat:hover{border-color:var(--accent)}
-.bk-cat .d{font-size:.84rem}
-.bk-cat .sp{font-size:.74rem;color:var(--muted)}
-.bk-cat .now{font-size:.72rem;color:var(--accent);font-weight:600}
-.bk-head{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
-.bk-head:empty{display:none}
-.bk-ct{display:flex;flex-direction:column;gap:2px;flex:1;min-width:200px}
+.bk-head{display:flex;flex-direction:column;gap:6px}
+.bk-tip{margin:0}
+.bk-chips-row button{font-size:.8rem;padding:4px 10px}
 .bk-opt{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;padding:8px 6px;border-top:1px dashed var(--line);align-items:start}
 .bk-opt:first-child{border-top:0}
 .bk-opt.cur{background:var(--accent-soft);border-radius:6px}
@@ -1782,30 +1776,20 @@ function renderBook(){
     list.innerHTML='';head.innerHTML='';
     const q=bk.q.trim().toLowerCase();
     const cur=bk.draft[k][bk.slot.i];
-    // step 1: pick a kind of spell (skipped while searching)
-    if(!q&&!bk.cat){
-      const grid=document.createElement('div');grid.className='bk-cats';
-      BK_CATS[k].forEach(c=>{
-        const b=document.createElement('button');b.type='button';b.className='bk-cat';
-        b.innerHTML='<b></b><span class="d"></span><span class="sp"></span>';
-        b.querySelector('b').textContent=`${c.n} · ${c.sp.length}`;
-        b.querySelector('.d').textContent=c.d;
-        b.querySelector('.sp').textContent=c.sp.join(', ');
-        if(c.sp.includes(cur)){const x=document.createElement('span');x.className='now';x.textContent='Current pick: '+cur;b.appendChild(x)}
-        b.onclick=()=>{bk.cat=c.id;fill()};
-        grid.appendChild(b);
-      });
-      list.appendChild(grid);
-      return;
-    }
-    // step 2: the spells of that kind, or search results across every kind
+    // a row of kind chips; the list shows the chosen kind, or search results across every kind
+    if(!bk.cat)bk.cat=(catOf(k,cur)||BK_CATS[k][0]).id;
+    const chips=document.createElement('div');chips.className='filters bk-chips-row';chips.setAttribute('role','group');chips.setAttribute('aria-label','Kind of spell');
+    BK_CATS[k].forEach(c=>{
+      const b=document.createElement('button');b.type='button';
+      b.textContent=c.n+(c.sp.includes(cur)?' •':'');
+      b.title=c.d+(c.sp.includes(cur)?` Current pick: ${cur}.`:'');
+      b.setAttribute('aria-pressed',String(!q&&bk.cat===c.id));
+      b.onclick=()=>{bk.cat=c.id;bk.q='';qi.value='';fill()};
+      chips.appendChild(b);
+    });
+    head.appendChild(chips);
     const cat=!q&&BK_CATS[k].find(c=>c.id===bk.cat);
-    if(cat){
-      const back=document.createElement('button');back.type='button';back.className='btn small';back.textContent='‹ All kinds';back.onclick=()=>{bk.cat=null;fill()};
-      const t=document.createElement('div');t.className='bk-ct';t.innerHTML='<b></b><span class="fine"></span>';
-      t.querySelector('b').textContent=cat.n;t.querySelector('.fine').textContent=cat.tip;
-      head.append(back,t);
-    }
+    if(cat){const t=document.createElement('p');t.className='fine bk-tip';t.textContent=cat.d+' '+cat.tip;head.appendChild(t)}
     const all=bookOptions(k);
     const opts=cat?cat.sp.map(n=>all.find(o=>o.n===n)).filter(Boolean):all.filter(o=>[o.n,o.mt,o.s,(catOf(k,o.n)||{}).n].join(' ').toLowerCase().includes(q));
     if(!opts.length){const e=document.createElement('p');e.className='s-empty';e.textContent='Nothing matches.';list.appendChild(e)}
