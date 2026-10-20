@@ -370,6 +370,25 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
 .eq li input,.eq li textarea{border-color:transparent;background:transparent}
 .eq li input:hover,.eq li input:focus,.eq li textarea:hover,.eq li textarea:focus{border-color:var(--line);background:var(--surface)}
 .eq-add{padding-top:8px;border-top:1px solid var(--line)}
+/* class features and level up */
+.cls-feats{display:flex;flex-direction:column;gap:12px;border-top:1px solid var(--line);padding-top:10px}
+.cf-sec{display:flex;flex-direction:column;gap:6px}
+.cf-item{display:flex;flex-direction:column;gap:3px;font-size:.88rem}
+.cf-item span{color:var(--ink)}
+.cf-item .fine{color:var(--muted)}
+.lu-body{display:flex;flex-direction:column;gap:14px}
+.lu-sec{display:flex;flex-direction:column;gap:8px}
+.lu-auto{margin:6px 0 0;padding-left:18px}
+.lu-pats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:8px}
+.lu-pat{text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:9px 11px;display:flex;flex-direction:column;gap:3px}
+.lu-pat[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);background:var(--accent-soft)}
+.lu-pat .d{font-size:.84rem}
+.lu-pat .f,.lu-pat .sp{font-size:.74rem;color:var(--muted)}
+.lu-grp{display:flex;flex-direction:column;gap:6px}
+.bk-slot.empty{border-style:dashed}
+.bk-slot.empty b{color:var(--muted);font-weight:500}
+.lu-asi select,.lu-asi input{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+.lu-asi input{flex:1;min-width:0}
 /* level preview */
 .rest.lvl{cursor:pointer;position:relative}
 .rest.lvl select{appearance:none;-webkit-appearance:none;border:0;background:transparent;color:var(--ink);font:600 .95rem/1.1 var(--mono);text-align:center;text-align-last:center;width:100%;padding:0;cursor:pointer}
@@ -491,7 +510,8 @@ body:has(dialog[open]){overflow:hidden}
       </div>
     </div>
     <div class="rests" role="group" aria-label="Level and rest">
-      <label class="rest lvl" title="Preview Ash at another level. Nothing is saved."><select id="lvl-sel" aria-label="Preview level"></select><span>Level</span></label>
+      <button class="rest" id="btn-lvlup" title="Level up" aria-label="Level up"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg><span>Up</span></button>
+      <label class="rest lvl" title="See another level: past levels as recorded, future ones as a preview. Nothing is saved."><select id="lvl-sel" aria-label="Preview level"></select><span>Level</span></label>
       <button class="rest" id="btn-short" title="Short rest: 1 hour, restores the pact slot" aria-label="Short rest"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12M6 21h12M7 3c0 5 10 5 10 9s-10 4-10 9M17 3c0 5-10 5-10 9s10 4 10 9"/></svg><span>Short</span></button>
       <button class="rest" id="btn-long" title="Long rest: 8 hours, restores HP, hit die and pact slot" aria-label="Long rest"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg><span>Long</span></button>
     </div>
@@ -896,7 +916,7 @@ body:has(dialog[open]){overflow:hidden}
 
   <div id="tab-sheet">
   <section class="vitals" aria-label="Core stats">
-    <div class="vital" tabindex="0" data-tip="ac"><span class="label">Armor Class</span><span class="v" id="v-ac">14</span><small>Studded leather</small></div>
+    <div class="vital" tabindex="0" data-tip="ac"><span class="label">Armor Class</span><span class="v" id="v-ac">14</span><small id="v-acs">Studded leather</small></div>
     <button class="vital click" id="v-init-btn" data-tip="init"><span class="label">Initiative</span><span class="v" id="v-init">+2</span><small>Click to roll</small></button>
     <div class="vital" tabindex="0" data-tip="speed"><span class="label">Speed</span><span class="v">30</span><small>feet</small></div>
     <div class="vital" tabindex="0" data-tip="pb"><span class="label">Proficiency</span><span class="v" id="v-pb">+2</span><small id="v-pbl">Level 1</small></div>
@@ -984,6 +1004,7 @@ body:has(dialog[open]){overflow:hidden}
         <div class="slots">
           <span class="label" id="slot-lbl">Pact slot (1st level)</span>
           <span class="pips" id="pips"></span>
+          <button class="btn small" type="button" id="mc-btn" hidden>Magical Cunning</button>
           <span class="fine">Returns on a Short or Long Rest</span>
         </div>
         <div class="conc" id="conc">
@@ -1028,14 +1049,14 @@ body:has(dialog[open]){overflow:hidden}
       </section>
 
       <section class="panel">
-        <h2>Feats &amp; Features</h2>
+        <h2>Class &amp; features</h2>
         <dl class="kv">
           <dt>Skilled</dt><dd>Origin feat. Proficiency in Perception, Stealth, Thieves' Tools.</dd>
           <dt>Pact Magic</dt><dd id="pm-txt">1 slot at 1st level. Two 1st-level spells prepared.</dd>
-          <dt>Pact of the Tome</dt><dd>Book of Shadows: 3 extra cantrips and 2 ritual spells from any class, which count as Warlock spells. Can be used as your spellcasting focus. At the end of each Short or Long Rest you can conjure a new book and pick different spells.</dd>
           <dt>Weapons &amp; armor</dt><dd>Simple weapons, Light armor.</dd>
           <dt>Saves</dt><dd>Wisdom, Charisma.</dd>
         </dl>
+        <div id="cls-feats" class="cls-feats"></div>
       </section>
 
       <section class="panel">
@@ -1091,6 +1112,13 @@ body:has(dialog[open]){overflow:hidden}
   </div>
 </dialog>
 
+<dialog class="dlg" id="lu-dlg" aria-labelledby="lu-h">
+  <div class="dlg-in">
+    <div class="panel-head"><h2 id="lu-h"></h2><button class="x" type="button" id="lu-x">Close</button></div>
+    <div id="lu-body" class="lu-body"></div>
+  </div>
+</dialog>
+
 <div class="log" id="log" aria-live="polite"></div>
 <div class="tip" id="tip" role="tooltip" hidden><strong id="tip-h"></strong><span class="tip-math" id="tip-m"></span><span id="tip-b"></span></div>
 
@@ -1116,9 +1144,10 @@ const SKILLS=[['Acrobatics','dex'],['Animal Handling','wis'],['Arcana','int'],['
 const DEFAULT_PROF={'Arcana':'Warlock','Intimidation':'Warlock','Deception':'Charlatan','Sleight of Hand':'Charlatan','Insight':'Changeling','Persuasion':'Changeling','Perception':'Skilled','Stealth':'Skilled'};
 const TOOLS=[['Thieves’ Tools','dex','Skilled'],['Forgery Kit','dex','Charlatan']];
 
+const DEF_BUILD={cantrips:['Eldritch Blast','Minor Illusion'],prepared:['Hex','Armor of Agathys'],invocations:['Pact of the Tome'],patron:null,hpGains:[],feats:[]};
 const DEF_BOOK={cantrips:['Guidance','Shocking Grasp','Mage Hand'],rituals:['Find Familiar','Comprehend Languages']};
 const DEF_EQUIP=['Studded Leather Armor','Dagger','Arcane Focus (crystal, styled as charred bone)','Book of Shadows','Fine Clothes','Costume','Forgery Kit','Thieves’ Tools','Explorer’s Pack','Incense for Find Familiar (10 GP per casting)'].map(n=>({n:n,q:1}));
-const DEF={ab:{str:8,dex:14,con:14,int:10,wis:12,cha:17},prof:Object.assign({},DEFAULT_PROF),level:1,hp:10,temp:0,hd:1,slotsUsed:0,conc:null,aoa:false,hexOn:true,ds:{},fx:[],equip:DEF_EQUIP,book:DEF_BOOK,journal:{sessions:[],entries:[],cur:null,view:'session'},gold:23,lang:'Common, (choose two)',notes:''};
+const DEF={ab:{str:8,dex:14,con:14,int:10,wis:12,cha:17},prof:Object.assign({},DEFAULT_PROF),level:1,hp:10,temp:0,hd:1,slotsUsed:0,conc:null,aoa:false,hexOn:true,ds:{},fx:[],equip:DEF_EQUIP,book:DEF_BOOK,build:DEF_BUILD,history:[],journal:{sessions:[],entries:[],cur:null,view:'session'},gold:23,lang:'Common, (choose two)',notes:''};
 const clone=o=>JSON.parse(JSON.stringify(o));
 // Fill in fields that saves from older versions of the sheet don't have yet.
 function normalize(d){
@@ -1132,6 +1161,12 @@ function normalize(d){
   delete n.slot;
   if(!Array.isArray(n.equip))n.equip=clone(DEF_EQUIP);
   if(!n.book||!Array.isArray(n.book.cantrips)||!Array.isArray(n.book.rituals))n.book=clone(DEF_BOOK);
+  // class choices used to be fixed in code; older saves start from the original level 1 build
+  if(!n.build||typeof n.build!=='object')n.build=clone(DEF_BUILD);
+  ['cantrips','prepared','invocations','hpGains','feats'].forEach(k=>{if(!Array.isArray(n.build[k]))n.build[k]=clone(DEF_BUILD[k])});
+  if(!('patron' in n.build))n.build.patron=null;
+  if(!Array.isArray(n.history))n.history=[];
+  if(!n.pt||typeof n.pt!=='object')n.pt={};
   if(!n.journal||typeof n.journal!=='object')n.journal=clone(DEF.journal);
   if(!Array.isArray(n.journal.sessions))n.journal.sessions=[];
   if(!Array.isArray(n.journal.entries))n.journal.entries=[];
@@ -1154,8 +1189,9 @@ function save(){
 const $=id=>document.getElementById(id);
 const mod=k=>Math.floor((S.ab[k]-10)/2);
 const sg=n=>(n>=0?'+':'')+n;
-const maxHP=()=>8+mod('con')+(lvl()-1)*Math.max(1,5+mod('con'));
+const maxHP=()=>{let m=8+mod('con');for(let l=2;l<=lvl();l++){const g=S.build&&S.build.hpGains[l-2];m+=Math.max(1,(g==null?5:g)+mod('con'))}return m};
 const spellAtk=()=>PB+mod('cha');
+const acVal=()=>hasInv('Armor of Shadows')?13+mod('dex'):12+mod('dex');
 const d=n=>1+Math.floor(Math.random()*n);
 
 /* ---------- rolling ---------- */
@@ -1249,7 +1285,7 @@ function renderSkills(){
 }
 /* ---------- vitals ---------- */
 function renderVitals(){
-  $('v-ac').textContent=12+mod('dex');
+  $('v-ac').textContent=acVal();$('v-acs').textContent=hasInv('Armor of Shadows')?'Mage Armor, no armor':'Studded leather';
   $('v-init').textContent=sg(mod('dex'));
   $('v-pp').textContent=10+skillBonus('Perception','wis');
   $('v-dc').textContent=8+PB+mod('cha');
@@ -1267,7 +1303,7 @@ $('v-sa-btn').onclick=()=>d20('Spell attack',spellAtk());
 function tipContent(key){
   const dex=mod('dex'),cha=mod('cha'),wis=mod('wis'),percProf=!!S.prof['Perception'];
   switch(key){
-    case 'ac':return['Armor Class',`12 studded leather ${sg(dex)} Dex = ${12+dex}`,'How hard Ash is to hit. An attack roll must equal or beat this number to hit you.'];
+    case 'ac':return['Armor Class',hasInv('Armor of Shadows')?`13 Mage Armor (Armor of Shadows) ${sg(dex)} Dex = ${13+dex}, with the studded leather taken off`:`12 studded leather ${sg(dex)} Dex = ${12+dex}`,'How hard Ash is to hit. An attack roll must equal or beat this number to hit you.'];
     case 'init':return['Initiative',`Dex modifier ${sg(dex)}`,'Rolled when combat starts to set turn order; highest goes first. Click to roll.'];
     case 'speed':return['Speed','Changeling: 30 ft','How far Ash can move on each turn. Dash doubles it for that turn.'];
     case 'pb':{const lo=Math.floor((lvl()-1)/4)*4+1;return['Proficiency bonus',`Level ${lo}–${lo+3}: ${sg(PB)}`,'Every character at the same level has the same bonus, whatever their class. It rises with level: +3 at 5, +4 at 9, +5 at 13, +6 at 17. You add it to things Ash is trained in: proficient skills, Wis and Cha saves, tools, simple weapons and spells.'];}
@@ -1382,9 +1418,9 @@ $('ds-roll').onclick=()=>{
 // How a damaging spell rolls: an attack (hit bonus) or a saving throw (save ability). Null if it deals no damage.
 function atkRow(sp){
   if(sp.weapon)return {n:sp.n,note:sp.note,hit:spellAtk(),dice:tier()>1?[[1,4],[tier()-1,6,'Radiant']]:[[1,4]],flat:mod('cha'),type:'Piercing or Radiant'};
-  if(!sp.dice)return null;
-  const beams=sp.sc==='beams'?tier():1;
-  return {n:sp.n,beams:beams,note:(beams>1?`${beams} beams, roll each · `:'')+(sp.note||''),hit:sp.atk?spellAtk():null,save:sp.save?sp.save.toUpperCase().slice(0,1)+sp.save.slice(1,3):null,dice:scaled(sp),flat:0,type:sp.type,alt:sp.alt&&{label:sp.alt.label,dice:scaled({lvl:sp.lvl,dice:sp.alt.dice})}};
+  if(!sp.dice||sp.heal)return null;
+  const beams=sp.sc==='beams'?tier():sp.sc==='rays'?3+upBy(sp):1;
+  return {n:sp.n,beams:beams,note:(beams>1?`${beams} ${sp.sc==='rays'?'rays':'beams'}, roll each · `:'')+(agon(sp)?'Agonizing Blast · ':'')+(sp.note||''),hit:sp.atk?spellAtk():null,save:sp.save?sp.save.toUpperCase().slice(0,1)+sp.save.slice(1,3):null,dice:scaled(sp),flat:agon(sp),type:sp.type,alt:sp.alt&&{label:sp.alt.label,dice:scaled({lvl:sp.lvl,dice:sp.alt.dice})}};
 }
 function renderAttacks(){
   const fin=Math.max(mod('str'),mod('dex')),dc=8+PB+mod('cha');
@@ -1464,11 +1500,57 @@ const SPELL_DB={
  'Purify Food and Drink':{lvl:1,ritual:true,ct:0,m:'Action · 10 ft · Instant',t:'Remove poison and rot from nonmagical food and drink in a 5-ft-radius sphere.'},
  'Speak with Animals':{lvl:1,ritual:true,ct:0,dur:600,m:'Action · Self · 10 minutes',t:'You can understand and talk with Beasts. Their knowledge is limited by their intelligence, but most can tell you about nearby places and monsters and anything they saw in the past day. The DM may let you talk one into a small favor.'},
  'Tenser’s Floating Disk':{lvl:1,ritual:true,ct:0,dur:3600,m:'Action · 30 ft · 1 hour',t:'A flat, 3-ft-wide disk of force floats 3 ft off the ground and holds up to 500 lb. It follows you, staying within 20 ft, and can cross height changes of up to 10 ft. It ends if you get more than 100 ft away. Needs a drop of mercury.'},
- 'Unseen Servant':{lvl:1,ritual:true,ct:0,dur:3600,m:'Action · 60 ft · 1 hour',t:'An invisible, mindless helper appears: AC 10, 1 HP, Strength 2, and it can’t attack. As a Bonus Action you can command it to move up to 15 ft and interact with an object: fetch things, clean, mend, fold clothes, light fires, serve food, pour wine. It ends if it drops to 0 HP or goes more than 60 ft from you.'}
+ 'Unseen Servant':{lvl:1,ritual:true,ct:0,dur:3600,m:'Action · 60 ft · 1 hour',t:'An invisible, mindless helper appears: AC 10, 1 HP, Strength 2, and it can’t attack. As a Bonus Action you can command it to move up to 15 ft and interact with an object: fetch things, clean, mend, fold clothes, light fires, serve food, pour wine. It ends if it drops to 0 HP or goes more than 60 ft from you.'},
+ // Warlock spells, levels 1–2 ({dmg}, {tgt}, {rays} and {aid} grow with the pact slot level; up: dice added per slot level)
+ 'Arms of Hadar':{lvl:1,save:'str',dice:[[2,6]],up:[1,6],type:'Necrotic',m:'Action · 10-ft emanation · Instant',note:'Everyone within 10 ft · Str save · half on success',t:'Dark tendrils lash out around you. Each creature within 10 ft makes a Strength save (DC {dc}). On a failure it takes {dmg} Necrotic damage and can’t take Reactions until the start of its next turn; on a success it takes half damage only.'},
+ 'Bane':{lvl:1,c:true,dur:60,save:'cha',tg:3,m:'Action · 30 ft · Conc. up to 1 min',t:'Up to {tgt} creatures you can see make a Charisma save (DC {dc}). Each that fails subtracts 1d4 from its attack rolls and saving throws until the spell ends. One more target for each slot level above 1st.'},
+ 'Charm Person':{lvl:1,dur:3600,save:'wis',tg:1,m:'Action · 30 ft · 1 hour',t:'Up to {tgt} Humanoids you can see make a Wisdom save (DC {dc}), with Advantage if you or your allies are fighting them. On a failure a target is Charmed by you until the spell ends or you or your allies damage it, and treats you as a friendly acquaintance. When the spell ends, it knows it was charmed. One more target for each slot level above 1st.'},
+ 'Expeditious Retreat':{lvl:1,c:true,dur:600,m:'Bonus Action · Self · Conc. up to 10 min',t:'You take the Dash action now, and can take it again as a Bonus Action on each of your turns until the spell ends.'},
+ 'Hellish Rebuke':{lvl:1,save:'dex',dice:[[2,10]],up:[1,10],type:'Fire',m:'Reaction · 60 ft · Instant',note:'When something damages you · Dex save · half on success',t:'Cast it as a Reaction when a creature you can see within 60 ft damages you. It makes a Dexterity save (DC {dc}), taking {dmg} Fire damage on a failure or half as much on a success.'},
+ 'Protection from Evil and Good':{lvl:1,c:true,dur:600,m:'Action · Touch · Conc. up to 10 min',t:'A willing creature you touch is protected from Aberrations, Celestials, Elementals, Fey, Fiends and Undead: they have Disadvantage on attack rolls against it, and it can’t be Charmed, Frightened or possessed by them. Needs holy water or powdered silver and iron, which is used up.'},
+ 'Tasha’s Hideous Laughter':{lvl:1,c:true,dur:60,save:'wis',m:'Action · 30 ft · Conc. up to 1 min',t:'A creature you can see makes a Wisdom save (DC {dc}). On a failure it falls Prone in fits of laughter and is Incapacitated, unable to stand up. It repeats the save at the end of each of its turns and whenever it takes damage (with Advantage when damage triggers it), ending the spell on a success.'},
+ 'Witch Bolt':{lvl:1,c:true,dur:60,atk:true,dice:[[2,12]],up:[1,12],type:'Lightning',m:'Action · 60 ft · Conc. up to 1 min',note:'Then 1d12 each turn as a Bonus Action',t:'Ranged spell attack. On a hit, {dmg} Lightning damage. On each of your later turns you can take a Bonus Action to deal 1d12 Lightning damage to the same target automatically, as long as it stays within range and isn’t behind total cover.'},
+ 'Cloud of Daggers':{lvl:2,c:true,dur:60,dice:[[4,4]],up:[2,4],type:'Slashing',m:'Action · 60 ft · Conc. up to 1 min',note:'5-ft cube · no roll to hit',t:'Spinning daggers fill a 5-ft cube. A creature takes {dmg} Slashing damage when it enters the cube for the first time on a turn or ends its turn there. As a Bonus Action you can move the cube up to 30 ft.'},
+ 'Crown of Madness':{lvl:2,c:true,dur:60,save:'wis',m:'Action · 120 ft · Conc. up to 1 min',t:'A Humanoid you can see makes a Wisdom save (DC {dc}) or is Charmed. On each of its turns, before moving, it must attack a creature other than itself that you choose mentally. You need your Action each turn to keep control, or the spell ends. It repeats the save at the end of each of its turns.'},
+ 'Darkness':{lvl:2,c:true,dur:600,m:'Action · 60 ft · Conc. up to 10 min',t:'Magical darkness fills a 15-ft-radius sphere. Darkvision can’t see through it and nonmagical light can’t light it. Cast on an object you hold, the darkness moves with it, and covering the object blocks it. Pairs with Devil’s Sight. Needs bat fur and a piece of coal.'},
+ 'Enthrall':{lvl:2,dur:60,save:'wis',m:'Action · 60 ft · 1 minute',t:'Creatures you choose that can hear you make a Wisdom save (DC {dc}), with Advantage if you or your allies are fighting them. On a failure, a target has Disadvantage on Wisdom (Perception) checks to notice anyone but you until the spell ends or it can no longer hear you. Ends early if you can’t speak.'},
+ 'Hold Person':{lvl:2,c:true,dur:60,save:'wis',tg:1,m:'Action · 60 ft · Conc. up to 1 min',t:'Up to {tgt} Humanoids you can see make a Wisdom save (DC {dc}) or are Paralyzed. Each repeats the save at the end of its turns, ending the effect on itself on a success. One more target for each slot level above 2nd.'},
+ 'Invisibility':{lvl:2,c:true,dur:3600,tg:1,m:'Action · Touch · Conc. up to 1 hr',t:'Up to {tgt} creatures you touch become Invisible until the spell ends. It ends early for a target that makes an attack roll, deals damage or casts a spell. One more target for each slot level above 2nd. Needs an eyelash in gum arabic.'},
+ 'Mind Spike':{lvl:2,c:true,dur:3600,save:'wis',dice:[[3,8]],up:[1,8],type:'Psychic',m:'Action · 120 ft · Conc. up to 1 hr',note:'Wis save · half on success · you always know where it is',t:'A creature you can see makes a Wisdom save (DC {dc}), taking {dmg} Psychic damage on a failure or half on a success. On a failure you also always know where it is until the spell ends, and being Invisible doesn’t hide it from you.'},
+ 'Mirror Image':{lvl:2,dur:60,m:'Action · Self · 1 minute',t:'Three illusory duplicates appear in your space. Each time a creature hits you with an attack roll, roll a d6 for each remaining duplicate; if any rolls 3 or higher, a duplicate is hit instead and destroyed. Creatures that can’t see, or have Blindsight or Truesight, ignore them.'},
+ 'Misty Step':{lvl:2,m:'Bonus Action · Self · Instant',t:'Briefly surrounded by silvery mist, you teleport up to 30 ft to an unoccupied space you can see.'},
+ 'Ray of Enfeeblement':{lvl:2,c:true,dur:60,save:'con',m:'Action · 60 ft · Conc. up to 1 min',t:'A creature you can see makes a Constitution save (DC {dc}). On a failure it has Disadvantage on Strength-based rolls and its weapon attacks deal less damage until the spell ends. It repeats the save at the end of each of its turns.'},
+ 'Spider Climb':{lvl:2,c:true,dur:3600,tg:1,m:'Action · Touch · Conc. up to 1 hr',t:'Up to {tgt} willing creatures gain a Climb Speed equal to their Speed and can move along walls and upside down along ceilings, leaving their hands free. One more target for each slot level above 2nd.'},
+ 'Suggestion':{lvl:2,c:true,dur:28800,save:'wis',m:'Action · 30 ft · Conc. up to 8 hr',t:'Suggest a course of activity, 25 words or fewer, to a creature you can see that can hear and understand you, and make it sound achievable and harmless. It makes a Wisdom save (DC {dc}) or is Charmed and pursues the suggestion as best it can. The spell ends if you or your allies damage it.'},
+ // Patron spells (always prepared from Warlock level 3)
+ 'Calm Emotions':{lvl:2,c:true,dur:60,save:'cha',m:'Action · 60 ft · Conc. up to 1 min',t:'Each Humanoid in a 20-ft-radius sphere makes a Charisma save (DC {dc}); it can choose to fail. For each that fails, choose: it is unaffected by the Charmed and Frightened conditions until the spell ends, or it becomes indifferent to creatures it was hostile toward until it is attacked or harmed.'},
+ 'Faerie Fire':{lvl:1,c:true,dur:60,save:'dex',m:'Action · 60 ft · Conc. up to 1 min',t:'Objects in a 20-ft cube are outlined in light, and each creature there makes a Dexterity save (DC {dc}) or is outlined too. Outlined targets shed Dim Light, can’t benefit from being Invisible, and attack rolls against them have Advantage.'},
+ 'Phantasmal Force':{lvl:2,c:true,dur:60,save:'int',dice:[[2,8]],up:[1,8],type:'Psychic',m:'Action · 60 ft · Conc. up to 1 min',note:'Int save · damage once per turn while it believes',t:'A creature you can see makes an Intelligence save (DC {dc}) or perceives a phantasm of your choice, no larger than a 10-ft cube, that only it can see, and it explains away anything that contradicts it. A harmful phantasm deals {dmg} Psychic damage to it once per turn. It can take a Study action to check against your DC and see through it.'},
+ 'Sleep':{lvl:1,c:true,dur:60,save:'wis',m:'Action · 60 ft · Conc. up to 1 min',t:'Each creature you choose in a 5-ft-radius sphere makes a Wisdom save (DC {dc}) or is Incapacitated until the end of its next turn, when it repeats the save; on a second failure it falls Unconscious for the duration. It wakes if it takes damage or someone shakes it awake. Creatures that don’t sleep automatically succeed.'},
+ 'Aid':{lvl:2,dur:28800,m:'Action · 30 ft · 8 hours',t:'Choose up to three creatures. Each one’s Hit Point maximum and current Hit Points rise by {aid} for the duration. +5 more for each slot level above 2nd.'},
+ 'Cure Wounds':{lvl:1,heal:true,dice:[[2,8]],up:[2,8],m:'Action · Touch · Instant',t:'A creature you touch regains {dmg} + your spellcasting modifier ({cha}) Hit Points.'},
+ 'Guiding Bolt':{lvl:1,atk:true,dice:[[4,6]],up:[1,6],type:'Radiant',m:'Action · 120 ft · 1 round',note:'Next attack against it has Advantage',t:'Ranged spell attack. On a hit, {dmg} Radiant damage, and the next attack roll against the target before the end of your next turn has Advantage.'},
+ 'Lesser Restoration':{lvl:2,m:'Bonus Action · Touch · Instant',t:'End one condition on a creature you touch: Blinded, Deafened, Paralyzed or Poisoned.'},
+ 'Burning Hands':{lvl:1,save:'dex',dice:[[3,6]],up:[1,6],type:'Fire',m:'Action · 15-ft cone · Instant',note:'15-ft cone · Dex save · half on success',t:'Flames shoot from your hands. Each creature in a 15-ft cone makes a Dexterity save (DC {dc}), taking {dmg} Fire damage on a failure or half on a success. Flammable objects in the cone that aren’t worn or carried start burning.'},
+ 'Command':{lvl:1,save:'wis',tg:1,m:'Action · 60 ft · Instant',t:'Speak a one-word command to up to {tgt} creatures you can see. Each makes a Wisdom save (DC {dc}) or follows it on its next turn: Approach, Drop, Flee, Grovel (fall Prone and end its turn) or Halt. One more target for each slot level above 1st.'},
+ 'Scorching Ray':{lvl:2,sc:'rays',atk:true,dice:[[2,6]],type:'Fire',m:'Action · 120 ft · Instant',note:'one attack per ray',t:'You hurl {rays} rays of fire. Make a ranged spell attack for each, at one target or several; each hit deals 2d6 Fire damage. One more ray for each slot level above 2nd.'},
+ 'Detect Thoughts':{lvl:2,c:true,dur:60,save:'wis',m:'Action · Self · Conc. up to 1 min',t:'You sense creatures within 30 ft with an Intelligence of 4 or higher and read the surface thoughts of one you can see. As a Magic action you can probe deeper: it makes a Wisdom save (DC {dc}), and on a failure you learn its reasoning, emotions and something that looms large in its mind.'},
+ 'Dissonant Whispers':{lvl:1,save:'wis',dice:[[3,6]],up:[1,6],type:'Psychic',m:'Action · 60 ft · Instant',note:'Wis save · on a failure it flees',t:'One creature you choose that can hear you makes a Wisdom save (DC {dc}). On a failure it takes {dmg} Psychic damage and must immediately use its Reaction, if it has one, to move as far from you as it can. On a success it takes half damage only.'}
 };
-// Ash's fixed Warlock picks; they change only on level up.
-const WL_FIXED={cantrips:['Eldritch Blast','Minor Illusion'],prepared:['Hex','Armor of Agathys']};
-const spOf=n=>Object.assign({n:n},SPELL_DB[n]);
+// Spells each patron always prepares from Warlock level 3 (higher-level patron spells aren't on the sheet yet).
+const PATRON_SPELLS={'Archfey':['Calm Emotions','Faerie Fire','Misty Step','Phantasmal Force','Sleep'],'Celestial':['Aid','Cure Wounds','Guiding Bolt','Lesser Restoration','Light','Sacred Flame'],'Fiend':['Burning Hands','Command','Scorching Ray','Suggestion'],'Great Old One':['Detect Thoughts','Dissonant Whispers','Phantasmal Force','Tasha’s Hideous Laughter']};
+// Ash's class choices live in S.build and change on level up (or with Edit build).
+const B=()=>S.build;
+const hasInv=n=>B().invocations.includes(n);
+const patronSpells=()=>B().patron&&lvl()>=3?PATRON_SPELLS[B().patron]||[]:[];
+const knownCantrips=()=>B().cantrips.concat(patronSpells().filter(n=>SPELL_DB[n]&&SPELL_DB[n].lvl===0&&!B().cantrips.includes(n)));
+const preparedAll=()=>B().prepared.concat(patronSpells().filter(n=>SPELL_DB[n]&&SPELL_DB[n].lvl>0&&!B().prepared.includes(n)));
+// Spells without a full sheet entry yet fall back to the Reference list's short description.
+const spOf=n=>{
+  if(SPELL_DB[n])return Object.assign({n:n},SPELL_DB[n]);
+  const w=WL_SPELLS.find(x=>x[1]===n);
+  return w?{n:n,lvl:w[0],c:!!w[3],ritual:!!w[4],m:'',t:w[5]+' Full rules aren’t on the sheet yet.'}:{n:n,lvl:1,m:'',t:''};
+};
 const book=()=>S.book;
 const inBook=n=>book().cantrips.includes(n)||book().rituals.includes(n);
 const tier=()=>WL.tier(lvl());
@@ -1477,13 +1559,25 @@ const HEX_DUR={1:[3600,'1 hr'],2:[14400,'4 hr'],3:[28800,'8 hr'],4:[28800,'8 hr'
 const durOf=sp=>sp.n==='Hex'?HEX_DUR[WL.slotLvl(lvl())][0]:sp.dur;
 const diceStr=(x,m)=>x.map(([c,s])=>`${c*(m||1)}d${s}`).join('+');
 // Damage dice at the current level: cantrips roll more dice at 5, 11 and 17 (Eldritch Blast adds beams instead).
-const scaled=sp=>sp.dice&&(sp.lvl===0&&sp.sc!=='beams'?sp.dice.map(([c,s,l])=>[c*tier(),s,l]):sp.dice);
+// Slot levels above a spell's own level (Warlock slots are always the highest level).
+const upBy=sp=>Math.max(0,WL.slotLvl(lvl())-(sp.lvl||0));
+const agon=sp=>sp.sc==='beams'&&hasInv('Agonizing Blast')?mod('cha'):0;
+// Damage dice at the current level: cantrips roll more dice at 5, 11 and 17 (Eldritch Blast adds beams instead);
+// leveled spells add dice for a higher slot.
+const scaled=sp=>{
+  if(!sp.dice)return sp.dice;
+  if(sp.lvl===0)return sp.sc==='beams'?sp.dice:sp.dice.map(([c,s,l])=>[c*tier(),s,l]);
+  if(sp.up)return [[sp.dice[0][0]+upBy(sp)*sp.up[0],sp.dice[0][1]]];
+  return sp.dice;
+};
 // Rules text and meta lines with the current level's numbers filled in.
 function fillText(sp,str){
   const t=tier();
   str=str.replace(/\{dc\}/g,8+PB+mod('cha')).replace(/\{beams\}/g,t===1?'one beam':['','one','two','three','four'][t]+' beams')
     .replace(/\{thp\}/g,aoaHp()).replace(/\{hexdur\}/g,HEX_DUR[WL.slotLvl(lvl())][1]).replace(/\{std\}/g,15*2**(t-1))
-    .replace(/\{shd\}/g,['d8','d10','d12','2d6'][t-1]).replace(/\{tsr\}/g,t>1?(t-1)+'d6 at your level':'none yet');
+    .replace(/\{shd\}/g,['d8','d10','d12','2d6'][t-1]).replace(/\{tsr\}/g,t>1?(t-1)+'d6 at your level':'none yet')
+    .replace(/\{dmg\}/g,sp.dice?diceStr(scaled(sp)):'').replace(/\{tgt\}/g,(sp.tg||1)+upBy(sp)).replace(/\{rays\}/g,3+upBy(sp)).replace(/\{aid\}/g,5*(upBy(sp)+1)).replace(/\{cha\}/g,sg(mod('cha')));
+  if(agon(sp))str+=` Agonizing Blast adds ${sg(agon(sp))} to each beam’s damage.`;
   // the first mention of a cantrip's base dice becomes the scaled dice
   if(sp.lvl===0&&sp.sc!=='beams'&&t>1)[sp.dice,sp.alt&&sp.alt.dice].forEach(x=>{if(x)x.forEach(([c,sd])=>{str=str.replace(new RegExp('\\b'+c+'d'+sd+'\\b'),(c*t)+'d'+sd)})});
   return str;
@@ -1505,6 +1599,14 @@ function growth(n){
     const sl=WL.slotLvl(lvl());
     return [['Lv 1–2',1],['Lv 3–4',2],['Lv 5–6',3],['Lv 7–8',4],['Lv 9+',5]].map(([l,k])=>[`${l} · ${ord(k)} slot`,n==='Hex'?'up to '+HEX_DUR[k][1]:`${5*k} temp HP and Cold`,k===sl]);
   }
+  if(d.up||d.tg||d.sc==='rays'||n==='Aid'){
+    const sl=WL.slotLvl(lvl());
+    return [['Lv 1–2',1],['Lv 3–4',2],['Lv 5–6',3],['Lv 7–8',4],['Lv 9+',5]].filter(([,k])=>k>=d.lvl).map(([l,k])=>{
+      const u=k-d.lvl;
+      const v=d.up?`${d.dice[0][0]+u*d.up[0]}d${d.dice[0][1]}`+(d.heal?' + Cha healing':''):d.sc==='rays'?`${3+u} rays`:n==='Aid'?`+${5*(u+1)} HP`:`${d.tg+u} target${d.tg+u>1?'s':''}`;
+      return [`${l} · ${ord(k)} slot`,v,k===sl];
+    });
+  }
   return null;
 }
 function growthEl(n){
@@ -1516,14 +1618,16 @@ function growthEl(n){
 }
 // Everything Ash can cast right now, in sheet order.
 function spellList(){
-  return [{g:'Cantrips · Warlock'}].concat(WL_FIXED.cantrips.map(spOf),
-    [{g:'Cantrips · Book of Shadows'}],book().cantrips.filter(n=>SPELL_DB[n]).map(spOf),
-    [{g:'1st level · Prepared (uses pact slot)'}],WL_FIXED.prepared.map(spOf),
-    [{g:'Rituals · Book of Shadows'}],book().rituals.filter(n=>SPELL_DB[n]).map(spOf));
+  const pat=patronSpells(),mark=x=>(pat.includes(x.n)&&!B().cantrips.includes(x.n)&&!B().prepared.includes(x.n)?Object.assign(x,{patron:true}):x);
+  const out=[{g:'Cantrips · Warlock'}].concat(knownCantrips().map(spOf).map(mark),
+    [{g:'Cantrips · Book of Shadows'}],book().cantrips.filter(n=>SPELL_DB[n]).map(spOf));
+  const prep=preparedAll().map(spOf).map(mark),sl=WL.slotLvl(lvl());
+  for(let l=1;l<=9;l++){const g=prep.filter(x=>x.lvl===l);if(g.length)out.push({g:`Level ${l} · Prepared (uses a ${ord(sl)}-level pact slot)`},...g)}
+  return out.concat([{g:'Rituals · Book of Shadows'}],book().rituals.filter(n=>SPELL_DB[n]).map(spOf));
 }
 // asRitual: cast a ritual spell without a slot, taking 10 extra minutes
 function cast(sp,asRitual){
-  const useSlot=sp.slot||(sp.ritual&&!asRitual);
+  const useSlot=sp.lvl>=1&&!(sp.ritual&&asRitual);
   if(useSlot){if(!slotsLeft()){toast(sp.n,'No pact slot left. Take a short rest'+(sp.ritual?', or cast it as a ritual.':'.'),'—','fumble');return}S.slotsUsed++}
   if(sp.c){if(S.conc&&S.conc!==sp.n)toast('Concentration',`${S.conc} ends`,'↺');S.conc=sp.n}
   if(sp.n==='Hex')S.hexOn=true;
@@ -1595,7 +1699,7 @@ function renderSpells(){
   spellList().forEach(sp=>{
     if(sp.g){const h=document.createElement('div');h.className='label group-title';h.textContent=sp.g;w.appendChild(h);return}
     const el=document.createElement('details');el.className='spell';el.dataset.n=sp.n;if(open.has(sp.n))el.open=true;
-    const tags=(sp.c?'<span class="tag c">Conc.</span>':'')+(sp.ritual?'<span class="tag">Ritual</span>':'');
+    const tags=(sp.c?'<span class="tag c">Conc.</span>':'')+(sp.ritual?'<span class="tag">Ritual</span>':'')+(sp.patron?'<span class="tag">Patron</span>':'');
     el.innerHTML=`<summary><span class="nm">${sp.n}${tags}</span><span class="meta">${sp.m}</span><span class="acts"></span></summary><div class="body"><p></p></div>`;
     el.querySelector('.body p').textContent=fillText(sp,sp.t);el.querySelector('.meta').textContent=fillText(sp,sp.m);
     const gr=growthEl(sp.n);if(gr)el.querySelector('.body').appendChild(gr);
@@ -1604,15 +1708,16 @@ function renderSpells(){
     const ar=atkRow(sp);
     const run=fxList().find(f=>f.n===sp.n)||(sp.c&&S.conc===sp.n);
     if(run)mk('Active',()=>toast(sp.n+' is active',sp.n==='Hex'?'To curse a new target after this one drops, use a Bonus Action. No slot needed.':'End it under Active effects if you want to cast it again.','✦'),false);
-    else if(sp.dur&&ar)mk('Cast',()=>cast(sp),false);
+    else if(sp.ritual){mk('Ritual',()=>cast(sp,true),true);mk('Use slot',()=>cast(sp))}
+    // spells of level 1+ spend a slot through Cast; cantrips only need it when they start a lasting effect
+    else if(sp.lvl>=1||sp.c||sp.dur||sp.lasting)mk('Cast',()=>cast(sp),!ar&&!sp.heal);
     if(ar){
       if(ar.save)mk('DC '+dc+' '+ar.save,()=>toast(sp.n,`The target makes a ${ar.save} save against DC ${dc}.`,'DC'),false);
-      else mk(ar.beams>1?`Attack ×${ar.beams}`:'Attack',()=>attackRoll(sp.n,ar.hit,ar.beams),true);
+      else if(ar.hit!=null)mk(ar.beams>1?`Attack ×${ar.beams}`:'Attack',()=>attackRoll(sp.n,ar.hit,ar.beams),sp.lvl===0);
       mk('Damage',()=>dmg(sp.n,ar.dice,ar.flat,ar.type,!!ar.save));
       if(ar.alt)mk(ar.alt.label,()=>dmg(sp.n,ar.alt.dice,0,ar.type,!!ar.save));
     }
-    else if(!run&&sp.ritual){mk('Ritual',()=>cast(sp,true),true);mk('Use slot',()=>cast(sp))}
-    else if(!run&&(sp.c||sp.slot||sp.dur||sp.lasting))mk('Cast',()=>cast(sp),true);
+    if(sp.heal)mk('Heal',()=>{const x=scaled(sp)[0],r=[];for(let i=0;i<x[0];i++)r.push(d(x[1]));const t=r.reduce((a,b)=>a+b,0)+mod('cha');toast(sp.n+' healing',`${x[0]}d${x[1]} [${r.join(',')}] ${sg(mod('cha'))}`,'+'+t)});
     const fx=fxList().find(f=>f.n===sp.n);
     if(fx){const run=fx,t=document.createElement('span');t.className='tag on';t.textContent=run.lasting?'Summoned':'Active \u00b7 '+fmtLeft(run.left);el.querySelector('.nm').appendChild(t)}
     w.appendChild(el);
@@ -1636,13 +1741,17 @@ function renderSlots(){
   $('slot-lbl').textContent=`Pact slot${n>1?'s':''} (${ord(WL.slotLvl(lvl()))} level)`;
 }
 $('conc-drop').onclick=()=>{if(S.conc)endFx(S.conc);S.conc=null;save();renderAll()};
-$('conc-save').onclick=()=>d20('Constitution save (concentration)',mod('con'));
+$('conc-save').onclick=()=>{
+  if(!hasInv('Eldritch Mind'))return d20('Constitution save (concentration)',mod('con'));
+  const a=d(20),b2=d(20),k=Math.max(a,b2);
+  toast('Constitution save (concentration)',`Advantage, Eldritch Mind [${a}, ${b2}] ${sg(mod('con'))}`,k+mod('con'),k===20?'crit':k===1?'fumble':'');
+};
 
 /* ---------- rests ---------- */
 $('btn-short').onclick=()=>{advance(3600);S.slotsUsed=0;save();renderAll();openRest('short')};
 $('btn-long').onclick=()=>{
   if(dsState()==='dead'){toast('Ash is dead','A rest can’t help now. Untick the failure boxes if this was a mistake.','✝','fumble');return}
-  advance(8*3600);S.fx=fxList().filter(f=>f.lasting);S.slotsUsed=0;S.hp=maxHP();S.temp=0;S.aoa=false;S.conc=null;S.hd=lvl();S.ds={};save();renderAll();openRest('long')};
+  advance(8*3600);S.fx=fxList().filter(f=>f.lasting);S.slotsUsed=0;S.mcUsed=false;S.pt={};S.hp=maxHP();S.temp=0;S.aoa=false;S.conc=null;S.hd=lvl();S.ds={};save();renderAll();openRest('long')};
 
 /* ---------- rest prompt and Book of Shadows editor ---------- */
 // bk: the open dialog's state. draft is the book being edited; slot is which pick the list fills.
@@ -1676,7 +1785,7 @@ function bookOptions(k){
 }
 // Why a pick breaks the Pact of the Tome rules (empty if it doesn't). The sheet allows it anyway.
 function bookWhy(k,n){
-  if(WL_FIXED.cantrips.includes(n)||WL_FIXED.prepared.includes(n))return 'Already prepared as a Warlock spell';
+  if(knownCantrips().includes(n)||preparedAll().includes(n))return 'Already prepared as a Warlock spell';
   const i=bk.draft[k].indexOf(n);
   if(i>=0&&!(k===bk.slot.k&&i===bk.slot.i))return `Already in ${BK_KINDS[k][0].toLowerCase()} slot ${i+1}`;
   return '';
@@ -1702,7 +1811,9 @@ function spellFacts(n){
   const dc=8+PB+mod('cha'),dl=x=>x.map(([c,s])=>`${c}d${s}`).join('+'),f=[];
   const sd=scaled(Object.assign({n:n},d));
   if(d.weapon)f.push(`Dagger attack ${sg(spellAtk())} · 1d4${sg(mod('cha'))}`+(tier()>1?` +${tier()-1}d6 Radiant`:''));
-  else if(d.sc==='beams')f.push(`${tier()} beam${tier()>1?'s':''} · Spell attack ${sg(spellAtk())} · 1d10 ${d.type} each`);
+  else if(d.sc==='beams')f.push(`${tier()} beam${tier()>1?'s':''} · Spell attack ${sg(spellAtk())} · 1d10${agon(d)?sg(agon(d)):''} ${d.type} each`);
+  else if(d.heal)f.push(`Heals ${dl(sd)}${sg(mod('cha'))}`);
+  else if(d.sc==='rays')f.push(`${3+upBy(d)} rays · Spell attack ${sg(spellAtk())} · ${dl(sd)} ${d.type} each`);
   else if(d.atk&&d.dice)f.push(`Spell attack ${sg(spellAtk())} · ${dl(sd)} ${d.type}`);
   else if(d.save)f.push(`DC ${dc} ${d.save[0].toUpperCase()+d.save.slice(1,3)} save`+(d.dice?` · ${dl(sd)} ${d.type}`+(d.alt?` (${dl(scaled({lvl:d.lvl,dice:d.alt.dice}))} ${d.alt.label})`:''):''));
   if(d.aoa)f.push(`${aoaHp()} temp HP · ${aoaHp()} Cold to melee attackers`);
@@ -1948,7 +2059,7 @@ function renderOptions(){
     const cw=g.querySelector('.ocards');
     items.forEach(o=>{
       const c=document.createElement('article');
-      const has=o[0]==='bc'||o[0]==='rit'?inBook(o[1]):o[6];
+      const has=o[0]==='pat'?B().patron===o[1]:haveIt(o[1]);
       c.className='ocard'+(has?' have':'')+(dirSel&&o[5].includes(dirSel)?' match':'');
       c.innerHTML='<div class="top"><span class="nm"></span>'+(has?'<span class="have-tag">On sheet</span>':'')+'</div><span class="meta"></span><p></p><div class="ttags"></div>';
       c.querySelector('.nm').textContent=o[1];c.querySelector('.meta').textContent=o[2];c.querySelector('p').textContent=o[3];
@@ -2037,7 +2148,7 @@ function renderInvPlanner(){
     c.innerHTML=`<span class="inv-top"><span class="nm"></span><span class="st"></span></span><span class="inv-meta"></span><span class="inv-g"></span><span class="inv-a"></span>`;
     c.querySelector('.nm').textContent=name;
     c.querySelector('.st').textContent=state;
-    c.querySelector('.inv-meta').textContent=`Level ${minL}+`+(other?` \u00b7 Requires ${other}`:'')+(/Repeatable/.test(det.g)?' \u00b7 Repeatable':'')+(name==='Pact of the Tome'?' \u00b7 Ash has this':'');
+    c.querySelector('.inv-meta').textContent=`Level ${minL}+`+(other?` \u00b7 Requires ${other}`:'')+(/Repeatable/.test(det.g)?' \u00b7 Repeatable':'')+(hasInv(name)?' \u00b7 Ash has this':'');
     c.querySelector('.inv-g').textContent=det.g;
     c.querySelector('.inv-a').textContent='For Ash: '+det.a;
     c.onclick=()=>{
@@ -2062,7 +2173,7 @@ function renderInvPlanner(){
 }
 
 /* ---------- reference tab ---------- */
-const haveIt=n=>n==='Pact of the Tome'||WL_FIXED.cantrips.includes(n)||WL_FIXED.prepared.includes(n)||inBook(n);
+const haveIt=n=>hasInv(n)||knownCantrips().includes(n)||preparedAll().includes(n)||inBook(n);
 const WL_CANTRIPS=new Set(['Blade Ward','Chill Touch','Eldritch Blast','Friends','Mage Hand','Mind Sliver','Minor Illusion','Poison Spray','Prestidigitation','Thunderclap','Toll the Dead','True Strike']);
 // name, school, classes, conc, description
 const CANTRIPS=[
@@ -2799,7 +2910,280 @@ $('gold').oninput=e=>{S.gold=parseInt(e.target.value,10)||0;save()};
 $('lang').oninput=e=>{S.lang=e.target.value;save()};
 $('notes').oninput=e=>{S.notes=e.target.value;save()};
 
-function renderAll(){levelSync();renderLevel();renderPortrait();renderStory();renderJournal();renderEquip();renderHP();renderFx();renderAbil();renderSkills();renderVitals();renderAttacks();renderSpells()}
+function renderAll(){levelSync();renderLevel();renderClassFeats();renderPortrait();renderStory();renderJournal();renderEquip();renderHP();renderFx();renderAbil();renderSkills();renderVitals();renderAttacks();renderSpells()}
+/* ---------- class features panel ---------- */
+const BEFORE_KEY=KEY+'-before-level';
+// Keep a copy of the whole sheet from just before a level change, as a safety net.
+function keepSafetyCopy(){try{localStorage.setItem(BEFORE_KEY,backupText())}catch(e){}}
+function renderClassFeats(){
+  const w=$('cls-feats');w.innerHTML='';const L=lvl();
+  const sec=(title)=>{const d=document.createElement('div');d.className='cf-sec';const h=document.createElement('span');h.className='label';h.textContent=title;d.appendChild(h);w.appendChild(d);return d};
+  const item=(box,name,text)=>{const d=document.createElement('div');d.className='cf-item';d.innerHTML='<b></b><span></span>';d.querySelector('b').textContent=name;d.querySelector('span').textContent=text;box.appendChild(d);return d};
+  // invocations
+  const inv=sec(`Eldritch invocations · ${B().invocations.length} of ${INV_COUNT[L]}`);
+  B().invocations.forEach(n=>{
+    const d=item(inv,n,(INV_DETAIL[n]||{}).g||'');
+    if(n==='Fiendish Vigor'){const b=document.createElement('button');b.className='btn small';b.textContent='False Life: 12 temp HP';b.onclick=()=>{S.temp=Math.max(S.temp,12);if(S.aoa&&S.temp!==S.aoaHp)S.aoa=false;save();renderAll();toast('False Life','12 Temporary Hit Points, no slot (Fiendish Vigor)','+12')};d.appendChild(b)}
+  });
+  // patron
+  if(B().patron){
+    const pt=PATRONS.find(x=>x.n===B().patron);
+    const box=sec(`Patron · ${B().patron}`+(L<3?' (from level 3)':''));
+    if(pt)pt.feats.filter(f=>f[0]<=L).forEach(([fl,name,text])=>{
+      const d=item(box,`${name} (Lv ${fl})`,text);
+      S.pt=S.pt||{};
+      const row=document.createElement('div');row.className='toolbar';
+      if(name==='Steps of the Fey'){
+        const max=Math.max(1,mod('cha')),left=max-(S.pt.steps||0);
+        const b=document.createElement('button');b.className='btn small';b.textContent=`Free Misty Step · ${left} of ${max} left`;b.disabled=left<1;
+        b.onclick=()=>{S.pt.steps=(S.pt.steps||0)+1;save();renderAll();toast('Steps of the Fey','Misty Step without a slot. Refreshing Step: an ally gains 1d10 temp HP. Taunting Step: creatures near where you left have Disadvantage on attacks against others.','✦')};
+        row.appendChild(b);
+      }
+      if(name==='Healing Light'){
+        const max=1+L,left=max-(S.pt.heal||0),cap=Math.min(left,Math.max(1,mod('cha')));
+        const lab=document.createElement('span');lab.className='fine';lab.textContent=`${left} of ${max} d6 left · spend:`;row.appendChild(lab);
+        for(let n=1;n<=cap;n++){const b=document.createElement('button');b.className='btn small';b.textContent=n+'d6';b.onclick=()=>{S.pt.heal=(S.pt.heal||0)+n;const r=[];for(let i=0;i<n;i++)r.push(d(6));save();renderAll();toast('Healing Light',`${n}d6 [${r.join(',')}]`,'+'+r.reduce((a,b)=>a+b,0))};row.appendChild(b)}
+      }
+      if(name==='Dark One’s Blessing'){
+        const hp=Math.max(1,mod('cha')+L);
+        const b=document.createElement('button');b.className='btn small';b.textContent=`Gain ${hp} temp HP`;b.onclick=()=>{S.temp=Math.max(S.temp,hp);S.aoa=false;save();renderAll();toast('Dark One’s Blessing',`A foe dropped to 0 HP: ${hp} temp HP`,'+'+hp)};row.appendChild(b);
+      }
+      if(row.children.length)d.appendChild(row);
+    });
+  }else if(L>=3){item(sec('Patron'),'Not chosen yet','Pick one with Edit build.')}
+  // feats from Ability Score Improvements
+  if(B().feats.length){const f=sec('Feats');B().feats.forEach(x=>item(f,x,''))}
+  // level history
+  const hist=sec('Level history');
+  const recs=pv?(pvSnap.history||[]):S.history;
+  if(!recs.length){const p=document.createElement('p');p.className='fine';p.textContent='Ash is at the level the sheet started with. Each level up is recorded here so you can look back or undo it.';hist.appendChild(p)}
+  recs.forEach((r,i)=>{
+    const d=item(hist,`Level ${r.level} → ${r.to}`,(r.summary||[]).join(' · '));
+    const row=document.createElement('div');row.className='toolbar';
+    const v=document.createElement('button');v.className='btn small';v.textContent=`View level ${r.level}`;v.onclick=()=>setPreview(r.level);row.appendChild(v);
+    if(i===recs.length-1&&!pv)row.appendChild(armBtn(`Undo level ${r.to}`,'Click again to undo','btn small danger',undoLevel));
+    const dt=document.createElement('span');dt.className='fine';dt.textContent=new Date(r.date).toLocaleDateString([], {day:'numeric',month:'short',year:'numeric'});row.appendChild(dt);
+    d.appendChild(row);
+  });
+  const bar=document.createElement('div');bar.className='toolbar';
+  const up=document.createElement('button');up.className='btn small primary';up.textContent=`Level up to ${(S.level||1)+1}`;up.disabled=!!pv||(S.level||1)>=20;up.onclick=()=>openLevelUp('up');
+  const ed=document.createElement('button');ed.className='btn small';ed.textContent='Edit build';ed.disabled=!!pv;ed.onclick=()=>openLevelUp('edit');
+  bar.append(up,ed);
+  let safe=null;try{safe=localStorage.getItem(BEFORE_KEY)}catch(e){}
+  if(safe&&!pv)bar.appendChild(armBtn('Restore sheet from before last level change','Click again: replaces the whole sheet','btn small',()=>restore(safe)));
+  w.appendChild(bar);
+  // Magical Cunning sits with the pact slots
+  const mc=$('mc-btn');mc.hidden=L<2;
+  mc.disabled=!!S.mcUsed||S.slotsUsed<1;
+  mc.textContent=S.mcUsed?'Magical Cunning used':'Magical Cunning';
+}
+$('mc-btn').onclick=()=>{
+  const n=WL.slots(lvl()),back=lvl()>=20?n:Math.ceil(n/2);
+  S.slotsUsed=Math.max(0,S.slotsUsed-back);S.mcUsed=true;advance(60);
+  toast('Magical Cunning',`A 1-minute rite: ${back} pact slot${back>1?'s':''} back. Usable again after a Long Rest.`,'✦');save();renderAll();
+};
+
+/* ---------- level up and build editing ---------- */
+// lu: the open dialog. draft holds the picks; slot is the pick the list below fills.
+let lu=null;
+const LU_KINDS={cantrips:['Warlock cantrips','Cantrip'],prepared:['Prepared spells','Spell'],invocations:['Invocations','Invocation']};
+const ASI_LV=[4,8,12,16];
+const padTo=(a,n)=>{a=a.slice();while(a.length<n)a.push('');return a};
+const invOk=(n,L,list)=>{const x=INVOCS.find(i=>i[1]===n);return x&&x[0]<=L&&(!INV_REQ[n]||list.includes(INV_REQ[n]))};
+function openLevelUp(mode){
+  if(pv){toast('Leave the preview first','Level changes apply to your real sheet.','—');return}
+  const to=mode==='up'?S.level+1:S.level;if(to>20)return;
+  lu={mode:mode,to:to,hp:'avg',roll:null,patron:B().patron,asi:{mode:'two',a:'cha',b:'con',feat:''},q:'',cat:null,more:new Set(),
+    draft:{cantrips:padTo(B().cantrips,WL.cantrips(to)),prepared:padTo(B().prepared,WL.prepared(to)),invocations:padTo(B().invocations,INV_COUNT[to])}};
+  // invocations from the Build options plan fill the new slots
+  if(mode==='up'){
+    const plan=(S.invPlan&&S.invPlan.picks)||[],inv=lu.draft.invocations;
+    plan.forEach(n=>{const i=inv.indexOf('');if(i>=0&&!inv.includes(n)&&invOk(n,to,inv))inv[i]=n});
+  }
+  lu.slot=luFirstEmpty()||{k:'invocations',i:0};
+  renderLU();
+  const d=$('lu-dlg');if(!d.open)d.showModal();
+}
+function luFirstEmpty(){for(const k of Object.keys(LU_KINDS)){const i=lu.draft[k].indexOf('');if(i>=0)return {k:k,i:i}}return null}
+function closeLU(){const d=$('lu-dlg');if(d.open)d.close()}
+$('lu-dlg').addEventListener('close',()=>{lu=null});
+$('lu-x').onclick=closeLU;
+function luOptions(k){
+  if(k==='cantrips')return CANTRIPS.filter(c=>WL_CANTRIPS.has(c[0])).map(c=>({n:c[0],mt:c[1]+(c[3]?' · Conc.':''),s:c[4]}));
+  if(k==='prepared'){const sl=WL.slotLvl(lu.to);return WL_SPELLS.filter(x=>x[0]<=sl).map(x=>({n:x[1],mt:`Level ${x[0]} · ${x[2]}`+(x[3]?' · Conc.':'')+(x[4]?' · Ritual':''),s:x[5],grp:'Level '+x[0]}))}
+  return INVOCS.filter(x=>x[0]<=lu.to).map(x=>({n:x[1],mt:`Level ${x[0]}+`+(x[2]?' · Requires '+x[2]:''),s:x[3],grp:x[0]<=1?'Level 1':'Level '+x[0]}));
+}
+// Why a pick goes against the rules (empty if it doesn't). The sheet allows it anyway.
+function luWhy(k,n){
+  const i=lu.draft[k].indexOf(n);if(i>=0&&i!==lu.slot.i)return `Already in ${LU_KINDS[k][1].toLowerCase()} slot ${i+1}`;
+  if(k==='prepared'&&lu.patron&&lu.to>=3&&(PATRON_SPELLS[lu.patron]||[]).includes(n))return 'Always prepared by your patron';
+  if(k==='cantrips'&&inBook(n))return 'Also in your Book of Shadows';
+  if(k==='invocations'&&INV_REQ[n]&&!lu.draft.invocations.includes(INV_REQ[n]))return 'Needs '+INV_REQ[n];
+  return '';
+}
+function luFull(k,n){
+  if(k==='invocations'){const x=INV_DETAIL[n]||{};return [x.g||'',x.a?'For Ash: '+x.a:''].filter(Boolean).join(' ')}
+  const d=spOf(n);return (d.m?fillText(d,d.m)+'. ':'')+fillText(d,d.t||'');
+}
+function luHpGain(){const g=lu.hp==='roll'&&lu.roll?lu.roll:5;return Math.max(1,g+mod('con'))}
+function luChanges(){
+  const out=[];
+  Object.keys(LU_KINDS).forEach(k=>{
+    const was=B()[k];lu.draft[k].forEach((n,i)=>{if(!n)return;if(i>=was.length)out.push('+ '+n);else if(was[i]!==n)out.push(`${was[i]} → ${n}`)});
+  });
+  if(lu.patron!==B().patron&&lu.patron)out.push('Patron: '+lu.patron);
+  return out;
+}
+function renderLU(){
+  const body=$('lu-body');body.innerHTML='';
+  $('lu-h').textContent=lu.mode==='up'?`Level up to ${lu.to}`:'Edit build';
+  const add=(cls,html)=>{const e=document.createElement('div');e.className=cls;if(html)e.innerHTML=html;body.appendChild(e);return e};
+  if(lu.mode==='up'){
+    const ch=levelChanges(lu.to);
+    const s=add('dlg-sum');s.innerHTML='<b></b><ul class="lu-auto"></ul>';s.querySelector('b').textContent=`What level ${lu.to} brings automatically`;
+    (ch.length?ch:['More Hit Points and a hit die']).forEach(t=>{const li=document.createElement('li');li.textContent=t;s.querySelector('ul').appendChild(li)});
+    // hit points
+    const hp=add('lu-sec');hp.innerHTML='<h3>Hit points</h3><div class="seg" role="group" aria-label="Hit points"></div><p class="fine"></p>';
+    const seg=hp.querySelector('.seg');
+    const avgB=document.createElement('button');avgB.type='button';avgB.textContent=`Average: +${Math.max(1,5+mod('con'))}`;avgB.setAttribute('aria-pressed',String(lu.hp==='avg'));avgB.onclick=()=>{lu.hp='avg';renderLU()};
+    const rollB=document.createElement('button');rollB.type='button';rollB.textContent=lu.roll?`Rolled ${lu.roll}: +${Math.max(1,lu.roll+mod('con'))}`:`Roll 1d8 ${sg(mod('con'))}`;rollB.setAttribute('aria-pressed',String(lu.hp==='roll'));
+    rollB.onclick=()=>{if(!lu.roll)lu.roll=d(8);lu.hp='roll';renderLU()};
+    seg.append(avgB,rollB);
+    hp.querySelector('.fine').textContent=`Max HP ${maxHP()} → ${maxHP()+luHpGain()}. You also gain a hit die. The roll happens once, so the result stays.`;
+  }else{
+    add('dlg-sum').textContent=`Change Ash’s Warlock picks for level ${lu.to}: fix a pick, fill an empty slot or swap a spell. This doesn’t add a level or touch the Book of Shadows.`;
+  }
+  // patron
+  if((lu.mode==='up'&&lu.to===3)||(lu.mode==='edit'&&lu.to>=3)){
+    const p=add('lu-sec');p.innerHTML='<h3>Patron</h3><p class="fine">The being behind Ash’s pact. It adds always-prepared spells and features at levels 3, 6, 10 and 14.</p><div class="lu-pats"></div>';
+    PATRONS.forEach(x=>{
+      const b=document.createElement('button');b.type='button';b.className='lu-pat';b.setAttribute('aria-pressed',String(lu.patron===x.n));
+      b.innerHTML='<b></b><span class="d"></span><span class="f"></span><span class="sp"></span>';
+      b.querySelector('b').textContent=x.n;b.querySelector('.d').textContent=x.s+' '+x.fit;
+      b.querySelector('.f').textContent='Level 3: '+x.feats.filter(f=>f[0]===3).map(f=>f[1]).join(', ');
+      b.querySelector('.sp').textContent='Spells: '+(PATRON_SPELLS[x.n]||[]).join(', ');
+      b.onclick=()=>{lu.patron=x.n;renderLU()};p.querySelector('.lu-pats').appendChild(b);
+    });
+  }
+  // ability score improvement
+  if(lu.mode==='up'&&ASI_LV.includes(lu.to)){
+    const a=add('lu-sec');a.innerHTML='<h3>Ability Score Improvement or feat</h3><div class="seg" role="group" aria-label="Choice"></div><div class="field lu-asi"></div>';
+    [['two','+1 to two scores'],['one','+2 to one score'],['feat','A feat instead']].forEach(([m,l])=>{const b=document.createElement('button');b.type='button';b.textContent=l;b.setAttribute('aria-pressed',String(lu.asi.mode===m));b.onclick=()=>{lu.asi.mode=m;renderLU()};a.querySelector('.seg').appendChild(b)});
+    const f=a.querySelector('.lu-asi');
+    const sel=(key)=>{const s=document.createElement('select');AB.forEach(([k,nm])=>{const o=document.createElement('option');o.value=k;o.textContent=`${nm} (${S.ab[k]})`;s.appendChild(o)});s.value=lu.asi[key];s.onchange=()=>{lu.asi[key]=s.value;renderLU()};return s};
+    if(lu.asi.mode==='feat'){const i=document.createElement('input');i.placeholder='Feat name, e.g. War Caster';i.value=lu.asi.feat;i.oninput=()=>{lu.asi.feat=i.value};f.appendChild(i)}
+    else{f.appendChild(sel('a'));if(lu.asi.mode==='two')f.appendChild(sel('b'))}
+  }
+  // picks
+  const pk=add('lu-sec');pk.innerHTML='<h3>Spells and invocations</h3><p class="fine">New slots are marked. Each level the rules also let you swap one Warlock cantrip, one prepared spell and one invocation; the sheet warns about more but allows it.</p>';
+  Object.keys(LU_KINDS).forEach(k=>{
+    const was=B()[k],dr=lu.draft[k];
+    const g=document.createElement('div');g.className='lu-grp';
+    const swaps=dr.filter((n,i)=>i<was.length&&n!==was[i]).length;
+    g.innerHTML='<span class="label"></span><div class="bk-slots"></div>';
+    g.querySelector('.label').textContent=`${LU_KINDS[k][0]} · ${dr.filter(Boolean).length} of ${dr.length}`+(lu.mode==='up'&&swaps>1?` · ${swaps} swapped (the rules allow 1)`:'');
+    dr.forEach((n,i)=>{
+      const b=document.createElement('button');b.type='button';b.className='bk-slot'+(n?'':' empty');b.setAttribute('aria-pressed',String(lu.slot.k===k&&lu.slot.i===i));
+      b.innerHTML='<span class="k"></span><b></b>';
+      b.querySelector('.k').textContent=`${LU_KINDS[k][1]} ${i+1}`+(i>=was.length?' · new':'');
+      b.querySelector('b').textContent=n||'Choose…';
+      if(i<was.length&&was[i]!==n){const x=document.createElement('span');x.className='was';x.textContent='was '+was[i];b.appendChild(x)}
+      b.onclick=()=>{lu.slot={k:k,i:i};lu.q='';lu.cat=null;renderLU()};
+      g.querySelector('.bk-slots').appendChild(b);
+    });
+    pk.appendChild(g);
+  });
+  // the list for the selected slot
+  const k=lu.slot.k,cur=lu.draft[k][lu.slot.i];
+  const pick=document.createElement('div');pick.className='bk-pick';
+  pick.innerHTML=`<span class="label"></span><input type="search" placeholder="Search by name or effect" aria-label="Search"><div class="bk-head"></div><div class="bk-list"></div>`;
+  pick.querySelector('.label').textContent=`Choose ${LU_KINDS[k][1].toLowerCase()} ${lu.slot.i+1}`;
+  const qi=pick.querySelector('input');qi.value=lu.q;
+  const head=pick.querySelector('.bk-head'),list=pick.querySelector('.bk-list');
+  const fill=()=>{
+    head.innerHTML='';list.innerHTML='';
+    const q=lu.q.trim().toLowerCase(),all=luOptions(k);
+    const grps=[...new Set(all.map(o=>o.grp).filter(Boolean))];
+    if(grps.length>1){
+      if(!lu.cat||!grps.includes(lu.cat)){const c=all.find(o=>o.n===cur);lu.cat=c?c.grp:grps[grps.length-1]}
+      const chips=document.createElement('div');chips.className='filters bk-chips-row';
+      grps.forEach(gn=>{const b=document.createElement('button');b.type='button';b.textContent=gn;b.setAttribute('aria-pressed',String(!q&&lu.cat===gn));b.onclick=()=>{lu.cat=gn;lu.q='';qi.value='';fill()};chips.appendChild(b)});
+      head.appendChild(chips);
+    }
+    const opts=all.filter(o=>q?[o.n,o.mt,o.s].join(' ').toLowerCase().includes(q):(grps.length<2||o.grp===lu.cat));
+    opts.forEach(o=>{
+      const row=document.createElement('div');row.className='bk-opt'+(o.n===cur?' cur':'');
+      const why=o.n===cur?'':luWhy(k,o.n);
+      row.innerHTML='<span class="nm"></span><span class="mt"></span><span class="sd"></span><span class="acts"></span>';
+      row.querySelector('.nm').textContent=o.n;
+      if(k==='invocations'&&(S.invPlan&&S.invPlan.picks||[]).includes(o.n)){const x=document.createElement('span');x.className='pill';x.textContent='In your plan';row.querySelector('.nm').append(' ',x)}
+      row.querySelector('.mt').textContent=o.mt;row.querySelector('.sd').textContent=o.s;
+      if(why){const x=document.createElement('span');x.className='why';x.textContent=why;row.insertBefore(x,row.querySelector('.acts'))}
+      const acts=row.querySelector('.acts');
+      const more=document.createElement('button');more.type='button';more.className='x';const open=lu.more.has(o.n);more.textContent=open?'Less':'More';
+      more.onclick=()=>{open?lu.more.delete(o.n):lu.more.add(o.n);fill()};acts.appendChild(more);
+      if(o.n===cur){const t=document.createElement('span');t.className='pill ok';t.textContent='Chosen';acts.appendChild(t)}
+      else{
+        const ch=document.createElement('button');ch.type='button';ch.className='btn small'+(why?'':' primary');ch.textContent=why?'Choose anyway':'Choose';
+        ch.onclick=()=>{lu.draft[k][lu.slot.i]=o.n;const nx=luFirstEmpty();if(nx)lu.slot=nx;lu.q='';lu.cat=null;renderLU()};
+        acts.appendChild(ch);
+      }
+      if(open){const f=document.createElement('div');f.className='full';const t=document.createElement('p');t.textContent=luFull(k,o.n);f.appendChild(t);if(k!=='invocations'){const gr=growthEl(o.n);if(gr)f.appendChild(gr)}row.appendChild(f)}
+      list.appendChild(row);
+    });
+    if(!opts.length){const e=document.createElement('p');e.className='s-empty';e.textContent='Nothing matches.';list.appendChild(e)}
+  };
+  qi.oninput=()=>{lu.q=qi.value;fill()};
+  fill();pk.appendChild(pick);
+  // footer
+  const empty=Object.values(lu.draft).reduce((n,a)=>n+a.filter(x=>!x).length,0);
+  const ch=luChanges();
+  const foot=document.createElement('div');foot.className='bk-foot';foot.innerHTML='<span class="fine"></span><span class="toolbar"></span>';
+  foot.querySelector('.fine').textContent=(ch.length?ch.join(' · '):'No pick changes')+(empty?` · ${empty} empty slot${empty>1?'s':''}, which you can fill later with Edit build`:'')+(lu.mode==='up'&&lu.to===3&&!lu.patron?' · no patron chosen':'');
+  const cancel=document.createElement('button');cancel.className='btn small';cancel.type='button';cancel.textContent='Cancel';cancel.onclick=closeLU;
+  const ok=document.createElement('button');ok.className='btn small primary';ok.type='button';ok.textContent=lu.mode==='up'?`Level up to ${lu.to}`:'Save build';
+  ok.onclick=lu.mode==='up'?applyLevelUp:applyEdit;
+  foot.querySelector('.toolbar').append(cancel,ok);body.appendChild(foot);
+}
+function luApplyPicks(){
+  S.build.cantrips=lu.draft.cantrips.filter(Boolean);
+  S.build.prepared=lu.draft.prepared.filter(Boolean);
+  S.build.invocations=lu.draft.invocations.filter(Boolean);
+  S.build.patron=lu.patron||null;
+}
+function afterBuildChange(title,detail){save();closeLU();renderAll();renderOptions();renderRef();toast(title,detail,'✦')}
+function applyLevelUp(){
+  keepSafetyCopy();
+  // record the sheet as it is before this level, so it can be viewed or undone later
+  const rec={level:S.level,to:lu.to,date:new Date().toISOString(),build:clone(S.build),ab:clone(S.ab),summary:null};
+  const to=lu.to,gain=lu.hp==='roll'&&lu.roll?lu.roll:5,summary=[`+${luHpGain()} HP (${lu.hp==='roll'&&lu.roll?'rolled '+lu.roll:'average'})`].concat(luChanges());
+  if(ASI_LV.includes(to)){
+    const a=lu.asi;
+    if(a.mode==='feat'){if(a.feat.trim()){S.build.feats.push(a.feat.trim());summary.push('Feat: '+a.feat.trim())}}
+    else if(a.mode==='one'){S.ab[a.a]=Math.min(20,S.ab[a.a]+2);summary.push(`+2 ${a.a.toUpperCase()}`)}
+    else{S.ab[a.a]=Math.min(20,S.ab[a.a]+1);S.ab[a.b]=Math.min(20,S.ab[a.b]+1);summary.push(`+1 ${a.a.toUpperCase()}, +1 ${a.b.toUpperCase()}`)}
+  }
+  rec.summary=summary;
+  const oldMax=maxHP();
+  luApplyPicks();S.build.hpGains=S.build.hpGains.slice(0,to-2).concat([gain]);
+  S.level=to;levelSync();
+  const m=maxHP();S.hp=Math.min(m,S.hp+Math.max(0,m-oldMax));S.hd=Math.min(to,S.hd+1);
+  S.history.push(rec);
+  afterBuildChange(`Level ${to}!`,summary.join(' · '));
+}
+function applyEdit(){keepSafetyCopy();const ch=luChanges();luApplyPicks();afterBuildChange('Build saved',ch.join(' · ')||'No pick changes')}
+function undoLevel(){
+  const r=S.history[S.history.length-1];if(!r)return;
+  keepSafetyCopy();
+  const oldMax=maxHP();
+  S.history.pop();S.level=r.level;S.build=clone(r.build);S.ab=clone(r.ab);levelSync();
+  const m=maxHP();S.hp=S.hp>0?Math.max(1,Math.min(m,S.hp-Math.max(0,oldMax-m))):0;
+  S.hd=Math.min(S.hd,S.level);if(S.slotsUsed>WL.slots(S.level))S.slotsUsed=WL.slots(S.level);
+  save();renderAll();renderOptions();renderRef();
+  toast(`Back to level ${r.level}`,'Your build and ability scores are as they were. Journal, gear and Book of Shadows are untouched.','↺');
+}
+$('btn-lvlup').onclick=()=>openLevelUp('up');
+
 /* ---------- level and preview ---------- */
 const LV_FEATS={2:'Magical Cunning: regain half your pact slots with a 1-minute rite, once per Long Rest',3:'Choose your patron',4:'Ability Score Improvement or a feat',6:'Patron feature',8:'Ability Score Improvement or a feat',9:'Contact Patron',10:'Patron feature',11:'Mystic Arcanum: one 6th-level spell, once per Long Rest',12:'Ability Score Improvement or a feat',13:'Mystic Arcanum: 7th level',14:'Patron feature',15:'Mystic Arcanum: 8th level',16:'Ability Score Improvement or a feat',17:'Mystic Arcanum: 9th level',19:'Epic Boon feat',20:'Eldritch Master: Magical Cunning restores all your slots'};
 // What changes on reaching level l, worked out from the Warlock table.
@@ -2820,7 +3204,10 @@ function setPreview(l){
   l=+l;
   if(pv){S=pvSnap;pv=null;pvSnap=null}
   if(l!==(S.level||1)){
-    pvSnap=S;S=clone(S);pv=l;levelSync();
+    pvSnap=S;S=clone(S);pv=l;
+    const rec=l<pvSnap.level&&(pvSnap.history||[]).find(r=>r.level===l);
+    if(rec){S.build=clone(rec.build);S.ab=clone(rec.ab)}
+    levelSync();
     S.hd=l;S.slotsUsed=0;S.temp=0;S.aoa=false;S.ds={};S.hp=maxHP();
   }
   renderAll();renderRef();
@@ -2829,19 +3216,28 @@ function renderLevel(){
   const L=lvl(),real=S.level||(pvSnap&&pvSnap.level)||1;
   $('lvl-n').textContent=L;
   const sel=$('lvl-sel');
-  if(!sel.options.length)for(let i=1;i<=20;i++){const o=document.createElement('option');o.value=i;o.textContent=i;sel.appendChild(o)}
+  // past levels (recorded), the current level and future levels (preview) are grouped
+  const key=real+':'+(pvSnap||S).history.length;
+  if(sel.dataset.k!==key){
+    sel.dataset.k=key;sel.innerHTML='';
+    const grp=(label,from,to)=>{if(from>to)return;const g=document.createElement('optgroup');g.label=label;for(let i=from;i<=to;i++){const o=document.createElement('option');o.value=i;o.textContent=i;g.appendChild(o)}sel.appendChild(g)};
+    grp('Recorded',1,real-1);grp('Now',real,real);grp('Preview',real+1,20);
+  }
   sel.value=String(L);
   $('v-pb').textContent=sg(PB);$('v-pbl').textContent='Level '+L;
   $('pm-txt').textContent=`${WL.slots(L)} slot${WL.slots(L)>1?'s':''} at ${ord(WL.slotLvl(L))} level, back on a Short Rest. ${WL.prepared(L)} spells prepared and ${WL.cantrips(L)} Warlock cantrips.`;
   const bar=$('pv-bar');bar.hidden=!pv;
   document.body.classList.toggle('previewing',!!pv);
   if(!pv)return;
-  $('pv-title').textContent=`Previewing level ${L}`;
+  const past=L<real,rec=past&&(pvSnap.history||[]).find(r=>r.level===L);
+  $('pv-more').hidden=past;
+  $('pv-title').textContent=past?`Viewing level ${L} as recorded`:`Previewing level ${L}`;
+  if(past){$('pv-exit').textContent=`Back to level ${real}`;$('pv-note').textContent=`This is Ash’s build, ability scores and numbers at level ${L}`+(rec?`, as recorded before levelling up on ${new Date(rec.date).toLocaleDateString()}`:'')+'. Nothing you do here is saved. To go back to this level for real, use Undo under Class & features.';return}
   $('pv-exit').textContent=`Back to level ${real}`;
   const picks=[];
-  if(WL.prepared(L)>WL.prepared(real))picks.push(`${WL.prepared(L)} prepared spells (you have ${WL_FIXED.prepared.length})`);
-  if(WL.cantrips(L)>WL.cantrips(real))picks.push(`${WL.cantrips(L)} Warlock cantrips (you have ${WL_FIXED.cantrips.length})`);
-  if(INV_COUNT[L]>INV_COUNT[real])picks.push(`${INV_COUNT[L]} invocations (you have ${INV_COUNT[real]})`);
+  if(WL.prepared(L)>WL.prepared(real))picks.push(`${WL.prepared(L)} prepared spells (you have ${B().prepared.length})`);
+  if(WL.cantrips(L)>WL.cantrips(real))picks.push(`${WL.cantrips(L)} Warlock cantrips (you have ${B().cantrips.length})`);
+  if(INV_COUNT[L]>INV_COUNT[real])picks.push(`${INV_COUNT[L]} invocations (you have ${B().invocations.length})`);
   $('pv-note').textContent='Numbers show Ash at this level: proficiency, HP, pact slots and how each spell scales. Ability scores and spell picks stay as they are now'+(picks.length?`, though level ${L} would allow ${picks.join(', ')}`:'')+'. You can try things out; nothing is saved, and leaving the preview puts everything back.';
   const list=$('pv-list');list.innerHTML='';let n=0;
   for(let l=real+1;l<=L;l++){
