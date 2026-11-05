@@ -400,7 +400,9 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
 .lu-asi input{flex:1;min-width:0}
 /* level preview */
 .rest.lvl{cursor:pointer;position:relative}
-.rest.lvl select{appearance:none;-webkit-appearance:none;border:0;background:transparent;color:var(--ink);font:600 .95rem/1.1 var(--mono);text-align:center;text-align-last:center;width:100%;padding:0;cursor:pointer}
+.rest.lvl b{font:600 .95rem/1.1 var(--mono);color:var(--ink)}
+.hist-see{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.hist-see select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
 .previewing .rest.lvl{border-color:var(--warn);background:var(--warn-soft);color:var(--ink)}
 .pv-bar{border:1px solid var(--warn);background:var(--warn-soft);border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
 .pv-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
@@ -520,7 +522,7 @@ body:has(dialog[open]){overflow:hidden}
     </div>
     <div class="rests" role="group" aria-label="Level and rest">
       <button class="rest" id="btn-lvlup" title="Level up" aria-label="Level up"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg><span>Up</span></button>
-      <label class="rest lvl" title="See another level: past levels as recorded, future ones as a preview. Nothing is saved."><select id="lvl-sel" aria-label="Preview level"></select><span>Level</span></label>
+<button class="rest lvl" id="lvl-btn" type="button" title="Level history, undo and previews of other levels"><b id="lvl-v">1</b><span>Level</span></button>
       <button class="rest" id="btn-short" title="Short rest: 1 hour, restores the pact slot" aria-label="Short rest"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12M6 21h12M7 3c0 5 10 5 10 9s-10 4-10 9M17 3c0 5-10 5-10 9s10 4 10 9"/></svg><span>Short</span></button>
       <button class="rest" id="btn-long" title="Long rest: 8 hours, restores HP, hit die and pact slot" aria-label="Long rest"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg><span>Long</span></button>
     </div>
@@ -1112,7 +1114,7 @@ body:has(dialog[open]){overflow:hidden}
 
 <dialog class="dlg" id="hist-dlg" aria-labelledby="hist-h">
   <div class="dlg-in">
-    <div class="panel-head"><h2 id="hist-h">Level history</h2><button class="x" type="button" id="hist-x">Close</button></div>
+    <div class="panel-head"><h2 id="hist-h">Level</h2><button class="x" type="button" id="hist-x">Close</button></div>
     <div id="hist-body" class="lu-body"></div>
   </div>
 </dialog>
@@ -2846,10 +2848,6 @@ function renderClassFeats(){
   }else if(L>=3){item(sec('Patron'),'Not chosen yet','Pick one with Edit build.')}
   // feats from Ability Score Improvements
   if(B().feats.length){const f=sec('Feats');B().feats.forEach(x=>item(f,x,''))}
-  // level history, undo and level changes live in their own dialog; they aren't needed while playing
-  const bar=document.createElement('div');bar.className='toolbar';
-  const hb=document.createElement('button');hb.className='btn small';hb.textContent='Level history & undo';hb.onclick=openHistory;
-  bar.appendChild(hb);w.appendChild(bar);
   // Magical Cunning sits with the pact slots
   const mc=$('mc-btn');mc.hidden=L<2;
   mc.disabled=!!S.mcUsed||S.slotsUsed<1;
@@ -2870,6 +2868,17 @@ function renderHistory(){
   const p0=document.createElement('p');p0.className='dlg-sum';
   p0.textContent=recs.length?`Ash is level ${(pv?pvSnap:S).level}. Each level up is recorded with the build from before it, so you can look back or undo the newest one.`:'Ash is at the level the sheet started with. Each level up will be recorded here, so you can look back or undo it.';
   w.appendChild(p0);
+  // see another level: past levels as recorded, future ones as a preview
+  const real=(pv?pvSnap:S).level||1;
+  const see=document.createElement('div');see.className='hist-see';
+  see.innerHTML='<label class="label" for="hist-lvl">See level</label><select id="hist-lvl"></select><span class="fine"></span>';
+  const sel=see.querySelector('select');
+  const grp=(label,from,to)=>{if(from>to)return;const g=document.createElement('optgroup');g.label=label;for(let i=from;i<=to;i++){const o=document.createElement('option');o.value=i;o.textContent=i+(i===real?' (now)':'');g.appendChild(o)}sel.appendChild(g)};
+  grp('Recorded',1,real-1);grp('Now',real,real);grp('Preview',real+1,20);
+  sel.value=String(lvl());
+  see.querySelector('.fine').textContent='Past levels show the recorded sheet; higher ones are a preview. Nothing is saved.';
+  sel.onchange=()=>{$('hist-dlg').close();setPreview(sel.value);showTab('sheet')};
+  w.appendChild(see);
   const ul=document.createElement('div');ul.className='cls-feats';
   recs.slice().reverse().forEach((r,ri)=>{
     const d=document.createElement('div');d.className='cf-item';d.innerHTML='<b></b><span></span>';
@@ -3223,15 +3232,7 @@ function setPreview(l,plan){
 function renderLevel(){
   const L=lvl(),real=S.level||(pvSnap&&pvSnap.level)||1;
   $('lvl-n').textContent=L;
-  const sel=$('lvl-sel');
-  // past levels (recorded), the current level and future levels (preview) are grouped
-  const key=real+':'+(pvSnap||S).history.length;
-  if(sel.dataset.k!==key){
-    sel.dataset.k=key;sel.innerHTML='';
-    const grp=(label,from,to)=>{if(from>to)return;const g=document.createElement('optgroup');g.label=label;for(let i=from;i<=to;i++){const o=document.createElement('option');o.value=i;o.textContent=i;g.appendChild(o)}sel.appendChild(g)};
-    grp('Recorded',1,real-1);grp('Now',real,real);grp('Preview',real+1,20);
-  }
-  sel.value=String(L);
+  $('lvl-v').textContent=L;
   $('v-pb').textContent=sg(PB);$('v-pbl').textContent='Level '+L;
   $('pm-txt').textContent=`${WL.slots(L)} slot${WL.slots(L)>1?'s':''} at ${ord(WL.slotLvl(L))} level, back on a Short Rest. ${WL.prepared(L)} spells prepared and ${WL.cantrips(L)} Warlock cantrips.`;
   const bar=$('pv-bar');bar.hidden=!pv;
@@ -3256,7 +3257,7 @@ function renderLevel(){
   }
   $('pv-sum').textContent=L>real?`What's new by level ${L} (${n} changes)`:'Lower than your current level';
 }
-$('lvl-sel').onchange=e=>setPreview(e.target.value);
+$('lvl-btn').onclick=openHistory;
 $('pv-exit').onclick=()=>setPreview(pvSnap?pvSnap.level||1:1);
 
 levelSync();
