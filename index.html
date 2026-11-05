@@ -2629,7 +2629,6 @@ function entRow(e,c,opts){
   const kd=kindOf(c,e.k);
   if(kd&&!opts.hideTag){const tg=document.createElement('span');tg.className='pill j-tag';tg.dataset.k=kd[0];tg.textContent=kd[1];top.appendChild(tg)}
   const b=document.createElement('button');b.type='button';b.className='ent-name';b.textContent=e.name;b.onclick=()=>openEnt(e);top.appendChild(b);
-  if(opts.sid&&e.sid0===opts.sid){const t=document.createElement('span');t.className='pill ok';t.textContent='New';top.appendChild(t)}
   tx.appendChild(top);
   if(opts.sid){
     // in a session: what was noted about it that session
