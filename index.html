@@ -643,80 +643,14 @@ body:has(dialog[open]){overflow:hidden}
 
   <div id="tab-guide" class="guide" hidden>
     <div class="gnav" role="tablist" aria-label="Play guide sections" id="gnav">
-      <button role="tab" data-gsec="combat" aria-selected="true"><b>Combat</b><span>Turns, Hex, concentration</span></button>
-      <button role="tab" data-gsec="explore" aria-selected="false"><b>Out of combat</b><span>Disguises, rituals, familiar</span></button>
+      <button role="tab" data-gsec="combat" aria-selected="true"><b>Combat</b><span>Your turn, routine, concentration</span></button>
+      <button role="tab" data-gsec="explore" aria-selected="false"><b>Out of combat</b><span>Disguises, quiet magic, rituals</span></button>
       <button role="tab" data-gsec="rest" aria-selected="false"><b>Resting &amp; leveling up</b><span>What comes back, what you can change</span></button>
     </div>
 
     <!-- COMBAT -->
     <div class="gpane" data-gpane="combat">
-      <section class="panel g-hero">
-        <h2>In a fight</h2>
-        <p>Curse the biggest threat with Hex, then cast Eldritch Blast every turn from far away. Your one spell slot comes back on a Short Rest, so spend it.</p>
-      </section>
-      <div class="g-grid">
-        <section class="panel">
-          <h2>Each turn you get</h2>
-          <dl class="g-list">
-            <dt>Move</dt><dd>Up to 30 ft, which you can split before and after your action.</dd>
-            <dt>1 Action</dt><dd>Usually casting a spell: Eldritch Blast, Minor Illusion, or a cantrip from your Book of Shadows (<span data-g="bookc">Guidance, Shocking Grasp, Mage Hand</span>).</dd>
-            <dt>1 Bonus Action</dt><dd>Only if something gives you one. For Ash: casting Hex, moving Hex, or casting Armor of Agathys.</dd>
-            <dt>1 Reaction</dt><dd>One per round, even on other turns. For Ash, usually an Opportunity Attack with the dagger.</dd>
-            <dt>Free interaction</dt><dd>One small thing, like drawing your dagger or opening a door.</dd>
-          </dl>
-          <p class="g-rule"><b>One slot per turn.</b> You can spend only one spell slot on your turn. Hex plus Eldritch Blast is fine (cantrips are free); Hex plus Armor of Agathys on the same turn is not.</p>
-        </section>
-        <section class="panel">
-          <h2>Ash's combat routine</h2>
-          <ol class="g-steps">
-            <li><b>First turn:</b> Bonus Action <i>Hex</i> on the most dangerous enemy you can see, then Action <i>Eldritch Blast</i> it. Your slot is now spent.</li>
-            <li><b>Every turn after:</b> Eldritch Blast. Each hit adds Hex's 1d6.</li>
-            <li><b>Target drops?</b> On a later turn, use your Bonus Action to move Hex to a new enemy. No slot needed while you keep concentrating.</li>
-            <li data-book="Shocking Grasp"><b>Enemy next to you?</b> Ranged attacks have Disadvantage when an enemy is within 5 ft. Use <i>Shocking Grasp</i> so it can't make Opportunity Attacks, then walk away.</li>
-            <li data-nobook="Shocking Grasp"><b>Enemy next to you?</b> Ranged attacks have Disadvantage when an enemy is within 5 ft. Take the Disengage action and walk away, or put <i>Shocking Grasp</i> in your book at the next rest.</li>
-            <li><b>Expecting melee?</b> Cast <i>Armor of Agathys</i> before the fight instead of Hex.</li>
-          </ol>
-          <p class="fine">Hex lasts up to 1 hour. If you keep concentrating, it can carry into the next fight.</p>
-        </section>
-        <section class="panel">
-          <h2>Concentration</h2>
-          <ul class="g-ul">
-            <li>You can hold <b>one</b> Concentration spell at a time. Ash's are <i>Hex</i> and any Book of Shadows spell marked Conc.; starting one ends the other.</li>
-            <li>When you take damage, make a Constitution save (<span data-g="con">+2</span>). The DC is 10 or half the damage, whichever is higher (max 30). Fail and the spell ends.</li>
-            <li>It also ends if you're Incapacitated or drop to 0 HP.</li>
-            <li>The sheet's Concentrating box tracks which spell is active and reminds you to save when you take damage.</li>
-          </ul>
-        </section>
-        <section class="panel">
-          <h2>Your spell slot in a fight</h2>
-          <ul class="g-ul">
-            <li>One 1st-level slot at level 1. It returns on a Short or Long Rest.</li>
-            <li>Hex and Armor of Agathys cost the slot. Cantrips never do.</li>
-            <li>Spell save DC <span data-g="dc">13</span>, spell attack <span data-g="atk">+5</span>. You need a free hand or a focus; the Book of Shadows works as your focus.</li>
-            <li><b>From level 2:</b> Magical Cunning gives the slot back mid-day with a 1-minute rite, once per Long Rest. Good between fights.</li>
-          </ul>
-        </section>
-        <section class="panel">
-          <h2>Easy mistakes</h2>
-          <ul class="g-ul g-warn">
-            <li>Casting Hex and Armor of Agathys on the same turn.</li>
-            <li>Forgetting Hex's 1d6 on every hit.</li>
-            <li>Blasting while an enemy stands next to you. That's Disadvantage; <span data-book="Shocking Grasp">Shocking Grasp</span><span data-nobook="Shocking Grasp">Disengage</span> first.</li>
-            <li>Holding the slot "for later". It comes back on a Short Rest.</li>
-            <li>Casting a Concentration cantrip like Guidance in combat and losing Hex.</li>
-          </ul>
-        </section>
-        <section class="panel">
-          <h2>At 0 hit points</h2>
-          <ul class="g-ul">
-            <li>You fall Unconscious and make a <b>death save</b> at the start of each turn: 10 or higher succeeds.</li>
-            <li>Three successes and you stabilize; three failures and you die. A natural 20 brings you back with 1 HP; a natural 1 counts as two failures.</li>
-            <li>Any healing wakes you up. Taking damage while down counts as a failure, or two if it was a critical hit.</li>
-            <li>Massive damage: if the damage left over after dropping to 0 HP, or taken while down, equals or exceeds your HP maximum, you die instantly.</li>
-            <li>Concentration ends, so Hex is gone.</li>
-          </ul>
-        </section>
-      </div>
+      <div id="g-combat" class="guide"></div>
       <section class="panel">
         <h2>Actions anyone can take</h2>
         <div class="g-actions">
@@ -726,7 +660,7 @@ body:has(dialog[open]){overflow:hidden}
           <div><b>Disengage</b><span>Your movement doesn't provoke Opportunity Attacks this turn.</span></div>
           <div><b>Dodge</b><span>Attacks against you have Disadvantage; you get Advantage on Dex saves.</span></div>
           <div><b>Help</b><span>Give an ally Advantage on a check or an attack against a nearby enemy.</span></div>
-          <div><b>Hide</b><span>While heavily obscured or behind solid cover, make a DC 15 Stealth check (+4). On a success you're Invisible until found or you make noise.</span></div>
+          <div><b>Hide</b><span>While heavily obscured or behind solid cover, make a DC 15 Stealth check (<span data-g="stealth">+4</span>). On a success you're Invisible until found or you make noise.</span></div>
           <div><b>Influence</b><span>Use Deception, Persuasion or Intimidation to sway a creature.</span></div>
           <div><b>Ready</b><span>Prepare an action to happen when a trigger you choose occurs.</span></div>
           <div><b>Search</b><span>Use Insight, Medicine, Perception or Survival to notice something.</span></div>
@@ -737,154 +671,11 @@ body:has(dialog[open]){overflow:hidden}
     </div>
 
     <!-- OUT OF COMBAT -->
-    <div class="gpane" data-gpane="explore" hidden>
-      <section class="panel g-hero">
-        <h2>Between fights</h2>
-        <p>This is where a changeling con artist shines: new faces, quick lies, quiet magic and a familiar that sees for you.</p>
-      </section>
-      <div class="g-grid">
-        <section class="panel">
-          <h2>Shapechanging</h2>
-          <ul class="g-ul">
-            <li>Changing your appearance and voice is an <b>Action</b>, at will, and lasts until you change again.</li>
-            <li>Change before you're seen. Shifting mid-conversation is obvious.</li>
-            <li>Your clothes and gear don't change, so carry a costume or two.</li>
-            <li>You can't copy a specific person you've never seen.</li>
-            <li>Log each face on the <b>Story</b> tab so you remember who has seen which one.</li>
-          </ul>
-        </section>
-        <section class="panel">
-          <h2>Talking your way through</h2>
-          <ul class="g-ul">
-            <li><i>Deception</i> (+5) keeps a disguise or a lie believable. <i>Persuasion</i> (+5) for honest asks, <i>Intimidation</i> (+5) for threats.</li>
-            <li><i>Insight</i> (+3) tells you if someone is lying or suspicious of you.</li>
-            <li data-book="Guidance">Cast <i>Guidance</i> before an important check: +1d4. It needs Concentration, so drop Hex first.</li>
-            <li>In the Feywild, words and bargains matter. Listen for exact wording in any deal.</li>
-          </ul>
-        </section>
-        <section class="panel">
-          <h2>Quiet magic</h2>
-          <ul class="g-ul">
-            <li><i>Minor Illusion</i>: a voice calling from another room, a crate to hide behind. Physical contact or a careful look reveals it.</li>
-            <li data-book="Mage Hand"><i>Mage Hand</i>: lift keys, open doors and plant small items from 30 ft away.</li>
-            <li>Cantrips never use your slot, so use them freely.</li>
-          </ul>
-        </section>
-        <section class="panel">
-          <h2>Rituals from your book</h2>
-          <ul class="g-ul">
-            <li>Rituals cost no slot but take <b>10 extra minutes</b>. Plan them for quiet moments.</li>
-            <li>Your book's rituals right now: <i data-g="rituals">Find Familiar and Comprehend Languages</i>. Cast one with your pact slot instead to skip the extra 10 minutes.</li>
-            <li data-book="Comprehend Languages"><i>Comprehend Languages</i>: read a letter or understand a conversation for an hour (Sylvan is common here).</li>
-            <li data-book="Find Familiar"><i>Find Familiar</i>: takes about 1 hour 10 minutes as a ritual and burns 10 GP of incense.</li>
-            <li>Casting a ritual interrupts a Short or Long Rest. Do it before or after.</li>
-          </ul>
-        </section>
-        <section class="panel">
-          <h2>Your familiar</h2>
-          <ul class="g-ul">
-            <li>A spirit in a small animal form (owl, cat, spider, raven and so on). You choose the form and its type: Celestial, Fey or Fiend.</li>
-            <li>Within 100 ft you can talk to it telepathically, and as a Bonus Action see and hear through it until your next turn. Send it to scout.</li>
-            <li>It can deliver your touch spells, like Shocking Grasp, and can take the Help action.</li>
-            <li>If it drops to 0 HP it vanishes. Cast the ritual again to bring it back.</li>
-          </ul>
-        </section>
-        <section class="panel">
-          <h2>Locks, forgery &amp; sneaking</h2>
-          <ul class="g-ul">
-            <li><i>Thieves' Tools</i> (+4) for locks and traps.</li>
-            <li><i>Forgery Kit</i> (+4) for fake papers, seals and letters. Pairs well with a stolen face.</li>
-            <li><i>Stealth</i> (+4) and <i>Sleight of Hand</i> (+4) for slipping by and lifting things.</li>
-          </ul>
-        </section>
-      </div>
-    </div>
+    <div class="gpane" data-gpane="explore" hidden><div id="g-explore" class="guide"></div></div>
 
     <!-- RESTING & LEVELING -->
-    <div class="gpane" data-gpane="rest" hidden>
-      <section class="panel g-hero">
-        <h2>What comes back, and what you can change</h2>
-        <p>Warlocks recover their magic quickly, and Pact of the Tome lets Ash rewrite part of their spell list every time they rest. Other choices only change when Ash levels up.</p>
-      </section>
-
-      <section class="panel">
-        <h2>At a glance</h2>
-        <div class="prog g-table">
-          <table>
-            <thead><tr><th>What</th><th>Short Rest</th><th>Long Rest</th><th>Level up</th></tr></thead>
-            <tbody>
-              <tr><td>Pact slot</td><td class="yes">Restored</td><td class="yes">Restored</td><td>More at some levels</td></tr>
-              <tr><td>Hit points</td><td>Spend Hit Point Dice</td><td class="yes">All restored</td><td>Max goes up</td></tr>
-              <tr><td>Hit Point Dice</td><td>Spent here</td><td class="yes">All restored</td><td>+1</td></tr>
-              <tr><td>Book of Shadows: 3 cantrips, 2 rituals</td><td class="yes">Choose again</td><td class="yes">Choose again</td><td></td></tr>
-              <tr><td>Warlock cantrips (Eldritch Blast, Minor Illusion)</td><td class="no">No</td><td class="no">No</td><td class="yes">Swap 1</td></tr>
-              <tr><td>Prepared spells (Hex, Armor of Agathys)</td><td class="no">No</td><td class="no">No</td><td class="yes">Swap 1</td></tr>
-              <tr><td>Invocations (Pact of the Tome)</td><td class="no">No</td><td class="no">No</td><td class="yes">Swap 1</td></tr>
-              <tr><td>Magical Cunning (level 2+)</td><td></td><td class="yes">Usable again</td><td></td></tr>
-              <tr><td>Exhaustion</td><td></td><td class="yes">Remove 1 level</td><td></td></tr>
-              <tr><td>Shapechange</td><td colspan="3">Any time, as an Action. Never runs out.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="panel g-book">
-        <h2>Rewriting your Book of Shadows</h2>
-        <ul class="g-ul">
-          <li>At the end of <b>every Short or Long Rest</b>, you can conjure a new Book of Shadows. The old one disappears.</li>
-          <li>When it appears, choose <b>3 cantrips</b> and <b>2 level 1 Ritual spells</b> from <b>any class's</b> list. They count as Warlock spells while the book is on you.</li>
-          <li>You can't pick spells you already have prepared, so not Eldritch Blast or Minor Illusion.</li>
-          <li>Lost the book? Rest and conjure a new one.</li>
-        </ul>
-        <p class="g-tip"><b>Tune it for the day ahead.</b> Heading into a city of humans? <i>Friends</i> works there. Exploring ruins? <i>Light</i> and <i>Detect Magic</i>. Expecting a fight? <i>Vicious Mockery</i> or <i>Mind Sliver</i>. Browse every option in the <b>Reference</b> tab under All cantrips and Ritual spells.</p>
-        <p class="fine">Story note: your backstory's whispering grimoire is a special book. Ask your DM how re-conjuring fits the fiction, for example the book rewriting its own pages as you sleep.</p>
-      </section>
-
-      <div class="g-grid">
-        <section class="panel g-rest">
-          <h2>Short Rest <span class="g-tag">1 hour</span></h2>
-          <ul class="g-ul">
-            <li><b>Pact slot comes back.</b> The big one for a Warlock.</li>
-            <li>Spend Hit Point Dice to heal: roll <span data-g="hd">1d8+2</span> per die. Ash has 1 die at level 1.</li>
-            <li>Conjure a new Book of Shadows with fresh picks, if you like. The sheet asks after every rest.</li>
-            <li>Interrupted by rolling Initiative, taking damage, or casting any spell except a cantrip, including rituals.</li>
-            <li>Ask for one whenever your slot is spent. Most groups take one or two per day.</li>
-          </ul>
-          <p class="fine">On the sheet: <b>Short rest</b> restores the slot and offers to rewrite your book; then use <b>Spend &amp; roll</b> under Hit Points.</p>
-        </section>
-        <section class="panel g-rest">
-          <h2>Long Rest <span class="g-tag">8 hours</span></h2>
-          <ul class="g-ul">
-            <li>Regain <b>all HP</b>, <b>all Hit Point Dice</b> and all pact slots.</li>
-            <li>Magical Cunning (level 2+) can be used again.</li>
-            <li>Remove 1 level of Exhaustion.</li>
-            <li>Conjure a new Book of Shadows with fresh picks, if you like. The sheet asks after every rest.</li>
-            <li>At least 6 hours of sleep; up to 2 hours of light activity like talking, reading or keeping watch.</li>
-            <li>Interrupted by Initiative, damage, casting a non-cantrip spell, or an hour of walking or hard work. If at least 1 hour passed first, you still get Short Rest benefits.</li>
-            <li>Only one Long Rest per 24 hours.</li>
-          </ul>
-          <p class="fine">On the sheet: <b>Long rest</b> resets HP, hit die, slot, temp HP, concentration and death saves.</p>
-        </section>
-      </div>
-
-      <section class="panel">
-        <h2>When Ash levels up</h2>
-        <div class="g-grid">
-          <ul class="g-ul">
-            <li>Add HP: take the average of <b>5</b> plus your Constitution modifier (<span data-g="lvlhp">7</span>), or roll 1d8 plus it. You also gain a Hit Point Die.</li>
-            <li>Each level, you may swap <b>one</b> Warlock cantrip, <b>one</b> prepared spell and <b>one</b> invocation. You can't swap out an invocation another one depends on.</li>
-            <li>Check the Warlock table in the Reference tab for new invocations, cantrips, prepared spells and slots.</li>
-          </ul>
-          <div class="feat g-levels">
-            <div><span class="lv">Lv 2</span><span>2 more invocations (Agonizing Blast is the standout), Magical Cunning, a second slot, a third prepared spell.</span></div>
-            <div><span class="lv">Lv 3</span><span>Choose your patron. Slots become 2nd level.</span></div>
-            <div><span class="lv">Lv 4</span><span>A feat or +2 to ability scores (Charisma to 18 is typical), plus a third Warlock cantrip.</span></div>
-            <div><span class="lv">Lv 5</span><span>3rd-level slots, 2 more invocations, and Eldritch Blast fires 2 beams.</span></div>
-          </div>
-        </div>
-      </section>
-    </div>
-    <p class="fine">Summarized from the 2024 Player's Handbook in plain language. Your DM has the final word on rules at your table.</p>
+    <div class="gpane" data-gpane="rest" hidden><div id="g-rest" class="guide"></div></div>
+    <p class="fine">Summarized from the 2024 Player's Handbook in plain language, and built from Ash’s current build: it changes when you level up, edit the build, rewrite the Book of Shadows or preview a level. Your DM has the final word on rules at your table.</p>
   </div>
 
   <div id="tab-ref" class="ref" hidden>
@@ -1298,7 +1089,7 @@ function renderVitals(){
   $('v-dc').textContent=8+PB+mod('cha');
   $('v-sa').textContent=sg(spellAtk());
   // keep the play guide's numbers in step with the sheet
-  const g={dc:String(8+PB+mod('cha')),atk:sg(spellAtk()),con:sg(mod('con')),hd:'1d8'+sg(mod('con')),lvlhp:String(Math.max(1,5+mod('con'))),rituals:book().rituals.join(' and '),bookc:book().cantrips.join(', ')};
+  const g={dc:String(8+PB+mod('cha')),atk:sg(spellAtk()),con:sg(mod('con')),hd:'1d8'+sg(mod('con')),lvlhp:String(Math.max(1,5+mod('con'))),stealth:sg(skillBonus('Stealth','dex')),rituals:book().rituals.join(' and '),bookc:book().cantrips.join(', ')};
   document.querySelectorAll('[data-book]').forEach(el=>el.hidden=!inBook(el.dataset.book));
   document.querySelectorAll('[data-nobook]').forEach(el=>el.hidden=inBook(el.dataset.nobook));
   document.querySelectorAll('[data-g]').forEach(el=>{if(g[el.dataset.g])el.textContent=g[el.dataset.g]});
@@ -2805,7 +2596,7 @@ $('gold').oninput=e=>{S.gold=parseInt(e.target.value,10)||0;save()};
 $('lang').oninput=e=>{S.lang=e.target.value;save()};
 $('notes').oninput=e=>{S.notes=e.target.value;save()};
 
-function renderAll(){levelSync();renderLevel();renderClassFeats();renderOptions();renderPortrait();renderStory();renderJournal();renderEquip();renderHP();renderFx();renderAbil();renderSkills();renderVitals();renderAttacks();renderSpells()}
+function renderAll(){levelSync();renderLevel();renderClassFeats();renderOptions();renderGuide();renderPortrait();renderStory();renderJournal();renderEquip();renderHP();renderFx();renderAbil();renderSkills();renderVitals();renderAttacks();renderSpells()}
 /* ---------- class features panel ---------- */
 const BEFORE_KEY=KEY+'-before-level';
 // Keep a copy of the whole sheet from just before a level change, as a safety net.
@@ -3195,6 +2986,284 @@ function renderOptions(){
   planEd.base=rb;planEd.draft=pl.draft;planEd.dir=pl.dir;
   planEd.onChange=()=>{pl.patron=planEd.patron;save()};
   renderLU(planEd);
+}
+
+/* ---------- play guide, built from the current build ---------- */
+// One line of advice per pick, shown in the guide only while Ash has it. {tokens} fill in from the sheet.
+const TIPS={
+ // cantrips
+ 'Eldritch Blast':'Your main attack: 120 ft and it works on almost anything. Each beam that hits adds Hex’s 1d6.',
+ 'Minor Illusion':'A fake crate to hide behind or a voice from the next room. No Concentration, so it works alongside Hex.',
+ 'Guidance':'+1d4 to one skill for a minute. Cast it before a big Deception or Insight check; it ends Hex.',
+ 'Shocking Grasp':'Your escape button: hit, then walk away without an Opportunity Attack.',
+ 'Mage Hand':'Lift keys, open latches and plant small items from 30 ft away.',
+ 'Mind Sliver':'Hits on an Int save, and the −1d4 sets up Hold Person, Charm Person or Command next turn.',
+ 'Vicious Mockery':'A Wis save and Disadvantage on its next attack: good against one big hitter.',
+ 'Toll the Dead':'A Wis save, 1d12 against a wounded target. Good when Eldritch Blast keeps missing armored foes.',
+ 'Friends':'Charms one Humanoid you aren’t fighting, but they know afterward. Use it for a quick favor on your way out.',
+ 'Message':'Silent whispers at 120 ft: coordinate a heist without talking aloud.',
+ 'Prestidigitation':'Small tricks for a con: clean a disguise, warm a drink, leave a mark.',
+ 'Thaumaturgy':'A booming voice, flickering flames, slamming doors: sell a fake omen.',
+ 'Light':'Ash has no Darkvision, so this solves dark ruins unless an ally has it covered.',
+ 'Dancing Lights':'Moving lights you can send down a corridor ahead of you.',
+ 'Chill Touch':'Up close, and the target can’t heal: good against a healer or a regenerating foe.',
+ 'Blade Ward':'Attackers subtract 1d4, but it ends Hex.',
+ 'Starry Wisp':'Reveals an Invisible foe for a turn.',
+ 'Thunderclap':'Hits everyone next to you, but everyone within 100 ft hears it.',
+ 'Ray of Frost':'Slows a pursuer by 10 ft.',
+ 'Resistance':'Takes 1d4 off one damage type for an ally; it ends Hex.',
+ 'Spare the Dying':'Stabilizes a downed ally from range without walking over.',
+ 'True Strike':'A dagger attack that uses Charisma.',
+ // rituals
+ 'Find Familiar':'Your scout: send it ahead, see through it as a Bonus Action, and have it take the Help action.',
+ 'Comprehend Languages':'Read stolen letters and eavesdrop in any language for an hour.',
+ 'Detect Magic':'Spot magic traps, enchanted items and magical disguises. As a ritual it costs nothing.',
+ 'Identify':'Learn what a magic item does. Needs a 100 GP pearl.',
+ 'Illusory Script':'Messages only chosen readers can see: a forger’s dream.',
+ 'Unseen Servant':'An invisible helper to carry, fetch or make a distraction.',
+ 'Alarm':'Ward a campsite or door for 8 hours.',
+ 'Speak with Animals':'Question the guard dog or the city pigeons.',
+ 'Detect Poison and Disease':'Check the wine before you drink it.',
+ 'Purify Food and Drink':'Make suspicious food safe.',
+ 'Tenser’s Floating Disk':'Carries 500 lb of loot behind you.',
+ // prepared and patron spells
+ 'Hex':'Your opener: a Bonus Action that lasts up to {hexdur} and moves to a new target when the old one drops.',
+ 'Armor of Agathys':'{thp} temp HP that hit back with {thp} Cold. Cast it right before melee starts; it lasts an hour.',
+ 'Hellish Rebuke':'Your Reaction when something hurts you: {dmg} Fire, half on a save. Costs a slot.',
+ 'Charm Person':'A Humanoid treats you as a friend for an hour. They know afterward, so use it to leave, not to stay.',
+ 'Suggestion':'One reasonable-sounding sentence that lasts up to 8 hours. The con artist’s best spell.',
+ 'Hold Person':'A Paralyzed Humanoid is hit automatically, and allies within 5 ft score critical hits.',
+ 'Invisibility':'Slip past guards or scout. It ends when you attack or cast.',
+ 'Misty Step':'A Bonus Action teleport of 30 ft: escape a grapple or get out of melee.',
+ 'Mirror Image':'Three duplicates soak up attacks. No Concentration, so it stacks with Hex.',
+ 'Darkness':'With Devil’s Sight you see inside it and foes don’t. Allies without it are blind too.',
+ 'Mind Spike':'Big Psychic damage, and the target can’t hide from you.',
+ 'Cloud of Daggers':'Blocks a doorway or chokepoint with no roll to hit.',
+ 'Crown of Madness':'Turns a Humanoid guard against its friends, but needs your Action every turn.',
+ 'Enthrall':'Hold a crowd’s attention while allies sneak past.',
+ 'Spider Climb':'Walk on walls and ceilings for an hour.',
+ 'Ray of Enfeeblement':'Weakens a strong brute’s attacks.',
+ 'Arms of Hadar':'Hits everyone around you and stops their Reactions, so you can walk away.',
+ 'Expeditious Retreat':'Dash every turn as a Bonus Action. It ends Hex.',
+ 'Protection from Evil and Good':'Wards an ally against fey, fiends and undead.',
+ 'Bane':'Up to {tgt} foes subtract 1d4 from attacks and saves.',
+ 'Tasha’s Hideous Laughter':'Takes one foe out of the fight; it retries the save when hurt.',
+ 'Witch Bolt':'A big first hit, then free damage each turn as a Bonus Action. It ends Hex.',
+ 'Faerie Fire':'Attacks against outlined foes have Advantage, and Invisible enemies show up.',
+ 'Sleep':'Takes several foes out without a fight. Great for sneaking past guards.',
+ 'Calm Emotions':'Defuses a brawl or an angry mob.',
+ 'Phantasmal Force':'An illusion only the target sees, dealing {dmg} Psychic each turn it believes.',
+ 'Aid':'+{aid} max HP for three allies for 8 hours. Cast it right after a Long Rest.',
+ 'Cure Wounds':'Touch healing: {dmg} + Cha.',
+ 'Guiding Bolt':'A big Radiant hit, and the next attack on the target has Advantage.',
+ 'Lesser Restoration':'Ends Poisoned, Paralyzed, Blinded or Deafened.',
+ 'Burning Hands':'A 15-ft cone for groups up close.',
+ 'Command':'One word: Drop, Flee, Grovel, Halt. Quick and cheap.',
+ 'Scorching Ray':'{rays} attacks of 2d6 Fire, and Hex adds to each hit.',
+ 'Detect Thoughts':'Read surface thoughts mid-conversation.',
+ 'Dissonant Whispers':'Damage, and the target runs, which can draw your allies’ Opportunity Attacks.',
+ // invocations
+ 'Pact of the Tome':'Your Book of Shadows: re-pick 3 cantrips and 2 rituals after every rest.',
+ 'Agonizing Blast':'{cha} damage on every Eldritch Blast beam.',
+ 'Armor of Shadows':'AC {mac} with no armor on. Take off the studded leather.',
+ 'Eldritch Mind':'Concentration saves with Advantage: Hex survives getting hit.',
+ 'Devil’s Sight':'See in darkness out to 120 ft, even magical darkness. Pair it with the Darkness spell.',
+ 'Fiendish Vigor':'12 free temp HP before every fight (they don’t stack with Armor of Agathys).',
+ 'Mask of Many Faces':'Disguise Self at will, which also changes your clothes.',
+ 'Misty Visions':'Silent Image at will: a big moving illusion for distractions.',
+ 'Repelling Blast':'Push each beam’s target 10 ft, into hazards or away from you.',
+ 'Eldritch Spear':'Eldritch Blast reaches much farther.',
+ 'Lessons of the First Ones':'An extra Origin feat.',
+ 'Otherworldly Leap':'Jump at will.',
+ 'Pact of the Chain':'A familiar with special forms, summoned without a slot.',
+ 'Pact of the Blade':'A pact weapon that attacks with Charisma.',
+ 'One with Shadows':'Invisibility at will in dim light or darkness.',
+ 'Gaze of Two Minds':'See through an ally’s senses and cast from their space.',
+ 'Master of Myriad Forms':'Alter Self at will.',
+ 'Ascendant Step':'Levitate at will.',
+ 'Gift of the Depths':'Breathe underwater and swim.',
+ // patron features
+ 'Steps of the Fey':'{steps} free Misty Steps per Long Rest: escape melee or reach a better spot. Refreshing Step also gives an ally temp HP.',
+ 'Healing Light':'A pool of {pool}d6 healing as a Bonus Action. Spend it on whoever is about to drop.',
+ 'Dark One’s Blessing':'{dob} temp HP when a foe near you drops. Press the button under Class & features.',
+ 'Awakened Mind':'Talk mind to mind with someone you can see: perfect for coordinating a con.',
+ 'Psychic Spells':'Your enchantments and illusions need no words or gestures, so nobody sees you cast.'
+};
+// What each spell is for in a fight; the combat routine is built from these.
+const ROLES={
+ opener:['Hex'],
+ buff:['Armor of Agathys','Mirror Image','Aid'],
+ escape:['Shocking Grasp','Misty Step','Expeditious Retreat','Arms of Hadar'],
+ control:['Hold Person','Sleep','Tasha’s Hideous Laughter','Command','Faerie Fire','Bane','Phantasmal Force','Crown of Madness','Cloud of Daggers','Ray of Enfeeblement','Calm Emotions'],
+ group:['Arms of Hadar','Burning Hands','Thunderclap','Word of Radiance','Sleep','Faerie Fire','Bane','Acid Splash'],
+ react:['Hellish Rebuke'],
+ heal:['Cure Wounds','Spare the Dying','Aid','Healing Light']
+};
+// Everything the guide needs to know about the current (or previewed) build.
+function guideCtx(){
+  const L=lvl(),sl=WL.slotLvl(L),n=WL.slots(L);
+  const known=knownCantrips(),bc=book().cantrips,prep=preparedAll(),rit=book().rituals;
+  const all=[...new Set(known.concat(bc,prep,rit))];
+  const pat=B().patron&&L>=3?B().patron:null;
+  const feat=f=>!!(pat&&(PATRONS.find(x=>x.n===pat)||{feats:[]}).feats.some(x=>x[1]===f&&x[0]<=L));
+  const has=x=>all.includes(x)||feat(x);
+  const kind=x=>{const m=spOf(x).m||'';return /^Bonus Action/.test(m)?'bonus':/^Reaction/.test(m)?'react':'action'};
+  const isDmgCantrip=x=>{const d=SPELL_DB[x];return d&&d.lvl===0&&d.dice&&!d.heal};
+  const main=has('Eldritch Blast')?'Eldritch Blast':all.find(x=>isDmgCantrip(x)&&SPELL_DB[x].atk&&!/Touch/.test(SPELL_DB[x].m))||all.find(isDmgCantrip);
+  return {L,sl,n,known,bc,prep,rit,all,pat,feat,has,kind,main,
+    role:r=>ROLES[r].filter(has),
+    conc:all.filter(x=>spOf(x).c),
+    dc:8+PB+mod('cha')};
+}
+// A tip with the sheet's numbers filled in; falls back to the spell's short description.
+function pickTip(n){
+  let t=TIPS[n];
+  if(!t)t=(CANTRIPS.find(c=>c[0]===n)||RITUALS.find(r=>r[0]===n)||[])[4]||(WL_SPELLS.find(w=>w[1]===n)||[])[5]||(INV_DETAIL[n]||{}).g||'';
+  const sp=SPELL_DB[n]?spOf(n):{n:n,lvl:0};
+  const L=lvl();
+  return fillText(sp,t).replace(/\{mac\}/g,13+mod('dex')).replace(/\{steps\}/g,Math.max(1,mod('cha'))).replace(/\{pool\}/g,1+L).replace(/\{dob\}/g,Math.max(1,mod('cha')+L));
+}
+const gi=n=>'<i>'+esc(n)+'</i>';
+const gList=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
+const gNames=a=>gList(a.map(gi));
+const gPanel=(title,body,cls)=>`<section class="panel${cls?' '+cls:''}"><h2>${title}</h2>${body}</section>`;
+const gUl=(items,cls)=>items.length?`<ul class="g-ul${cls?' '+cls:''}">${items.map(x=>'<li>'+x+'</li>').join('')}</ul>`:'';
+const gTips=names=>gUl(names.map(n=>`${gi(n)}: ${esc(pickTip(n))}`));
+function guideCombat(c){
+  const ebBeams=c.main==='Eldritch Blast'?tier():1,hex=c.has('Hex');
+  const ranged=c.main&&!/Touch|5-ft/.test((SPELL_DB[c.main]||{}).m||'');
+  const out=[];
+  // summary
+  out.push(`<section class="panel g-hero"><h2>In a fight</h2><p>${c.main?(hex?`Curse the biggest threat with <i>Hex</i>, then cast ${gi(c.main)} every turn${ranged?' from range':''}.`:`Cast ${gi(c.main)} every turn${ranged?' from range':''}.`):'Use your Action on your best spell each turn.'} You have ${c.n} pact slot${c.n>1?'s':''} of ${ord(c.sl)} level that come${c.n>1?'':'s'} back on a Short Rest, so spend ${c.n>1?'them':'it'}.</p></section>`);
+  const g=[];
+  // what a turn holds, from how each spell is cast
+  const actionC=c.known.concat(c.bc).filter(x=>c.kind(x)==='action'&&x!==c.main);
+  const actionS=c.prep.filter(x=>c.kind(x)==='action');
+  const bonus=c.all.filter(x=>c.kind(x)==='bonus');
+  const bonusExtra=[];if(hex)bonusExtra.push('moving Hex to a new target');if(c.feat('Steps of the Fey'))bonusExtra.push('a free Misty Step (Steps of the Fey)');if(c.feat('Healing Light'))bonusExtra.push('Healing Light');
+  const react=c.all.filter(x=>c.kind(x)==='react');
+  const bonusTxt=bonus.length||bonusExtra.length?'For Ash: '+gList(bonus.map(x=>'casting '+gi(x)).concat(bonusExtra))+'.':'Only if something gives you one. Nothing on your sheet does yet.';
+  const slotBonus=c.prep.filter(x=>c.kind(x)==='bonus');
+  g.push(gPanel('Each turn you get',`<dl class="g-list">
+    <dt>Move</dt><dd>Up to 30 ft, split before and after your action.</dd>
+    <dt>1 Action</dt><dd>Usually ${c.main?gi(c.main):'a spell'}.${actionC.length?' Other cantrips: '+gNames(actionC)+'.':''}${actionS.length?' Slot spells: '+gNames(actionS)+'.':''}</dd>
+    <dt>1 Bonus Action</dt><dd>${bonusTxt}</dd>
+    <dt>1 Reaction</dt><dd>One per round, even on other turns: ${react.length?gNames(react)+' when it triggers, or ':''}an Opportunity Attack with the dagger.</dd>
+    <dt>Free interaction</dt><dd>One small thing, like drawing your dagger or opening a door.</dd></dl>
+    <p class="g-rule"><b>One slot per turn.</b> You can spend only one spell slot on your turn. ${slotBonus.length>1?`${gi(slotBonus[0])} plus ${c.main?gi(c.main):'a cantrip'} is fine (cantrips are free); ${gi(slotBonus[0])} plus ${gi(slotBonus[1])} on the same turn is not.`:'Cantrips are free, so a slot spell plus a cantrip is fine.'}</p>`));
+  // the routine, built from what each spell is for
+  const st=[],buff=c.role('buff').filter(x=>x!=='Aid'),ctl=c.role('control'),esc2=c.role('escape'),grp=c.role('group').filter(x=>x!==c.main),rea=c.role('react'),heal=c.role('heal');
+  if(buff.length){const b=buff[0];st.push(`<b>Before the fight:</b> if you see it coming, cast ${gi(b)}${b==='Armor of Agathys'?` (${aoaHp()} temp HP)`:''}.${hex&&c.kind(b)==='bonus'?' It and Hex are both Bonus Actions, so they can’t go on the same turn.':''}`)}
+  if(hex)st.push(`<b>First turn:</b> Bonus Action <i>Hex</i> on the most dangerous enemy you can see, then Action ${gi(c.main||'your attack')} it. ${c.n===1?'Your slot is now spent.':`That uses 1 of your ${c.n} slots.`}`);
+  else if(ctl.length)st.push(`<b>First turn:</b> ${gi(ctl[0])} on the biggest threat (DC ${c.dc}), or ${c.main?gi(c.main):'your best attack'} if it’s alone.`);
+  else st.push(`<b>First turn:</b> ${c.main?gi(c.main):'Your best attack'} on the biggest threat.`);
+  if(c.main){const parts=[];if(ebBeams>1)parts.push(`${ebBeams} beams, one attack roll each`);if(hex)parts.push('each hit adds Hex’s 1d6');if(agon(spOf(c.main)))parts.push(`each beam adds Agonizing Blast’s ${sg(mod('cha'))}`);st.push(`<b>Every turn after:</b> ${gi(c.main)}${parts.length?': '+parts.join(', '):''}.`)}
+  if(hex)st.push('<b>Target drops?</b> On a later turn, use your Bonus Action to move Hex to a new enemy. No slot needed while you keep concentrating.');
+  if(hex&&ctl.length)st.push(`<b>Dangerous foe?</b> ${gNames(ctl.slice(0,3))} can take it out of the fight instead, but ${ctl.some(x=>spOf(x).c)?'Concentration spells end Hex':'it costs a slot'}.`);
+  {
+    let e='Take the Disengage action and walk away, or put <i>Shocking Grasp</i> in your book at the next rest.';
+    if(c.has('Shocking Grasp'))e='Use <i>Shocking Grasp</i> so it can’t make Opportunity Attacks, then walk away.';
+    else if(c.feat('Steps of the Fey'))e='A free Misty Step (Steps of the Fey) gets you out without a slot.';
+    else if(c.has('Misty Step'))e='Bonus Action <i>Misty Step</i> 30 ft away, then attack.';
+    else if(c.has('Arms of Hadar'))e='<i>Arms of Hadar</i> hits everyone around you and stops their Reactions, so you can leave.';
+    if(ranged)st.push(`<b>Enemy next to you?</b> Ranged attacks have Disadvantage within 5 ft. ${e}`);
+  }
+  if(grp.length)st.push(`<b>Enemies bunched up?</b> ${gNames(grp)} hit${grp.length>1?'':'s'} several at once.`);
+  if(rea.length)st.push(`<b>When something hits you:</b> ${gi(rea[0])} as your Reaction (${diceStr(scaled(spOf(rea[0])))} Fire). It costs a slot, so only if one is free.`);
+  if(heal.length)st.push(`<b>Ally going down?</b> ${gNames(heal)}.`);
+  g.push(gPanel('Ash’s combat routine',`<ol class="g-steps">${st.map(x=>'<li>'+x+'</li>').join('')}</ol>`+(hex?`<p class="fine">Hex lasts up to ${HEX_DUR[c.sl][1]} at your slot level. If you keep concentrating, it can carry into the next fight.</p>`:'')));
+  // concentration
+  g.push(gPanel('Concentration',gUl([
+    c.conc.length?`You can hold <b>one</b> Concentration spell at a time. Yours: ${gNames(c.conc)}. Starting one ends the other.`:'None of your spells need Concentration right now.',
+    `When you take damage, make a Constitution save (${sg(mod('con'))}${hasInv('Eldritch Mind')?', with Advantage from Eldritch Mind':''}). The DC is 10 or half the damage, whichever is higher (max 30). Fail and the spell ends.`,
+    'It also ends if you’re Incapacitated or drop to 0 HP.',
+    'The sheet’s Concentrating box tracks which spell is active and reminds you to save when you take damage.'])));
+  // slots
+  const up=c.prep.filter(x=>growth(x)&&SPELL_DB[x]&&SPELL_DB[x].lvl<c.sl);
+  g.push(gPanel('Your pact slots',gUl([
+    `${c.n} slot${c.n>1?'s':''} at ${ord(c.sl)} level. They return on a Short or Long Rest.`,
+    `Spells that cost a slot: ${gNames(c.prep)}. Cantrips never do.${up.length?` Every slot is ${ord(c.sl)} level, so ${gNames(up)} come out stronger (see each spell’s “As Ash levels up”).`:''}`,
+    `Spell save DC ${c.dc}, spell attack ${sg(spellAtk())}. You need a free hand or a focus; the Book of Shadows works as your focus.`,
+    c.L>=2?`<b>Magical Cunning:</b> a 1-minute rite brings back ${c.L>=20?'all your':Math.ceil(c.n/2)} slot${Math.ceil(c.n/2)>1?'s':''}, once per Long Rest. The button is next to your slots.`:'<b>From level 2:</b> Magical Cunning brings back half your slots with a 1-minute rite, once per Long Rest.',
+    c.rit.length?`Book rituals (${gNames(c.rit)}) can use a slot instead of the extra 10 minutes.`:''].filter(Boolean))));
+  // picks in play
+  const inv=B().invocations,pf=c.pat?(PATRONS.find(x=>x.n===c.pat)||{feats:[]}).feats.filter(f=>f[0]<=c.L).map(f=>f[1]):[];
+  g.push(gPanel('Your picks in play',`${inv.length?'<span class="label">Invocations</span>'+gTips(inv):''}${pf.length?`<span class="label">Patron · ${esc(c.pat)}</span>`+gTips(pf):''}${c.prep.length?'<span class="label">Prepared spells</span>'+gTips(c.prep):''}`));
+  // mistakes worth catching, from the build
+  const m=[];
+  const bonusSlot=c.prep.filter(x=>x!=='Hex'&&c.kind(x)==='bonus');
+  if(hex&&bonusSlot.length)m.push(`Casting Hex and ${gi(bonusSlot[0])} on the same turn: both are Bonus Actions, and only one slot per turn.`);
+  if(hex)m.push(`Forgetting Hex’s 1d6 on every hit${ebBeams>1?', including every beam':''}.`);
+  if(ranged)m.push(`Attacking with ${gi(c.main)} while an enemy is next to you. That’s Disadvantage; ${c.has('Shocking Grasp')?'Shocking Grasp':'move away'} first.`);
+  m.push('Holding slots “for later”. They come back on a Short Rest.');
+  const other=c.conc.filter(x=>x!=='Hex');
+  if(hex&&other.length)m.push(`Casting ${gNames(other.slice(0,3))} in combat and losing Hex.`);
+  const hum=['Charm Person','Hold Person','Friends','Crown of Madness','Calm Emotions'].filter(c.has);
+  if(hum.length)m.push(`${gNames(hum)} only work${hum.length>1?'':'s'} on Humanoids.`);
+  if(c.has('Sleep'))m.push('Sleep does nothing to creatures that don’t sleep, like most undead and constructs.');
+  if(rea.length)m.push(`${gi(rea[0])} uses your Reaction, so no Opportunity Attack that round.`);
+  if(hasInv('Armor of Shadows'))m.push('Wearing armor with Armor of Shadows: Mage Armor only counts with no armor on.');
+  if(hasInv('Devil’s Sight')&&c.has('Darkness'))m.push('Darkness blinds your allies too. Warn them first.');
+  if(hasInv('Fiendish Vigor')&&c.has('Armor of Agathys'))m.push('Temp HP don’t stack: Fiendish Vigor and Armor of Agathys replace each other.');
+  g.push(gPanel('Easy mistakes',gUl(m,'g-warn')));
+  g.push(gPanel('At 0 hit points',gUl(['You fall Unconscious and make a <b>death save</b> at the start of each turn: 10 or higher succeeds.','Three successes and you stabilize; three failures and you die. A natural 20 brings you back with 1 HP; a natural 1 counts as two failures.','Any healing wakes you up. Taking damage while down counts as a failure, or two if it was a critical hit.','Massive damage: if the damage left over after dropping to 0 HP, or taken while down, equals or exceeds your HP maximum, you die instantly.',`Concentration ends${c.conc.length?`, so ${gNames(c.conc.slice(0,2))} ${c.conc.length>1?'are':'is'} gone`:''}.`])));
+  out.push(`<div class="g-grid">${g.join('')}</div>`);
+  return out.join('');
+}
+function guideExplore(c){
+  const sk=(n,k)=>sg(skillBonus(n,k));
+  const out=[`<section class="panel g-hero"><h2>Between fights</h2><p>This is where a changeling con artist shines: new faces, quick lies, quiet magic${c.has('Find Familiar')||hasInv('Pact of the Chain')?' and a familiar that sees for you':''}.</p></section>`];
+  const g=[];
+  g.push(gPanel('Shapechanging',gUl(['Changing your appearance and voice is an <b>Action</b>, at will, and lasts until you change again.','Change before you’re seen. Shifting mid-conversation is obvious.','Your clothes and gear don’t change, so carry a costume or two'+(hasInv('Mask of Many Faces')?', or use Mask of Many Faces, which changes them too':'')+'.','You can’t copy a specific person you’ve never seen.','Log each face on the <b>Story</b> tab so you remember who has seen which one.'])));
+  const social=['Guidance','Friends','Charm Person','Suggestion','Enthrall','Calm Emotions','Command','Detect Thoughts','Thaumaturgy','Message','Comprehend Languages','Awakened Mind','Psychic Spells'].filter(c.has);
+  g.push(gPanel('Talking your way through',gUl([`<i>Deception</i> (${sk('Deception','cha')}) keeps a disguise or a lie believable. <i>Persuasion</i> (${sk('Persuasion','cha')}) for honest asks, <i>Intimidation</i> (${sk('Intimidation','cha')}) for threats.`,`<i>Insight</i> (${sk('Insight','wis')}) tells you if someone is lying or suspicious of you.`].concat(social.map(n=>`${gi(n)}: ${esc(pickTip(n))}`),['In the Feywild, words and bargains matter. Listen for exact wording in any deal.']))));
+  const quiet=['Minor Illusion','Mage Hand','Prestidigitation','Light','Dancing Lights','Druidcraft','Elementalism','Mending','Invisibility','Darkness','Spider Climb','Misty Step'].filter(c.has);
+  const qinv=['Devil’s Sight','Mask of Many Faces','Misty Visions','One with Shadows','Otherworldly Leap','Ascendant Step'].filter(hasInv);
+  g.push(gPanel('Quiet magic',gUl(quiet.concat(qinv).map(n=>`${gi(n)}: ${esc(pickTip(n))}`).concat(['Cantrips never use your slot, so use them freely.']))));
+  const rits=[...new Set(c.rit.concat(c.prep.filter(x=>spOf(x).ritual)))];
+  g.push(gPanel('Rituals',gUl(['Rituals cost no slot but take <b>10 extra minutes</b>. Plan them for quiet moments.'].concat(rits.map(n=>`${gi(n)}${c.rit.includes(n)?' (book)':''}: ${esc(pickTip(n))}`),[rits.length?'Cast one with your pact slot instead to skip the extra 10 minutes.':'No ritual spells right now. Pick some for your Book of Shadows at the next rest.','Casting a ritual interrupts a Short or Long Rest. Do it before or after.']))));
+  if(c.has('Find Familiar')||hasInv('Pact of the Chain')){
+    const touch=c.all.filter(x=>{const d=SPELL_DB[x];return d&&/Touch/.test(d.m)&&(d.atk||d.heal)});
+    g.push(gPanel('Your familiar',gUl(['A spirit in a small animal form (owl, cat, spider, raven and so on). You choose the form and its type: Celestial, Fey or Fiend'+(hasInv('Pact of the Chain')?'. Pact of the Chain adds special forms like an imp, pseudodragon, quasit or sprite':'')+'.','Within 100 ft you can talk to it telepathically, and as a Bonus Action see and hear through it until your next turn. Send it to scout.',`It can deliver your touch spells${touch.length?', like '+gNames(touch):''}, and can take the Help action.`,'If it drops to 0 HP it vanishes. Cast the spell again to bring it back.'+(c.has('Find Familiar')?' It takes about 1 hour 10 minutes as a ritual and burns 10 GP of incense.':'')])));
+  }
+  const tb=n=>sg(mod('dex')+PB);
+  g.push(gPanel('Locks, forgery &amp; sneaking',gUl([`<i>Thieves’ Tools</i> (${tb()}) for locks and traps.`,`<i>Forgery Kit</i> (${tb()}) for fake papers, seals and letters. Pairs well with a stolen face.`,`<i>Stealth</i> (${sk('Stealth','dex')}) and <i>Sleight of Hand</i> (${sk('Sleight of Hand','dex')}) for slipping by and lifting things.`])));
+  out.push(`<div class="g-grid">${g.join('')}</div>`);
+  return out.join('');
+}
+function guideRest(c){
+  const trackers=[];if(c.feat('Steps of the Fey'))trackers.push('Steps of the Fey');if(c.feat('Healing Light'))trackers.push('Healing Light');
+  const row=(a,b,cc,d)=>`<tr><td>${a}</td>${b}${cc}${d}</tr>`;
+  const Y=t=>`<td class="yes">${t}</td>`,N='<td class="no">No</td>',E='<td></td>',T=t=>`<td>${t}</td>`;
+  const tbl=[
+    row(`Pact slots (${c.n})`,Y('Restored'),Y('Restored'),T('More at some levels')),
+    row('Hit points',T('Spend Hit Point Dice'),Y('All restored'),T('Max goes up')),
+    row(`Hit Point Dice (${c.L})`,T('Spent here'),Y('All restored'),T('+1')),
+    row('Book of Shadows: 3 cantrips, 2 rituals',Y('Choose again'),Y('Choose again'),E),
+    row(`Warlock cantrips (${gNames(c.known)})`,N,N,Y('Swap 1')),
+    row(`Prepared spells (${gNames(B().prepared)})`,N,N,Y('Swap 1')),
+    row(`Invocations (${gNames(B().invocations)})`,N,N,Y('Swap 1')),
+    row(c.L>=2?'Magical Cunning':'Magical Cunning (level 2+)',E,Y('Usable again'),E)
+  ].concat(trackers.map(t=>row(gi(t),E,Y('Uses back'),E)),[row('Exhaustion',E,Y('Remove 1 level'),E),'<tr><td>Shapechange</td><td colspan="3">Any time, as an Action. Never runs out.</td></tr>']);
+  const out=[`<section class="panel g-hero"><h2>What comes back, and what you can change</h2><p>Warlocks recover their magic quickly, and Pact of the Tome lets Ash rewrite part of their spell list every time they rest. Other choices only change when Ash levels up.</p></section>`,
+    gPanel('At a glance',`<div class="prog g-table"><table><thead><tr><th>What</th><th>Short Rest</th><th>Long Rest</th><th>Level up</th></tr></thead><tbody>${tbl.join('')}</tbody></table></div>`),
+    gPanel('Rewriting your Book of Shadows',gUl(['At the end of <b>every Short or Long Rest</b>, you can conjure a new Book of Shadows. The old one disappears.','When it appears, choose <b>3 cantrips</b> and <b>2 level 1 Ritual spells</b> from <b>any class’s</b> list. They count as Warlock spells while the book is on you.',`You can’t pick spells you already have prepared, so not ${gNames(c.known.concat(c.prep).slice(0,4))}.`,'Lost the book? Rest and conjure a new one.'])+'<p class="g-tip"><b>Tune it for the day ahead.</b> Heading into a city of humans? <i>Friends</i> works there. Exploring ruins? <i>Light</i> and <i>Detect Magic</i>. Expecting a fight? <i>Vicious Mockery</i> or <i>Mind Sliver</i>. The rest dialog groups every option by what it’s for.</p><p class="fine">Story note: your backstory’s whispering grimoire is a special book. Ask your DM how re-conjuring fits the fiction, for example the book rewriting its own pages as you sleep.</p>','g-book')];
+  const g=[];
+  g.push(gPanel('Short Rest <span class="g-tag">1 hour</span>',gUl([`<b>Pact slot${c.n>1?'s come':' comes'} back.</b> The big one for a Warlock.`,`Spend Hit Point Dice to heal: roll 1d8${sg(mod('con'))} per die. Ash has ${c.L} at level ${c.L}.`,'Conjure a new Book of Shadows with fresh picks, if you like. The sheet asks after every rest.','Interrupted by rolling Initiative, taking damage, or casting any spell except a cantrip, including rituals.','Ask for one whenever your slots are spent. Most groups take one or two per day.'])+'<p class="fine">On the sheet: <b>Short rest</b> restores the slots and offers to rewrite your book; then use <b>Spend &amp; roll</b> under Hit Points.</p>','g-rest'));
+  g.push(gPanel('Long Rest <span class="g-tag">8 hours</span>',gUl(['Regain <b>all HP</b>, <b>all Hit Point Dice</b> and all pact slots.',c.L>=2?'Magical Cunning can be used again.':'',trackers.length?`${gNames(trackers)} ${trackers.length>1?'are':'is'} full again.`:'','Remove 1 level of Exhaustion.','Conjure a new Book of Shadows with fresh picks, if you like.','At least 6 hours of sleep; up to 2 hours of light activity like talking, reading or keeping watch.','Interrupted by Initiative, damage, casting a non-cantrip spell, or an hour of walking or hard work. If at least 1 hour passed first, you still get Short Rest benefits.','Only one Long Rest per 24 hours.'].filter(Boolean))+'<p class="fine">On the sheet: <b>Long rest</b> resets HP, hit dice, slots, temp HP, concentration, death saves and patron uses.</p>','g-rest'));
+  out.push(`<div class="g-grid">${g.join('')}</div>`);
+  // levelling, from the Warlock table and the current plan
+  const real=(pv?pvSnap:S).level||1,next=[];
+  for(let l=real+1;l<=Math.min(20,real+3);l++)next.push(`<div><span class="lv">Lv ${l}</span><span>${esc(levelChanges(l).join(' · ')||'Hit Points only')}.</span></div>`);
+  const pl=curPlan(),adds=pl?Object.keys(LU_KINDS).flatMap(k=>pl.draft[k].filter(n=>n&&!B()[k].includes(n))).concat(pl.patron&&pl.patron!==B().patron?['patron: '+pl.patron]:[]):[];
+  out.push(gPanel('When Ash levels up',`<div class="g-grid">${gUl([`Add HP: take the average of <b>5</b> plus your Constitution modifier (${Math.max(1,5+mod('con'))}), or roll 1d8 plus it. You also gain a Hit Point Die.`,'Each level, you may swap <b>one</b> Warlock cantrip, <b>one</b> prepared spell and <b>one</b> invocation. You can’t swap out an invocation another one depends on.',adds.length?`Your plan “${esc(pl.name)}” adds ${gList(adds.map(esc))}. Level up fills these in when they’re allowed.`:'Plan ahead on the <b>Build &amp; plans</b> tab; Level up fills new slots from your plan.'])}${next.length?`<div class="feat g-levels">${next.join('')}</div>`:''}</div>`));
+  return out.join('');
+}
+function renderGuide(){
+  const c=guideCtx();
+  $('g-combat').innerHTML=guideCombat(c);
+  $('g-explore').innerHTML=guideExplore(c);
+  $('g-rest').innerHTML=guideRest(c);
 }
 
 /* ---------- level and preview ---------- */
