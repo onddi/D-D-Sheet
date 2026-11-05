@@ -370,6 +370,15 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
 .eq li input,.eq li textarea{border-color:transparent;background:transparent}
 .eq li input:hover,.eq li input:focus,.eq li textarea:hover,.eq li textarea:focus{border-color:var(--line);background:var(--surface)}
 .eq-add{padding-top:8px;border-top:1px solid var(--line)}
+/* build tab */
+.cb-kv dd{overflow-wrap:anywhere}
+.plan-panel{gap:10px}
+.plan-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.plan-ctl input{flex:1 1 180px;min-width:0;padding:6px 9px}
+.plan-ctl select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+.plan-dirs{display:flex;flex-direction:column;gap:6px}
+.plan-tl summary{cursor:pointer;font-size:.86rem;font-weight:600}
+.lu-pat.fit{border-color:var(--accent)}
 /* class features and level up */
 .cls-feats{display:flex;flex-direction:column;gap:12px;border-top:1px solid var(--line);padding-top:10px}
 .cf-sec{display:flex;flex-direction:column;gap:6px}
@@ -521,7 +530,7 @@ body:has(dialog[open]){overflow:hidden}
     <button role="tab" id="tab-btn-sheet" data-tab="sheet" aria-selected="true">Character</button>
     <button role="tab" id="tab-btn-journal" data-tab="journal" aria-selected="false">Journal</button>
     <button role="tab" id="tab-btn-story" data-tab="story" aria-selected="false">Story</button>
-    <button role="tab" id="tab-btn-options" data-tab="options" aria-selected="false">Build options</button>
+    <button role="tab" id="tab-btn-options" data-tab="options" aria-selected="false">Build &amp; plans</button>
     <button role="tab" id="tab-btn-guide" data-tab="guide" aria-selected="false">Play guide</button>
     <button role="tab" id="tab-btn-ref" data-tab="ref" aria-selected="false">Reference</button>
   </nav>
@@ -892,26 +901,15 @@ body:has(dialog[open]){overflow:hidden}
   </div>
 
   <div id="tab-options" class="opts" hidden>
-    <section class="panel intro">
-      <h2>Where Ash could go</h2>
-      <p>Pick a direction to highlight the choices that support it. Everything here is legal for a Warlock under 2024 rules. Items marked <span class="have-tag">On sheet</span> are what Ash has now.</p>
-      <div class="dirs" id="dirs"></div>
-      <p class="fine" id="dir-note"></p>
+    <section class="panel" id="cur-build"></section>
+    <section class="panel plan-panel">
+      <div class="panel-head"><h2>Plan ahead</h2><span class="fine">Plans never change your sheet. Level up fills in from the selected plan.</span></div>
+      <div class="filters" id="plan-chips" role="group" aria-label="Plans"></div>
+      <div class="plan-ctl" id="plan-ctl"></div>
+      <div id="plan-dirs" class="plan-dirs"></div>
+      <details class="plan-tl" id="plan-tl"><summary></summary><ul class="pv-list"></ul></details>
     </section>
-
-    <section class="panel">
-      <div class="panel-head"><h2>When you can change things</h2></div>
-      <div class="timeline">
-        <div><span class="lv num">Lv 1</span><span>Now. One invocation (Pact of the Tome), 2 Warlock cantrips, 2 prepared spells.</span></div>
-        <div><span class="lv num">Lv 2</span><span>Two more invocations (3 total), a second pact slot and a third prepared spell. Magical Cunning: regain half your pact slots with a 1-minute rite, once per long rest.</span></div>
-        <div><span class="lv num">Lv 3</span><span>Choose your patron. Fourth prepared spell, and your pact slots become 2nd level.</span></div>
-        <div><span class="lv num">Any level up</span><span>Swap one Warlock cantrip, one prepared spell and one invocation for another.</span></div>
-        <div><span class="lv num">Every rest</span><span>Conjure a new Book of Shadows and choose different cantrips and rituals for it.</span></div>
-      </div>
-    </section>
-
-    <div class="filters" role="group" aria-label="Filter by category" id="filters"></div>
-    <div id="opt-groups"></div>
+    <section class="panel lu-body" id="plan-ed"></section>
   </div>
 
   <div id="tab-sheet">
@@ -1109,6 +1107,13 @@ body:has(dialog[open]){overflow:hidden}
     <div class="panel-head"><h2 id="rest-h"></h2><button class="x" type="button" id="rest-x">Close</button></div>
     <p class="dlg-sum" id="rest-sum"></p>
     <div id="book-ed"></div>
+  </div>
+</dialog>
+
+<dialog class="dlg" id="hist-dlg" aria-labelledby="hist-h">
+  <div class="dlg-in">
+    <div class="panel-head"><h2 id="hist-h">Level history</h2><button class="x" type="button" id="hist-x">Close</button></div>
+    <div id="hist-body" class="lu-body"></div>
   </div>
 </dialog>
 
@@ -1970,14 +1975,6 @@ const DIRS=[
  {id:'ghost',n:'Faceless Infiltrator',s:'Scout, hide, misdirect',note:'Shapechange plus illusion and a scouting familiar. Pact of the Chain or Devil’s Sight make this stronger.'},
  {id:'mend',n:'Borrowed Halo',s:'Support from the back line',note:'A changeling hiding behind a celestial patron. Healing, protection and buffs keep the party standing.'}
 ];
-const CATS={
- cw:['Warlock cantrips','Pick 2 now; you learn a third at level 4. These are your class list.'],
- bc:['Book of Shadows cantrips','Pact of the Tome lets you take 3 cantrips from any class’s list. A selection of strong picks.'],
- l1:['Warlock 1st-level spells','You prepare 2 now, 3 at level 2 and 4 at level 3. Each cast uses a pact slot.'],
- rit:['Book of Shadows rituals','2 level 1 spells with the Ritual tag, from any class. Cast without a slot, taking 10 extra minutes.'],
- inv:['Eldritch invocations','You have 1 at level 1 and gain 2 more at level 2. Level 1 options and the best level 2 options.'],
- pat:['Patrons at level 3','Your subclass. Each adds spells to your list and shapes the character.']
-};
 // [cat, name, meta, text, tags, dirs, have]
 const OPTS=[
  ['cw','Eldritch Blast','Action · 120 ft','Ranged spell attack, 1d10 Force. Extra beams at levels 5, 11 and 17.',['Combat'],['blast','con','mind','ghost','mend'],1],
@@ -2034,41 +2031,6 @@ const OPTS=[
  ['pat','Great Old One','Level 3','Awakened Mind: telepathy with creatures you can see. Psychic spells and mind-reading like Detect Thoughts.',['Social','Utility'],['mind','con'],0],
  ['pat','Celestial','Level 3','Healing Light: a pool of d6s to heal allies as a Bonus Action. Radiant and protective spells.',['Support'],['mend'],0]
 ];
-let dirSel=null,catSel='all';
-function renderOptions(){
-  const dw=$('dirs');dw.innerHTML='';
-  DIRS.forEach(dd=>{const b=document.createElement('button');b.className='dir';b.setAttribute('aria-pressed',String(dirSel===dd.id));
-    b.innerHTML='<strong></strong><span></span>';b.children[0].textContent=dd.n;b.children[1].textContent=dd.s;
-    b.onclick=()=>{dirSel=dirSel===dd.id?null:dd.id;renderOptions()};dw.appendChild(b)});
-  const cur=DIRS.find(x=>x.id===dirSel);
-  $('dir-note').textContent=cur?cur.note:'No direction selected. Showing every option.';
-  $('tab-options').classList.toggle('focus',!!dirSel);
-  const fw=$('filters');fw.innerHTML='';
-  [['all','All']].concat(Object.keys(CATS).map(k=>[k,CATS[k][0]])).forEach(([k,l])=>{
-    const b=document.createElement('button');b.textContent=l;b.setAttribute('aria-pressed',String(catSel===k));
-    b.onclick=()=>{catSel=k;renderOptions()};fw.appendChild(b)});
-  const gw=$('opt-groups');gw.innerHTML='';
-  Object.keys(CATS).forEach(k=>{
-    if(catSel!=='all'&&catSel!==k)return;
-    if(k==='inv'){gw.appendChild(renderInvPlanner());return}
-    const items=OPTS.filter(o=>o[0]===k);
-    if(dirSel)items.sort((a,b)=>(b[5].includes(dirSel))-(a[5].includes(dirSel)));
-    const g=document.createElement('section');g.className='ogroup';
-    g.innerHTML='<div class="ogroup-head"><h2></h2><p></p></div><div class="ocards"></div>';
-    g.querySelector('h2').textContent=CATS[k][0];g.querySelector('p').textContent=CATS[k][1];
-    const cw=g.querySelector('.ocards');
-    items.forEach(o=>{
-      const c=document.createElement('article');
-      const has=o[0]==='pat'?B().patron===o[1]:haveIt(o[1]);
-      c.className='ocard'+(has?' have':'')+(dirSel&&o[5].includes(dirSel)?' match':'');
-      c.innerHTML='<div class="top"><span class="nm"></span>'+(has?'<span class="have-tag">On sheet</span>':'')+'</div><span class="meta"></span><p></p><div class="ttags"></div>';
-      c.querySelector('.nm').textContent=o[1];c.querySelector('.meta').textContent=o[2];c.querySelector('p').textContent=o[3];
-      const tg=c.querySelector('.ttags');o[4].forEach(t=>{const s=document.createElement('span');s.className='tt';s.textContent=t;tg.appendChild(s)});
-      cw.appendChild(c);
-    });
-    gw.appendChild(g);
-  });
-}
 /* ---------- invocation planner (Build options) ---------- */
 const INV_COUNT=[0,1,3,3,3,5,5,6,6,7,7,7,8,8,8,9,9,9,10,10,10];
 // What each invocation gives, in plain words, and how it fits Ash.
@@ -2103,75 +2065,6 @@ const INV_DETAIL={
  'Witch Sight':{g:'Truesight out to 30 ft: see invisible things and through illusions, and see shapechangers\u2019 true forms.',a:'Fitting irony: Ash could spot other changelings and fey glamours.'}
 };
 const INV_REQ={'Eldritch Smite':'Pact of the Blade','Thirsting Blade':'Pact of the Blade','Lifedrinker':'Pact of the Blade','Devouring Blade':'Thirsting Blade','Investment of the Chain Master':'Pact of the Chain','Gift of the Protectors':'Pact of the Tome'};
-function invPlan(){
-  if(!S.invPlan||!Array.isArray(S.invPlan.picks))S.invPlan={lvl:2,picks:['Pact of the Tome']};
-  return S.invPlan;
-}
-function renderInvPlanner(){
-  const plan=invPlan(),lvl=plan.lvl,cap=INV_COUNT[lvl];
-  const g=document.createElement('section');g.className='ogroup';
-  g.innerHTML=`<div class="ogroup-head"><h2>Eldritch invocations</h2><p>Permanent upgrades you choose as you level. Plan ahead here; nothing on the Character tab changes.</p></div>
-  <div class="inv-rules">
-    <div><b>How many</b><span>1 at level 1, 3 at level 2, then more at levels 5, 7, 9, 12, 15 and 18 (10 at most). New picks happen when the number goes up.</span></div>
-    <div><b>Swapping</b><span>Each time you gain a Warlock level, you may replace <b>one</b> invocation with another you qualify for, even at levels with no new picks. You can't swap out one that another invocation depends on.</span></div>
-    <div><b>More than one pact?</b><span><b>Yes.</b> Under 2024 rules the pacts are ordinary invocations, so Ash could add Pact of the Chain or the Blade alongside the Tome. Each one uses a pick.</span></div>
-    <div><b>Prerequisites</b><span>Some need a minimum Warlock level; others need another invocation first (Thirsting Blade needs Pact of the Blade). Repeatable ones can be taken again for a different cantrip or feat.</span></div>
-  </div>
-  <div class="inv-ctl">
-    <label class="label" for="inv-lvl">Plan for Warlock level</label>
-    <select id="inv-lvl">${Array.from({length:20},(_,i)=>`<option value="${i+1}"${i+1===lvl?' selected':''}>${i+1}</option>`).join('')}</select>
-    <span class="inv-count num"></span>
-    <button class="btn small" type="button" id="inv-reset">Reset plan</button>
-  </div>
-  <p class="inv-warn" hidden></p>
-  <div class="inv-cards"></div>`;
-  const picks=new Set(plan.picks);
-  const used=plan.picks.length;
-  const cnt=g.querySelector('.inv-count');cnt.textContent=`${used} of ${cap} picked`;cnt.classList.toggle('over',used>cap);
-  const warns=[];
-  if(used>cap)warns.push(`Too many picks for level ${lvl}: remove ${used-cap}.`);
-  plan.picks.forEach(n=>{const inv=INVOCS.find(i=>i[1]===n);if(inv&&inv[0]>lvl)warns.push(`${n} needs Warlock level ${inv[0]}.`);if(INV_REQ[n]&&!picks.has(INV_REQ[n]))warns.push(`${n} needs ${INV_REQ[n]}.`)});
-  const wEl=g.querySelector('.inv-warn');if(warns.length){wEl.hidden=false;wEl.textContent=warns.join(' ')}
-  const cards=g.querySelector('.inv-cards');
-  const order=INVOCS.slice().sort((a,b)=>a[0]-b[0]);
-  order.forEach(([minL,name,other])=>{
-    const det=INV_DETAIL[name]||{g:'',a:''};
-    const req=INV_REQ[name];
-    const lockedLvl=minL>lvl,lockedReq=req&&!picks.has(req);
-    const on=picks.has(name);
-    const opt=OPTS.find(o=>o[0]==='inv'&&o[1]===name);
-    const match=dirSel&&opt&&opt[5].includes(dirSel);
-    const c=document.createElement('button');c.type='button';
-    c.className='inv'+(on?' on':'')+((lockedLvl||lockedReq)&&!on?' locked':'')+(match?' match':'');
-    c.setAttribute('aria-pressed',String(on));
-    const state=on?'Planned':lockedLvl?`Unlocks at level ${minL}`:lockedReq?`Needs ${req}`:'Available';
-    c.innerHTML=`<span class="inv-top"><span class="nm"></span><span class="st"></span></span><span class="inv-meta"></span><span class="inv-g"></span><span class="inv-a"></span>`;
-    c.querySelector('.nm').textContent=name;
-    c.querySelector('.st').textContent=state;
-    c.querySelector('.inv-meta').textContent=`Level ${minL}+`+(other?` \u00b7 Requires ${other}`:'')+(/Repeatable/.test(det.g)?' \u00b7 Repeatable':'')+(hasInv(name)?' \u00b7 Ash has this':'');
-    c.querySelector('.inv-g').textContent=det.g;
-    c.querySelector('.inv-a').textContent='For Ash: '+det.a;
-    c.onclick=()=>{
-      const p=invPlan();
-      if(p.picks.includes(name)){
-        const dep=p.picks.find(x=>INV_REQ[x]===name);
-        if(dep){toast('Can\u2019t remove '+name,dep+' depends on it. Remove that first.','\u2717','fumble');return}
-        p.picks=p.picks.filter(x=>x!==name);
-      }else{
-        if(lockedLvl){toast(name,`Needs Warlock level ${minL}. Raise the planning level to pick it.`,'\u2014');return}
-        if(lockedReq){toast(name,`Pick ${req} first.`,'\u2014');return}
-        if(p.picks.length>=INV_COUNT[p.lvl]){toast('No picks left',`Level ${p.lvl} allows ${INV_COUNT[p.lvl]}. Remove one or raise the level.`,'\u2014');return}
-        p.picks.push(name);
-      }
-      save();renderOptions();
-    };
-    cards.appendChild(c);
-  });
-  g.querySelector('#inv-lvl').onchange=e=>{invPlan().lvl=+e.target.value;save();renderOptions()};
-  g.querySelector('#inv-reset').onclick=()=>{S.invPlan={lvl:invPlan().lvl,picks:['Pact of the Tome']};save();renderOptions()};
-  return g;
-}
-
 /* ---------- reference tab ---------- */
 const haveIt=n=>hasInv(n)||knownCantrips().includes(n)||preparedAll().includes(n)||inBook(n);
 const WL_CANTRIPS=new Set(['Blade Ward','Chill Touch','Eldritch Blast','Friends','Mage Hand','Mind Sliver','Minor Illusion','Poison Spray','Prestidigitation','Thunderclap','Toll the Dead','True Strike']);
@@ -2910,7 +2803,7 @@ $('gold').oninput=e=>{S.gold=parseInt(e.target.value,10)||0;save()};
 $('lang').oninput=e=>{S.lang=e.target.value;save()};
 $('notes').oninput=e=>{S.notes=e.target.value;save()};
 
-function renderAll(){levelSync();renderLevel();renderClassFeats();renderPortrait();renderStory();renderJournal();renderEquip();renderHP();renderFx();renderAbil();renderSkills();renderVitals();renderAttacks();renderSpells()}
+function renderAll(){levelSync();renderLevel();renderClassFeats();renderOptions();renderPortrait();renderStory();renderJournal();renderEquip();renderHP();renderFx();renderAbil();renderSkills();renderVitals();renderAttacks();renderSpells()}
 /* ---------- class features panel ---------- */
 const BEFORE_KEY=KEY+'-before-level';
 // Keep a copy of the whole sheet from just before a level change, as a safety net.
@@ -2953,25 +2846,10 @@ function renderClassFeats(){
   }else if(L>=3){item(sec('Patron'),'Not chosen yet','Pick one with Edit build.')}
   // feats from Ability Score Improvements
   if(B().feats.length){const f=sec('Feats');B().feats.forEach(x=>item(f,x,''))}
-  // level history
-  const hist=sec('Level history');
-  const recs=pv?(pvSnap.history||[]):S.history;
-  if(!recs.length){const p=document.createElement('p');p.className='fine';p.textContent='Ash is at the level the sheet started with. Each level up is recorded here so you can look back or undo it.';hist.appendChild(p)}
-  recs.forEach((r,i)=>{
-    const d=item(hist,`Level ${r.level} → ${r.to}`,(r.summary||[]).join(' · '));
-    const row=document.createElement('div');row.className='toolbar';
-    const v=document.createElement('button');v.className='btn small';v.textContent=`View level ${r.level}`;v.onclick=()=>setPreview(r.level);row.appendChild(v);
-    if(i===recs.length-1&&!pv)row.appendChild(armBtn(`Undo level ${r.to}`,'Click again to undo','btn small danger',undoLevel));
-    const dt=document.createElement('span');dt.className='fine';dt.textContent=new Date(r.date).toLocaleDateString([], {day:'numeric',month:'short',year:'numeric'});row.appendChild(dt);
-    d.appendChild(row);
-  });
+  // level history, undo and level changes live in their own dialog; they aren't needed while playing
   const bar=document.createElement('div');bar.className='toolbar';
-  const up=document.createElement('button');up.className='btn small primary';up.textContent=`Level up to ${(S.level||1)+1}`;up.disabled=!!pv||(S.level||1)>=20;up.onclick=()=>openLevelUp('up');
-  const ed=document.createElement('button');ed.className='btn small';ed.textContent='Edit build';ed.disabled=!!pv;ed.onclick=()=>openLevelUp('edit');
-  bar.append(up,ed);
-  let safe=null;try{safe=localStorage.getItem(BEFORE_KEY)}catch(e){}
-  if(safe&&!pv)bar.appendChild(armBtn('Restore sheet from before last level change','Click again: replaces the whole sheet','btn small',()=>restore(safe)));
-  w.appendChild(bar);
+  const hb=document.createElement('button');hb.className='btn small';hb.textContent='Level history & undo';hb.onclick=openHistory;
+  bar.appendChild(hb);w.appendChild(bar);
   // Magical Cunning sits with the pact slots
   const mc=$('mc-btn');mc.hidden=L<2;
   mc.disabled=!!S.mcUsed||S.slotsUsed<1;
@@ -2983,6 +2861,35 @@ $('mc-btn').onclick=()=>{
   toast('Magical Cunning',`A 1-minute rite: ${back} pact slot${back>1?'s':''} back. Usable again after a Long Rest.`,'✦');save();renderAll();
 };
 
+/* ---------- level history dialog ---------- */
+function openHistory(){renderHistory();const d=$('hist-dlg');if(!d.open)d.showModal()}
+$('hist-x').onclick=()=>$('hist-dlg').close();
+function renderHistory(){
+  const w=$('hist-body');w.innerHTML='';
+  const recs=pv?(pvSnap.history||[]):S.history;
+  const p0=document.createElement('p');p0.className='dlg-sum';
+  p0.textContent=recs.length?`Ash is level ${(pv?pvSnap:S).level}. Each level up is recorded with the build from before it, so you can look back or undo the newest one.`:'Ash is at the level the sheet started with. Each level up will be recorded here, so you can look back or undo it.';
+  w.appendChild(p0);
+  const ul=document.createElement('div');ul.className='cls-feats';
+  recs.slice().reverse().forEach((r,ri)=>{
+    const d=document.createElement('div');d.className='cf-item';d.innerHTML='<b></b><span></span>';
+    d.querySelector('b').textContent=`Level ${r.level} → ${r.to}`;d.querySelector('span').textContent=(r.summary||[]).join(' · ');
+    const row=document.createElement('div');row.className='toolbar';
+    const v=document.createElement('button');v.className='btn small';v.textContent=`View level ${r.level}`;v.onclick=()=>{$('hist-dlg').close();setPreview(r.level);showTab('sheet');window.scrollTo(0,0)};row.appendChild(v);
+    if(ri===0&&!pv)row.appendChild(armBtn(`Undo level ${r.to}`,'Click again to undo','btn small danger',()=>{undoLevel();renderHistory()}));
+    const dt=document.createElement('span');dt.className='fine';dt.textContent=new Date(r.date).toLocaleDateString([], {day:'numeric',month:'short',year:'numeric'});row.appendChild(dt);
+    d.appendChild(row);ul.appendChild(d);
+  });
+  if(recs.length)w.appendChild(ul);
+  const bar=document.createElement('div');bar.className='toolbar';
+  const up=document.createElement('button');up.className='btn small primary';up.textContent=`Level up to ${((pv?pvSnap:S).level||1)+1}`;up.disabled=!!pv;up.onclick=()=>{$('hist-dlg').close();openLevelUp('up')};
+  const ed=document.createElement('button');ed.className='btn small';ed.textContent='Edit build';ed.disabled=!!pv;ed.onclick=()=>{$('hist-dlg').close();openLevelUp('edit')};
+  bar.append(up,ed);
+  let safe=null;try{safe=localStorage.getItem(BEFORE_KEY)}catch(e){}
+  if(safe&&!pv)bar.appendChild(armBtn('Restore sheet from before last level change','Click again: replaces the whole sheet','btn small',()=>{$('hist-dlg').close();restore(safe)}));
+  w.appendChild(bar);
+}
+
 /* ---------- level up and build editing ---------- */
 // lu: the open dialog. draft holds the picks; slot is the pick the list below fills.
 let lu=null;
@@ -2993,156 +2900,178 @@ const invOk=(n,L,list)=>{const x=INVOCS.find(i=>i[1]===n);return x&&x[0]<=L&&(!I
 function openLevelUp(mode){
   if(pv){toast('Leave the preview first','Level changes apply to your real sheet.','—');return}
   const to=mode==='up'?S.level+1:S.level;if(to>20)return;
-  lu={mode:mode,to:to,hp:'avg',roll:null,patron:B().patron,asi:{mode:'two',a:'cha',b:'con',feat:''},q:'',cat:null,more:new Set(),
+  lu={mode:mode,to:to,base:B(),baseLevel:S.level,dir:(curPlan()||{}).dir,hp:'avg',roll:null,patron:B().patron,asi:{mode:'two',a:'cha',b:'con',feat:''},q:'',cat:null,more:new Set(),
     draft:{cantrips:padTo(B().cantrips,WL.cantrips(to)),prepared:padTo(B().prepared,WL.prepared(to)),invocations:padTo(B().invocations,INV_COUNT[to])}};
-  // invocations from the Build options plan fill the new slots
-  if(mode==='up'){
-    const plan=(S.invPlan&&S.invPlan.picks)||[],inv=lu.draft.invocations;
-    plan.forEach(n=>{const i=inv.indexOf('');if(i>=0&&!inv.includes(n)&&invOk(n,to,inv))inv[i]=n});
+  // the current plan fills the new slots with picks that are legal at this level
+  const pl=mode==='up'&&curPlan();
+  if(pl){
+    Object.keys(LU_KINDS).forEach(k=>{const dr=lu.draft[k];pl.draft[k].filter(Boolean).forEach(n=>{
+      const i=dr.indexOf('');if(i<0||dr.includes(n))return;
+      if(k==='invocations'&&!invOk(n,to,dr))return;
+      if(k==='prepared'){const w=WL_SPELLS.find(x=>x[1]===n);if(w&&w[0]>WL.slotLvl(to))return}
+      dr[i]=n;
+    })});
+    if(to>=3&&!lu.patron&&pl.patron)lu.patron=pl.patron;
   }
-  lu.slot=luFirstEmpty()||{k:'invocations',i:0};
-  renderLU();
+  lu.slot=luFirstEmpty(lu)||{k:'invocations',i:0};
+  renderLU(lu);
   const d=$('lu-dlg');if(!d.open)d.showModal();
 }
-function luFirstEmpty(){for(const k of Object.keys(LU_KINDS)){const i=lu.draft[k].indexOf('');if(i>=0)return {k:k,i:i}}return null}
+function luFirstEmpty(st){for(const k of Object.keys(LU_KINDS)){const i=st.draft[k].indexOf('');if(i>=0)return {k:k,i:i}}return null}
 function closeLU(){const d=$('lu-dlg');if(d.open)d.close()}
 $('lu-dlg').addEventListener('close',()=>{lu=null});
 $('lu-x').onclick=closeLU;
-function luOptions(k){
+function luOptions(st,k){
   if(k==='cantrips')return CANTRIPS.filter(c=>WL_CANTRIPS.has(c[0])).map(c=>({n:c[0],mt:c[1]+(c[3]?' · Conc.':''),s:c[4]}));
-  if(k==='prepared'){const sl=WL.slotLvl(lu.to);return WL_SPELLS.filter(x=>x[0]<=sl).map(x=>({n:x[1],mt:`Level ${x[0]} · ${x[2]}`+(x[3]?' · Conc.':'')+(x[4]?' · Ritual':''),s:x[5],grp:'Level '+x[0]}))}
-  return INVOCS.filter(x=>x[0]<=lu.to).map(x=>({n:x[1],mt:`Level ${x[0]}+`+(x[2]?' · Requires '+x[2]:''),s:x[3],grp:x[0]<=1?'Level 1':'Level '+x[0]}));
+  if(k==='prepared'){const sl=WL.slotLvl(st.to);return WL_SPELLS.filter(x=>x[0]<=sl).map(x=>({n:x[1],mt:`Level ${x[0]} · ${x[2]}`+(x[3]?' · Conc.':'')+(x[4]?' · Ritual':''),s:x[5],grp:'Level '+x[0]}))}
+  return INVOCS.filter(x=>x[0]<=st.to).map(x=>({n:x[1],mt:`Level ${x[0]}+`+(x[2]?' · Requires '+x[2]:''),s:x[3],grp:x[0]<=1?'Level 1':'Level '+x[0]}));
 }
 // Why a pick goes against the rules (empty if it doesn't). The sheet allows it anyway.
-function luWhy(k,n){
-  const i=lu.draft[k].indexOf(n);if(i>=0&&i!==lu.slot.i)return `Already in ${LU_KINDS[k][1].toLowerCase()} slot ${i+1}`;
-  if(k==='prepared'&&lu.patron&&lu.to>=3&&(PATRON_SPELLS[lu.patron]||[]).includes(n))return 'Always prepared by your patron';
+function luWhy(st,k,n){
+  const i=st.draft[k].indexOf(n);if(i>=0&&i!==st.slot.i)return `Already in ${LU_KINDS[k][1].toLowerCase()} slot ${i+1}`;
+  if(k==='prepared'&&st.patron&&st.to>=3&&(PATRON_SPELLS[st.patron]||[]).includes(n))return 'Always prepared by your patron';
   if(k==='cantrips'&&inBook(n))return 'Also in your Book of Shadows';
-  if(k==='invocations'&&INV_REQ[n]&&!lu.draft.invocations.includes(INV_REQ[n]))return 'Needs '+INV_REQ[n];
+  if(k==='invocations'&&INV_REQ[n]&&!st.draft.invocations.includes(INV_REQ[n]))return 'Needs '+INV_REQ[n];
   return '';
 }
-function luFull(k,n){
+function luFull(st,k,n){
   if(k==='invocations'){const x=INV_DETAIL[n]||{};return [x.g||'',x.a?'For Ash: '+x.a:''].filter(Boolean).join(' ')}
   const d=spOf(n);return (d.m?fillText(d,d.m)+'. ':'')+fillText(d,d.t||'');
 }
-function luHpGain(){const g=lu.hp==='roll'&&lu.roll?lu.roll:5;return Math.max(1,g+mod('con'))}
-function luChanges(){
+function luHpGain(st){const g=st.hp==='roll'&&st.roll?st.roll:5;return Math.max(1,g+mod('con'))}
+function luChanges(st){
   const out=[];
   Object.keys(LU_KINDS).forEach(k=>{
-    const was=B()[k];lu.draft[k].forEach((n,i)=>{if(!n)return;if(i>=was.length)out.push('+ '+n);else if(was[i]!==n)out.push(`${was[i]} → ${n}`)});
+    const was=st.base[k];st.draft[k].forEach((n,i)=>{if(!n)return;if(i>=was.length)out.push('+ '+n);else if(was[i]!==n)out.push(`${was[i]} → ${n}`)});
   });
-  if(lu.patron!==B().patron&&lu.patron)out.push('Patron: '+lu.patron);
+  if(st.patron!==st.base.patron&&st.patron)out.push('Patron: '+st.patron);
   return out;
 }
-function renderLU(){
-  const body=$('lu-body');body.innerHTML='';
-  $('lu-h').textContent=lu.mode==='up'?`Level up to ${lu.to}`:'Edit build';
+function renderLU(st){
+  const body=st.el||$('lu-body');body.innerHTML='';
+  if(!st.el)$('lu-h').textContent=st.mode==='up'?`Level up to ${st.to}`:'Edit build';
+  const changed=()=>{if(st.onChange)st.onChange();renderLU(st)};
   const add=(cls,html)=>{const e=document.createElement('div');e.className=cls;if(html)e.innerHTML=html;body.appendChild(e);return e};
-  if(lu.mode==='up'){
-    const ch=levelChanges(lu.to);
-    const s=add('dlg-sum');s.innerHTML='<b></b><ul class="lu-auto"></ul>';s.querySelector('b').textContent=`What level ${lu.to} brings automatically`;
+  if(st.mode==='up'){
+    const ch=levelChanges(st.to);
+    const s=add('dlg-sum');s.innerHTML='<b></b><ul class="lu-auto"></ul>';s.querySelector('b').textContent=`What level ${st.to} brings automatically`;
     (ch.length?ch:['More Hit Points and a hit die']).forEach(t=>{const li=document.createElement('li');li.textContent=t;s.querySelector('ul').appendChild(li)});
     // hit points
     const hp=add('lu-sec');hp.innerHTML='<h3>Hit points</h3><div class="seg" role="group" aria-label="Hit points"></div><p class="fine"></p>';
     const seg=hp.querySelector('.seg');
-    const avgB=document.createElement('button');avgB.type='button';avgB.textContent=`Average: +${Math.max(1,5+mod('con'))}`;avgB.setAttribute('aria-pressed',String(lu.hp==='avg'));avgB.onclick=()=>{lu.hp='avg';renderLU()};
-    const rollB=document.createElement('button');rollB.type='button';rollB.textContent=lu.roll?`Rolled ${lu.roll}: +${Math.max(1,lu.roll+mod('con'))}`:`Roll 1d8 ${sg(mod('con'))}`;rollB.setAttribute('aria-pressed',String(lu.hp==='roll'));
-    rollB.onclick=()=>{if(!lu.roll)lu.roll=d(8);lu.hp='roll';renderLU()};
+    const avgB=document.createElement('button');avgB.type='button';avgB.textContent=`Average: +${Math.max(1,5+mod('con'))}`;avgB.setAttribute('aria-pressed',String(st.hp==='avg'));avgB.onclick=()=>{st.hp='avg';renderLU(st)};
+    const rollB=document.createElement('button');rollB.type='button';rollB.textContent=st.roll?`Rolled ${st.roll}: +${Math.max(1,st.roll+mod('con'))}`:`Roll 1d8 ${sg(mod('con'))}`;rollB.setAttribute('aria-pressed',String(st.hp==='roll'));
+    rollB.onclick=()=>{if(!st.roll)st.roll=d(8);st.hp='roll';renderLU(st)};
     seg.append(avgB,rollB);
-    hp.querySelector('.fine').textContent=`Max HP ${maxHP()} → ${maxHP()+luHpGain()}. You also gain a hit die. The roll happens once, so the result stays.`;
-  }else{
-    add('dlg-sum').textContent=`Change Ash’s Warlock picks for level ${lu.to}: fix a pick, fill an empty slot or swap a spell. This doesn’t add a level or touch the Book of Shadows.`;
+    hp.querySelector('.fine').textContent=`Max HP ${maxHP()} → ${maxHP()+luHpGain(st)}. You also gain a hit die. The roll happens once, so the result stays.`;
+  }else if(st.mode==='edit'){
+    add('dlg-sum').textContent=`Change Ash’s Warlock picks for level ${st.to}: fix a pick, fill an empty slot or swap a spell. This doesn’t add a level or touch the Book of Shadows.`;
   }
   // patron
-  if((lu.mode==='up'&&lu.to===3)||(lu.mode==='edit'&&lu.to>=3)){
+  if((st.mode==='up'&&st.to===3)||(st.mode!=='up'&&st.to>=3)){
     const p=add('lu-sec');p.innerHTML='<h3>Patron</h3><p class="fine">The being behind Ash’s pact. It adds always-prepared spells and features at levels 3, 6, 10 and 14.</p><div class="lu-pats"></div>';
     PATRONS.forEach(x=>{
-      const b=document.createElement('button');b.type='button';b.className='lu-pat';b.setAttribute('aria-pressed',String(lu.patron===x.n));
+      const b=document.createElement('button');b.type='button';b.className='lu-pat';b.setAttribute('aria-pressed',String(st.patron===x.n));
       b.innerHTML='<b></b><span class="d"></span><span class="f"></span><span class="sp"></span>';
       b.querySelector('b').textContent=x.n;b.querySelector('.d').textContent=x.s+' '+x.fit;
       b.querySelector('.f').textContent='Level 3: '+x.feats.filter(f=>f[0]===3).map(f=>f[1]).join(', ');
       b.querySelector('.sp').textContent='Spells: '+(PATRON_SPELLS[x.n]||[]).join(', ');
-      b.onclick=()=>{lu.patron=x.n;renderLU()};p.querySelector('.lu-pats').appendChild(b);
+      if(st.dir&&dirsOf(x.n).includes(st.dir)){b.classList.add('fit');const t=document.createElement('span');t.className='pill ok';t.textContent='Fits '+dirName(st.dir);b.insertBefore(t,b.children[1])}
+      b.onclick=()=>{st.patron=x.n;changed()};p.querySelector('.lu-pats').appendChild(b);
     });
   }
   // ability score improvement
-  if(lu.mode==='up'&&ASI_LV.includes(lu.to)){
+  if(st.mode==='up'&&ASI_LV.includes(st.to)){
     const a=add('lu-sec');a.innerHTML='<h3>Ability Score Improvement or feat</h3><div class="seg" role="group" aria-label="Choice"></div><div class="field lu-asi"></div>';
-    [['two','+1 to two scores'],['one','+2 to one score'],['feat','A feat instead']].forEach(([m,l])=>{const b=document.createElement('button');b.type='button';b.textContent=l;b.setAttribute('aria-pressed',String(lu.asi.mode===m));b.onclick=()=>{lu.asi.mode=m;renderLU()};a.querySelector('.seg').appendChild(b)});
+    [['two','+1 to two scores'],['one','+2 to one score'],['feat','A feat instead']].forEach(([m,l])=>{const b=document.createElement('button');b.type='button';b.textContent=l;b.setAttribute('aria-pressed',String(st.asi.mode===m));b.onclick=()=>{st.asi.mode=m;renderLU(st)};a.querySelector('.seg').appendChild(b)});
     const f=a.querySelector('.lu-asi');
-    const sel=(key)=>{const s=document.createElement('select');AB.forEach(([k,nm])=>{const o=document.createElement('option');o.value=k;o.textContent=`${nm} (${S.ab[k]})`;s.appendChild(o)});s.value=lu.asi[key];s.onchange=()=>{lu.asi[key]=s.value;renderLU()};return s};
-    if(lu.asi.mode==='feat'){const i=document.createElement('input');i.placeholder='Feat name, e.g. War Caster';i.value=lu.asi.feat;i.oninput=()=>{lu.asi.feat=i.value};f.appendChild(i)}
-    else{f.appendChild(sel('a'));if(lu.asi.mode==='two')f.appendChild(sel('b'))}
+    const sel=(key)=>{const s=document.createElement('select');AB.forEach(([k,nm])=>{const o=document.createElement('option');o.value=k;o.textContent=`${nm} (${S.ab[k]})`;s.appendChild(o)});s.value=st.asi[key];s.onchange=()=>{st.asi[key]=s.value;renderLU(st)};return s};
+    if(st.asi.mode==='feat'){const i=document.createElement('input');i.placeholder='Feat name, e.g. War Caster';i.value=st.asi.feat;i.oninput=()=>{st.asi.feat=i.value};f.appendChild(i)}
+    else{f.appendChild(sel('a'));if(st.asi.mode==='two')f.appendChild(sel('b'))}
   }
   // picks
   const pk=add('lu-sec');pk.innerHTML='<h3>Spells and invocations</h3><p class="fine">New slots are marked. Each level the rules also let you swap one Warlock cantrip, one prepared spell and one invocation; the sheet warns about more but allows it.</p>';
   Object.keys(LU_KINDS).forEach(k=>{
-    const was=B()[k],dr=lu.draft[k];
+    const was=st.base[k],dr=st.draft[k];
     const g=document.createElement('div');g.className='lu-grp';
     const swaps=dr.filter((n,i)=>i<was.length&&n!==was[i]).length;
     g.innerHTML='<span class="label"></span><div class="bk-slots"></div>';
-    g.querySelector('.label').textContent=`${LU_KINDS[k][0]} · ${dr.filter(Boolean).length} of ${dr.length}`+(lu.mode==='up'&&swaps>1?` · ${swaps} swapped (the rules allow 1)`:'');
+    const allow=st.mode==='plan'?st.to-st.baseLevel:1;
+    g.querySelector('.label').textContent=`${LU_KINDS[k][0]} · ${dr.filter(Boolean).length} of ${dr.length}`+(st.mode!=='edit'&&swaps>allow?` · ${swaps} swapped (the rules allow ${allow})`:'');
     dr.forEach((n,i)=>{
-      const b=document.createElement('button');b.type='button';b.className='bk-slot'+(n?'':' empty');b.setAttribute('aria-pressed',String(lu.slot.k===k&&lu.slot.i===i));
+      const b=document.createElement('button');b.type='button';b.className='bk-slot'+(n?'':' empty');b.setAttribute('aria-pressed',String(st.slot.k===k&&st.slot.i===i));
       b.innerHTML='<span class="k"></span><b></b>';
-      b.querySelector('.k').textContent=`${LU_KINDS[k][1]} ${i+1}`+(i>=was.length?' · new':'');
+      const at=slotUnlock(k,i);b.querySelector('.k').textContent=`${LU_KINDS[k][1]} ${i+1}`+(i>=was.length?(st.mode==='plan'?` · new at Lv ${at}`:' · new'):'');
+      const iv=k==='invocations'&&n&&INVOCS.find(x=>x[1]===n);
+      if(st.mode==='plan'&&iv&&iv[0]>Math.max(at,st.baseLevel)){const x=document.createElement('span');x.className='was';x.textContent=`needs Lv ${iv[0]}: plan it in a later slot`;b.appendChild(x)}
       b.querySelector('b').textContent=n||'Choose…';
       if(i<was.length&&was[i]!==n){const x=document.createElement('span');x.className='was';x.textContent='was '+was[i];b.appendChild(x)}
-      b.onclick=()=>{lu.slot={k:k,i:i};lu.q='';lu.cat=null;renderLU()};
+      b.onclick=()=>{st.slot={k:k,i:i};st.q='';st.cat=null;renderLU(st)};
       g.querySelector('.bk-slots').appendChild(b);
     });
     pk.appendChild(g);
   });
   // the list for the selected slot
-  const k=lu.slot.k,cur=lu.draft[k][lu.slot.i];
+  const k=st.slot.k,cur=st.draft[k][st.slot.i];
   const pick=document.createElement('div');pick.className='bk-pick';
   pick.innerHTML=`<span class="label"></span><input type="search" placeholder="Search by name or effect" aria-label="Search"><div class="bk-head"></div><div class="bk-list"></div>`;
-  pick.querySelector('.label').textContent=`Choose ${LU_KINDS[k][1].toLowerCase()} ${lu.slot.i+1}`;
-  const qi=pick.querySelector('input');qi.value=lu.q;
+  pick.querySelector('.label').textContent=`Choose ${LU_KINDS[k][1].toLowerCase()} ${st.slot.i+1}`;
+  const qi=pick.querySelector('input');qi.value=st.q;
   const head=pick.querySelector('.bk-head'),list=pick.querySelector('.bk-list');
   const fill=()=>{
     head.innerHTML='';list.innerHTML='';
-    const q=lu.q.trim().toLowerCase(),all=luOptions(k);
+    const q=st.q.trim().toLowerCase(),all=luOptions(st,k);
     const grps=[...new Set(all.map(o=>o.grp).filter(Boolean))];
     if(grps.length>1){
-      if(!lu.cat||!grps.includes(lu.cat)){const c=all.find(o=>o.n===cur);lu.cat=c?c.grp:grps[grps.length-1]}
+      if(!st.cat||!grps.includes(st.cat)){const c=all.find(o=>o.n===cur);st.cat=c?c.grp:grps[grps.length-1]}
       const chips=document.createElement('div');chips.className='filters bk-chips-row';
-      grps.forEach(gn=>{const b=document.createElement('button');b.type='button';b.textContent=gn;b.setAttribute('aria-pressed',String(!q&&lu.cat===gn));b.onclick=()=>{lu.cat=gn;lu.q='';qi.value='';fill()};chips.appendChild(b)});
+      grps.forEach(gn=>{const b=document.createElement('button');b.type='button';b.textContent=gn;b.setAttribute('aria-pressed',String(!q&&st.cat===gn));b.onclick=()=>{st.cat=gn;st.q='';qi.value='';fill()};chips.appendChild(b)});
       head.appendChild(chips);
     }
-    const opts=all.filter(o=>q?[o.n,o.mt,o.s].join(' ').toLowerCase().includes(q):(grps.length<2||o.grp===lu.cat));
+    const opts=all.filter(o=>q?[o.n,o.mt,o.s].join(' ').toLowerCase().includes(q):(grps.length<2||o.grp===st.cat));
+    // picks that fit the chosen direction come first
+    if(st.dir)opts.sort((a,b)=>dirsOf(b.n).includes(st.dir)-dirsOf(a.n).includes(st.dir));
     opts.forEach(o=>{
       const row=document.createElement('div');row.className='bk-opt'+(o.n===cur?' cur':'');
-      const why=o.n===cur?'':luWhy(k,o.n);
+      const why=o.n===cur?'':luWhy(st,k,o.n);
       row.innerHTML='<span class="nm"></span><span class="mt"></span><span class="sd"></span><span class="acts"></span>';
       row.querySelector('.nm').textContent=o.n;
-      if(k==='invocations'&&(S.invPlan&&S.invPlan.picks||[]).includes(o.n)){const x=document.createElement('span');x.className='pill';x.textContent='In your plan';row.querySelector('.nm').append(' ',x)}
+      if(st.dir&&dirsOf(o.n).includes(st.dir)){const x=document.createElement('span');x.className='pill ok';x.textContent='Fits '+dirName(st.dir);row.querySelector('.nm').append(' ',x)}
+      const pl=st.mode!=='plan'&&curPlan();
+      if(pl&&pl.draft[k].includes(o.n)){const x=document.createElement('span');x.className='pill';x.textContent='In your plan';row.querySelector('.nm').append(' ',x)}
+      const op=OPTS.find(x=>x[1]===o.n&&x[0]!=='bc'&&x[0]!=='rit');if(op)o.s=op[3];
       row.querySelector('.mt').textContent=o.mt;row.querySelector('.sd').textContent=o.s;
       if(why){const x=document.createElement('span');x.className='why';x.textContent=why;row.insertBefore(x,row.querySelector('.acts'))}
       const acts=row.querySelector('.acts');
-      const more=document.createElement('button');more.type='button';more.className='x';const open=lu.more.has(o.n);more.textContent=open?'Less':'More';
-      more.onclick=()=>{open?lu.more.delete(o.n):lu.more.add(o.n);fill()};acts.appendChild(more);
+      const more=document.createElement('button');more.type='button';more.className='x';const open=st.more.has(o.n);more.textContent=open?'Less':'More';
+      more.onclick=()=>{open?st.more.delete(o.n):st.more.add(o.n);fill()};acts.appendChild(more);
       if(o.n===cur){const t=document.createElement('span');t.className='pill ok';t.textContent='Chosen';acts.appendChild(t)}
       else{
         const ch=document.createElement('button');ch.type='button';ch.className='btn small'+(why?'':' primary');ch.textContent=why?'Choose anyway':'Choose';
-        ch.onclick=()=>{lu.draft[k][lu.slot.i]=o.n;const nx=luFirstEmpty();if(nx)lu.slot=nx;lu.q='';lu.cat=null;renderLU()};
+        ch.onclick=()=>{st.draft[k][st.slot.i]=o.n;const nx=luFirstEmpty(st);if(nx)st.slot=nx;st.q='';st.cat=null;changed()};
         acts.appendChild(ch);
       }
-      if(open){const f=document.createElement('div');f.className='full';const t=document.createElement('p');t.textContent=luFull(k,o.n);f.appendChild(t);if(k!=='invocations'){const gr=growthEl(o.n);if(gr)f.appendChild(gr)}row.appendChild(f)}
+      if(open){const f=document.createElement('div');f.className='full';const t=document.createElement('p');t.textContent=luFull(st,k,o.n);f.appendChild(t);if(k!=='invocations'){const gr=growthEl(o.n);if(gr)f.appendChild(gr)}row.appendChild(f)}
       list.appendChild(row);
     });
     if(!opts.length){const e=document.createElement('p');e.className='s-empty';e.textContent='Nothing matches.';list.appendChild(e)}
   };
-  qi.oninput=()=>{lu.q=qi.value;fill()};
+  qi.oninput=()=>{st.q=qi.value;fill()};
   fill();pk.appendChild(pick);
   // footer
-  const empty=Object.values(lu.draft).reduce((n,a)=>n+a.filter(x=>!x).length,0);
-  const ch=luChanges();
+  const empty=Object.values(st.draft).reduce((n,a)=>n+a.filter(x=>!x).length,0);
+  const ch=luChanges(st);
   const foot=document.createElement('div');foot.className='bk-foot';foot.innerHTML='<span class="fine"></span><span class="toolbar"></span>';
-  foot.querySelector('.fine').textContent=(ch.length?ch.join(' · '):'No pick changes')+(empty?` · ${empty} empty slot${empty>1?'s':''}, which you can fill later with Edit build`:'')+(lu.mode==='up'&&lu.to===3&&!lu.patron?' · no patron chosen':'');
+  if(st.mode==='plan'){
+    foot.querySelector('.fine').textContent=ch.length?'Compared with now: '+ch.join(' · '):'Same as your current build so far';
+    const pv2=document.createElement('button');pv2.className='btn small primary';pv2.type='button';pv2.textContent=`Preview at level ${st.to}`;pv2.onclick=()=>{setPreview(st.to,curPlan());showTab('sheet');window.scrollTo(0,0)};
+    const rs=armBtn('Start over from current build','Click again to reset this plan','btn small',()=>{resetPlan(curPlan());renderOptions()});
+    foot.querySelector('.toolbar').append(rs,pv2);body.appendChild(foot);return;
+  }
+  foot.querySelector('.fine').textContent=(ch.length?ch.join(' · '):'No pick changes')+(empty?` · ${empty} empty slot${empty>1?'s':''}, which you can fill later with Edit build`:'')+(st.mode==='up'&&st.to===3&&!st.patron?' · no patron chosen':'');
   const cancel=document.createElement('button');cancel.className='btn small';cancel.type='button';cancel.textContent='Cancel';cancel.onclick=closeLU;
-  const ok=document.createElement('button');ok.className='btn small primary';ok.type='button';ok.textContent=lu.mode==='up'?`Level up to ${lu.to}`:'Save build';
-  ok.onclick=lu.mode==='up'?applyLevelUp:applyEdit;
+  const ok=document.createElement('button');ok.className='btn small primary';ok.type='button';ok.textContent=st.mode==='up'?`Level up to ${st.to}`:'Save build';
+  ok.onclick=st.mode==='up'?applyLevelUp:applyEdit;
   foot.querySelector('.toolbar').append(cancel,ok);body.appendChild(foot);
 }
 function luApplyPicks(){
@@ -3156,7 +3085,7 @@ function applyLevelUp(){
   keepSafetyCopy();
   // record the sheet as it is before this level, so it can be viewed or undone later
   const rec={level:S.level,to:lu.to,date:new Date().toISOString(),build:clone(S.build),ab:clone(S.ab),summary:null};
-  const to=lu.to,gain=lu.hp==='roll'&&lu.roll?lu.roll:5,summary=[`+${luHpGain()} HP (${lu.hp==='roll'&&lu.roll?'rolled '+lu.roll:'average'})`].concat(luChanges());
+  const to=lu.to,gain=lu.hp==='roll'&&lu.roll?lu.roll:5,summary=[`+${luHpGain(lu)} HP (${lu.hp==='roll'&&lu.roll?'rolled '+lu.roll:'average'})`].concat(luChanges(lu));
   if(ASI_LV.includes(to)){
     const a=lu.asi;
     if(a.mode==='feat'){if(a.feat.trim()){S.build.feats.push(a.feat.trim());summary.push('Feat: '+a.feat.trim())}}
@@ -3171,7 +3100,7 @@ function applyLevelUp(){
   S.history.push(rec);
   afterBuildChange(`Level ${to}!`,summary.join(' · '));
 }
-function applyEdit(){keepSafetyCopy();const ch=luChanges();luApplyPicks();afterBuildChange('Build saved',ch.join(' · ')||'No pick changes')}
+function applyEdit(){keepSafetyCopy();const ch=luChanges(lu);luApplyPicks();afterBuildChange('Build saved',ch.join(' · ')||'No pick changes')}
 function undoLevel(){
   const r=S.history[S.history.length-1];if(!r)return;
   keepSafetyCopy();
@@ -3183,6 +3112,81 @@ function undoLevel(){
   toast(`Back to level ${r.level}`,'Your build and ability scores are as they were. Journal, gear and Book of Shadows are untouched.','↺');
 }
 $('btn-lvlup').onclick=()=>openLevelUp('up');
+
+/* ---------- build tab: current build and plans ---------- */
+// Directions from OPTS: which picks suit which play style.
+const dirsOf=n=>[...new Set(OPTS.filter(o=>o[1]===n).flatMap(o=>o[5]))];
+const dirName=id=>(DIRS.find(x=>x.id===id)||{}).n||'';
+// The level at which slot i of a kind first exists.
+function slotUnlock(k,i){const c=k==='cantrips'?WL.cantrips:k==='prepared'?WL.prepared:(l=>INV_COUNT[l]);for(let l=1;l<=20;l++)if(c(l)>i)return l;return 20}
+const planCounts=to=>({cantrips:WL.cantrips(to),prepared:WL.prepared(to),invocations:INV_COUNT[to]});
+function resetPlan(pl){const c=planCounts(pl.to);pl.patron=B().patron;pl.draft={cantrips:padTo(B().cantrips,c.cantrips),prepared:padTo(B().prepared,c.prepared),invocations:padTo(B().invocations,c.invocations)};save()}
+function newPlan(name){const pl={id:uid(),name:name,to:Math.min(20,(S.level||1)+2),dir:null};resetPlan(pl);return pl}
+// Plans live in S.plans. The first one picks up the old invocation planner's picks.
+function plans(){
+  if(!Array.isArray(S.plans))S.plans=[];
+  if(!S.plans.length){
+    const pl=newPlan('Plan 1'),old=S.invPlan&&Array.isArray(S.invPlan.picks)?S.invPlan.picks:[];
+    if(S.invPlan&&S.invPlan.lvl>pl.to-0)pl.to=Math.min(20,S.invPlan.lvl);resetPlan(pl);
+    old.forEach(n=>{const d=pl.draft.invocations;const i=d.indexOf('');if(i>=0&&!d.includes(n))d[i]=n});
+    S.plans.push(pl);S.planCur=pl.id;
+  }
+  if(!S.plans.find(x=>x.id===S.planCur))S.planCur=S.plans[0].id;
+  return S.plans;
+}
+function curPlan(){return pv?null:plans().find(x=>x.id===S.planCur)}
+let planEd=null;
+function renderOptions(){
+  if(pv&&pvSnap){/* the build tab always shows the real sheet */}
+  const real=pv?pvSnap:S,rb=real.build;
+  // current build
+  const cb=$('cur-build');cb.innerHTML='';
+  const head=document.createElement('div');head.className='panel-head';head.innerHTML='<h2></h2><span class="toolbar"></span>';
+  head.querySelector('h2').textContent=`Current build · level ${real.level||1}`;
+  const up=document.createElement('button');up.className='btn small primary';up.textContent=`Level up to ${(real.level||1)+1}`;up.disabled=!!pv;up.onclick=()=>openLevelUp('up');
+  const ed=document.createElement('button');ed.className='btn small';ed.textContent='Edit build';ed.disabled=!!pv;ed.onclick=()=>openLevelUp('edit');
+  const hi=document.createElement('button');hi.className='btn small';hi.textContent='Level history';hi.onclick=openHistory;
+  head.querySelector('.toolbar').append(hi,ed,up);cb.appendChild(head);
+  const dl=document.createElement('dl');dl.className='kv cb-kv';
+  const row=(k,v)=>{const t=document.createElement('dt');t.textContent=k;const d=document.createElement('dd');d.textContent=v;dl.append(t,d)};
+  row('Warlock cantrips',rb.cantrips.join(', ')||'—');
+  row('Prepared spells',rb.prepared.join(', ')||'—');
+  row('Invocations',rb.invocations.join(', ')||'—');
+  row('Patron',rb.patron||((real.level||1)>=3?'Not chosen yet':'Chosen at level 3'));
+  row('Book of Shadows',real.book.cantrips.concat(real.book.rituals.map(n=>n+' (ritual)')).join(', ')+' · re-picked at each rest');
+  cb.appendChild(dl);
+  // plans
+  const list=plans(),pl=curPlan()||list[0];
+  if(pl.to<=(real.level||1))pl.to=Math.min(20,(real.level||1)+1);
+  const c=planCounts(pl.to);Object.keys(c).forEach(k=>{pl.draft[k]=padTo(pl.draft[k],c[k])});
+  const chips=$('plan-chips');chips.innerHTML='';
+  list.forEach(x=>{const b=document.createElement('button');b.type='button';b.textContent=x.name;b.setAttribute('aria-pressed',String(x===pl));b.onclick=()=>{S.planCur=x.id;planEd=null;save();renderOptions()};chips.appendChild(b)});
+  const nb=document.createElement('button');nb.type='button';nb.textContent='+ New plan';nb.onclick=()=>{const x=newPlan('Plan '+(list.length+1));list.push(x);S.planCur=x.id;planEd=null;save();renderOptions()};chips.appendChild(nb);
+  const ctl=$('plan-ctl');ctl.innerHTML='';
+  const nm=document.createElement('input');nm.value=pl.name;nm.setAttribute('aria-label','Plan name');nm.oninput=()=>{pl.name=nm.value||'Plan';save()};nm.onchange=renderOptions;
+  const sel=document.createElement('select');sel.setAttribute('aria-label','Plan up to level');
+  for(let l=(real.level||1)+1;l<=20;l++){const o=document.createElement('option');o.value=l;o.textContent='Up to level '+l;sel.appendChild(o)}
+  sel.value=String(pl.to);sel.onchange=()=>{pl.to=+sel.value;planEd=null;save();renderOptions()};
+  ctl.append(nm,sel);
+  if(list.length>1)ctl.appendChild(armBtn('Delete plan','Click again to delete','btn small danger',()=>{S.plans=list.filter(x=>x!==pl);planEd=null;save();renderOptions()}));
+  // directions highlight matching picks
+  const dw=$('plan-dirs');dw.innerHTML='<span class="label">Direction</span><div class="filters" role="group" aria-label="Direction"></div><p class="fine"></p>';
+  DIRS.forEach(dd=>{const b=document.createElement('button');b.type='button';b.textContent=dd.n;b.title=dd.s;b.setAttribute('aria-pressed',String(pl.dir===dd.id));b.onclick=()=>{pl.dir=pl.dir===dd.id?null:dd.id;if(planEd)planEd.dir=pl.dir;save();renderOptions()};dw.querySelector('.filters').appendChild(b)});
+  const cur=DIRS.find(x=>x.id===pl.dir);
+  dw.querySelector('.fine').textContent=cur?cur.note+' Matching picks are tagged and listed first.':'Optional: pick a play style to tag the spells, invocations and patrons that suit it.';
+  // what each level adds on the way
+  const tl=$('plan-tl'),ul=tl.querySelector('ul');ul.innerHTML='';let n=0;
+  for(let l=(real.level||1)+1;l<=pl.to;l++){const ch=levelChanges(l);n+=ch.length;const li=document.createElement('li');li.innerHTML='<b></b><span></span>';li.querySelector('b').textContent='Lv '+l;li.querySelector('span').textContent=ch.join(' · ')||'Hit Points only';ul.appendChild(li)}
+  tl.querySelector('summary').textContent=`What levels ${(real.level||1)+1}–${pl.to} bring (${n} changes). Each level you may also swap one cantrip, one prepared spell and one invocation.`;
+  // the editor: same slots and picker as Level up, saved to the plan
+  if(!planEd||planEd.planId!==pl.id||planEd.to!==pl.to){
+    planEd={mode:'plan',planId:pl.id,el:$('plan-ed'),to:pl.to,base:rb,baseLevel:real.level||1,draft:pl.draft,patron:pl.patron,dir:pl.dir,q:'',cat:null,more:new Set(),slot:null};
+    planEd.slot=luFirstEmpty(planEd)||{k:'invocations',i:0};
+  }
+  planEd.base=rb;planEd.draft=pl.draft;planEd.dir=pl.dir;
+  planEd.onChange=()=>{pl.patron=planEd.patron;save()};
+  renderLU(planEd);
+}
 
 /* ---------- level and preview ---------- */
 const LV_FEATS={2:'Magical Cunning: regain half your pact slots with a 1-minute rite, once per Long Rest',3:'Choose your patron',4:'Ability Score Improvement or a feat',6:'Patron feature',8:'Ability Score Improvement or a feat',9:'Contact Patron',10:'Patron feature',11:'Mystic Arcanum: one 6th-level spell, once per Long Rest',12:'Ability Score Improvement or a feat',13:'Mystic Arcanum: 7th level',14:'Patron feature',15:'Mystic Arcanum: 8th level',16:'Ability Score Improvement or a feat',17:'Mystic Arcanum: 9th level',19:'Epic Boon feat',20:'Eldritch Master: Magical Cunning restores all your slots'};
@@ -3200,13 +3204,17 @@ function levelChanges(l){
   return o;
 }
 // Preview Ash at level l: work on a throwaway copy of the sheet, so nothing done here is saved.
-function setPreview(l){
+// plan: show this plan's picks instead of the current build (a preview of where it leads).
+let pvPlan=null;
+function setPreview(l,plan){
   l=+l;
   if(pv){S=pvSnap;pv=null;pvSnap=null}
+  pvPlan=null;
   if(l!==(S.level||1)){
     pvSnap=S;S=clone(S);pv=l;
     const rec=l<pvSnap.level&&(pvSnap.history||[]).find(r=>r.level===l);
     if(rec){S.build=clone(rec.build);S.ab=clone(rec.ab)}
+    if(plan&&l>pvSnap.level){S.build=Object.assign(clone(S.build),{cantrips:plan.draft.cantrips.filter(Boolean),prepared:plan.draft.prepared.filter(Boolean),invocations:plan.draft.invocations.filter(Boolean),patron:plan.patron||null});pvPlan=plan.name}
     levelSync();
     S.hd=l;S.slotsUsed=0;S.temp=0;S.aoa=false;S.ds={};S.hp=maxHP();
   }
@@ -3231,14 +3239,15 @@ function renderLevel(){
   if(!pv)return;
   const past=L<real,rec=past&&(pvSnap.history||[]).find(r=>r.level===L);
   $('pv-more').hidden=past;
-  $('pv-title').textContent=past?`Viewing level ${L} as recorded`:`Previewing level ${L}`;
+  $('pv-title').textContent=past?`Viewing level ${L} as recorded`:pvPlan?`Previewing “${pvPlan}” at level ${L}`:`Previewing level ${L}`;
+  if(pvPlan){$('pv-exit').textContent=`Back to level ${real}`;$('pv-note').textContent=`The sheet shows the picks from your plan “${pvPlan}” at level ${L}: spells, invocations and patron, with their numbers. Ability scores and HP rolls stay as they are now. Nothing is saved.`}
   if(past){$('pv-exit').textContent=`Back to level ${real}`;$('pv-note').textContent=`This is Ash’s build, ability scores and numbers at level ${L}`+(rec?`, as recorded before levelling up on ${new Date(rec.date).toLocaleDateString()}`:'')+'. Nothing you do here is saved. To go back to this level for real, use Undo under Class & features.';return}
   $('pv-exit').textContent=`Back to level ${real}`;
   const picks=[];
   if(WL.prepared(L)>WL.prepared(real))picks.push(`${WL.prepared(L)} prepared spells (you have ${B().prepared.length})`);
   if(WL.cantrips(L)>WL.cantrips(real))picks.push(`${WL.cantrips(L)} Warlock cantrips (you have ${B().cantrips.length})`);
   if(INV_COUNT[L]>INV_COUNT[real])picks.push(`${INV_COUNT[L]} invocations (you have ${B().invocations.length})`);
-  $('pv-note').textContent='Numbers show Ash at this level: proficiency, HP, pact slots and how each spell scales. Ability scores and spell picks stay as they are now'+(picks.length?`, though level ${L} would allow ${picks.join(', ')}`:'')+'. You can try things out; nothing is saved, and leaving the preview puts everything back.';
+  if(!pvPlan)$('pv-note').textContent='Numbers show Ash at this level: proficiency, HP, pact slots and how each spell scales. Ability scores and spell picks stay as they are now'+(picks.length?`, though level ${L} would allow ${picks.join(', ')}`:'')+'. You can try things out; nothing is saved, and leaving the preview puts everything back.';
   const list=$('pv-list');list.innerHTML='';let n=0;
   for(let l=real+1;l<=L;l++){
     const ch=levelChanges(l);n+=ch.length;
