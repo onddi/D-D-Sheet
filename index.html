@@ -512,6 +512,16 @@ body:has(dialog[open]){overflow:hidden}
 #ent-body select,#ent-body input:not([type=checkbox]){font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-width:0}
 #ent-body .j-row{grid-template-columns:auto minmax(0,1fr)}
 .ent-sumed{min-height:90px}
+.j-grp{border:1px solid var(--line);border-left:4px solid var(--muted);border-radius:8px;background:var(--bg);padding:8px 10px 4px;display:flex;flex-direction:column;gap:4px}
+.j-grp+.j-grp{margin-top:4px}
+.j-grp-h{display:flex;justify-content:space-between;align-items:baseline;font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+.j-grp-h b{font-weight:700;color:var(--ink)}
+.j-grp-h span{font-family:var(--mono)}
+.j-grp .j-item:first-child{padding-top:4px}
+.j-grp[data-k="party"]{border-left-color:var(--accent);background:var(--accent-soft)}
+.j-grp[data-k="ally"]{border-left-color:var(--good)}
+.j-grp[data-k="hostile"]{border-left-color:var(--danger);background:var(--danger-soft)}
+.j-grp[data-k="neutral"],.j-grp[data-k="unknown"]{border-left-color:var(--line)}
 .j-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .j-tools input{flex:1 1 240px;min-width:0;padding:7px 10px}
 .j-sum{white-space:pre-wrap;overflow-wrap:anywhere;margin:0}
@@ -2446,15 +2456,17 @@ function jPanel(c,list,opts){
   const ticks=list.filter(e=>canTick(c,e)),open=ticks.filter(e=>!e.done).length;
   p.querySelector('.fine').textContent=list.length?list.length+(ticks.length?` · ${open} open`:''):'';
   const groups=c.groups||(opts.byKind&&c.kinds?c.kinds.map(([k,l])=>[l,x=>x===k]):null);
-  const addList=(items,tagOff)=>{const ul=document.createElement('ul');ul.className='j-list';items.forEach(e=>ul.appendChild(jItem(e,c,opts.all,tagOff)));p.appendChild(ul)};
+  const addList=(items,tagOff,into)=>{const ul=document.createElement('ul');ul.className='j-list';items.forEach(e=>ul.appendChild(jItem(e,c,opts.all,tagOff)));(into||p).appendChild(ul)};
   if(!list.length){const e=document.createElement('p');e.className='s-empty';e.textContent=opts.empty||'Nothing noted yet.';p.appendChild(e)}
   else if(groups){
     groups.forEach(([lab,f])=>{
       const sub=list.filter(e=>f(kindOf(c,e.k)[0]));if(!sub.length)return;
-      const h=document.createElement('div');h.className='label j-sub';h.textContent=`${lab} · ${sub.length}`;p.appendChild(h);
-      // a tag that only repeats the heading is dropped; under "Others" it shows the attitude
+      // each group is its own box with a colored edge for its type
+      const box=document.createElement('div');box.className='j-grp';box.dataset.k=kindOf(c,sub[0].k)[0];
+      const h=document.createElement('div');h.className='j-grp-h';h.innerHTML='<b></b><span></span>';h.querySelector('b').textContent=lab;h.querySelector('span').textContent=sub.length;
+      box.appendChild(h);p.appendChild(box);
       // the group heading already names the type, so the tag is dropped
-      addList(sub,true);
+      addList(sub,true,box);
     });
   }else addList(list,opts.hideTag);
   if(opts.sid){
@@ -2615,14 +2627,17 @@ function entPanel(c,list,opts){
   const ticks=list.filter(e=>canTick(c,e)),open=ticks.filter(e=>!e.done).length;
   p.querySelector('.fine').textContent=list.length?list.length+(ticks.length?` · ${open} open`:''):'';
   const groups=c.groups||(opts.byKind&&c.kinds?c.kinds.map(([k,l])=>[l,x=>x===k]):null);
-  const addList=(items,tagOff)=>{const ul=document.createElement('ul');ul.className='j-list';items.forEach(e=>ul.appendChild(entRow(e,c,Object.assign({},opts,{hideTag:tagOff}))));p.appendChild(ul)};
+  const addList=(items,tagOff,into)=>{const ul=document.createElement('ul');ul.className='j-list';items.forEach(e=>ul.appendChild(entRow(e,c,Object.assign({},opts,{hideTag:tagOff}))));(into||p).appendChild(ul)};
   if(!list.length){const e=document.createElement('p');e.className='s-empty';e.textContent=opts.empty||(opts.sid?'Nothing noted this session.':'Nothing noted yet.');p.appendChild(e)}
   else if(groups){
     groups.forEach(([lab,f])=>{
       const sub=list.filter(e=>f(kindOf(c,e.k)[0]));if(!sub.length)return;
-      const h=document.createElement('div');h.className='label j-sub';h.textContent=`${lab} · ${sub.length}`;p.appendChild(h);
+      // each group is its own box with a colored edge for its type
+      const box=document.createElement('div');box.className='j-grp';box.dataset.k=kindOf(c,sub[0].k)[0];
+      const h=document.createElement('div');h.className='j-grp-h';h.innerHTML='<b></b><span></span>';h.querySelector('b').textContent=lab;h.querySelector('span').textContent=sub.length;
+      box.appendChild(h);p.appendChild(box);
       // the group heading already names the type, so the tag is dropped
-      addList(sub,true);
+      addList(sub,true,box);
     });
   }else addList(list,opts.hideTag);
   if(opts.sid)p.appendChild(entAddForm(c,opts.sid));
