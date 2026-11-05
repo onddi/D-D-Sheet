@@ -503,6 +503,15 @@ body:has(dialog[open]){overflow:hidden}
 .j-tag[data-k="party"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .j-tag[data-k="ally"]{border-color:var(--good);color:var(--good)}
 .j-tag[data-k="hostile"]{border-color:var(--danger);color:var(--danger)}
+.ent-name{border:0;background:none;padding:0;font:inherit;font-weight:600;color:var(--ink);text-align:left;cursor:pointer}
+.ent-name:hover{color:var(--accent);text-decoration:underline}
+.ent-sum{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ent-sess{border:0;background:none;padding:0;font:600 .74rem var(--mono);color:var(--accent);text-align:left;cursor:pointer}
+.ent-hint{min-height:1em}
+.ent-done{display:flex;gap:6px;align-items:center;font-size:.88rem}
+#ent-body select,#ent-body input:not([type=checkbox]){font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-width:0}
+#ent-body .j-row{grid-template-columns:auto minmax(0,1fr)}
+.ent-sumed{min-height:90px}
 .j-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .j-tools input{flex:1 1 240px;min-width:0;padding:7px 10px}
 .j-sum{white-space:pre-wrap;overflow-wrap:anywhere;margin:0}
@@ -560,7 +569,7 @@ body:has(dialog[open]){overflow:hidden}
         <div class="toolbar">
           <div class="seg" role="group" aria-label="Journal view">
             <button data-jview="session" aria-pressed="true">By session</button>
-            <button data-jview="all" aria-pressed="false">All sessions</button>
+            <button data-jview="all" aria-pressed="false">People &amp; places</button>
           </div>
           <button class="btn small primary" id="j-new">New session</button>
         </div>
@@ -918,6 +927,13 @@ body:has(dialog[open]){overflow:hidden}
   </div>
 </dialog>
 
+<dialog class="dlg" id="ent-dlg" aria-labelledby="ent-h">
+  <div class="dlg-in">
+    <div class="panel-head"><h2 id="ent-h"></h2><button class="x" type="button" id="ent-x">Close</button></div>
+    <div id="ent-body" class="lu-body"></div>
+  </div>
+</dialog>
+
 <dialog class="dlg" id="hist-dlg" aria-labelledby="hist-h">
   <div class="dlg-in">
     <div class="panel-head"><h2 id="hist-h">Level</h2><button class="x" type="button" id="hist-x">Close</button></div>
@@ -961,9 +977,10 @@ const DEF_BUILD={cantrips:['Eldritch Blast','Minor Illusion'],prepared:['Hex','A
 const DEF_WEAPONS=[{n:'Dagger',die:'1d4',bonus:0,ab:'fin',type:'Piercing',note:'Finesse, light, thrown 20/60'}];
 const DEF_BOOK={cantrips:['Guidance','Shocking Grasp','Mage Hand'],rituals:['Find Familiar','Comprehend Languages']};
 const DEF_EQUIP=['Studded Leather Armor','Dagger','Arcane Focus (crystal, styled as charred bone)','Book of Shadows','Fine Clothes','Costume','Forgery Kit','Thieves’ Tools','Explorer’s Pack','Incense for Find Familiar (10 GP per casting)'].map(n=>({n:n,q:1}));
-const DEF={ab:{str:8,dex:14,con:14,int:10,wis:12,cha:17},prof:Object.assign({},DEFAULT_PROF),level:1,hp:10,temp:0,hd:1,slotsUsed:0,conc:null,aoa:false,hexOn:true,ds:{},fx:[],equip:DEF_EQUIP,weapons:DEF_WEAPONS,book:DEF_BOOK,build:DEF_BUILD,history:[],journal:{sessions:[],entries:[],cur:null,view:'session'},gold:23,lang:'Common, (choose two)',notes:''};
+const DEF={ab:{str:8,dex:14,con:14,int:10,wis:12,cha:17},prof:Object.assign({},DEFAULT_PROF),level:1,hp:10,temp:0,hd:1,slotsUsed:0,conc:null,aoa:false,hexOn:true,ds:{},fx:[],equip:DEF_EQUIP,weapons:DEF_WEAPONS,book:DEF_BOOK,build:DEF_BUILD,history:[],journal:{sessions:[],entries:[],ents:[],cur:null,view:'session'},gold:23,lang:'Common, (choose two)',notes:''};
 const clone=o=>JSON.parse(JSON.stringify(o));
 // Fill in fields that saves from older versions of the sheet don't have yet.
+let JMIG=false; // set when an older journal was converted, so the original can be kept
 function normalize(d){
   const n=Object.assign(clone(DEF),d);
   n.ab=Object.assign({},DEF.ab,d.ab);
@@ -988,11 +1005,28 @@ function normalize(d){
   // goals, targets and places used to be separate lists; they're now types under Leads & places
   const MOVED={goals:'goal',targets:'target',places:'place'};
   n.journal.entries.forEach(e=>{if(MOVED[e.cat]){e.k=MOVED[e.cat];e.cat='leads'}else if(e.cat==='people'&&!e.k)e.k='unknown'});
+  // characters and leads used to be separate notes per session; now each is one record with a timeline.
+  // Notes with the same category and name (ignoring case) become one record.
+  if(!Array.isArray(n.journal.ents)){
+    const order=Object.fromEntries(n.journal.sessions.map((x,i)=>[x.id,i])),map={},out=[];
+    const old=n.journal.entries.filter(e=>e.cat==='people'||e.cat==='leads').sort((a,b)=>(order[a.sid]??0)-(order[b.sid]??0));
+    old.forEach(e=>{
+      const name=(e.t||'').trim()||(e.d||'').trim().slice(0,60)||'Untitled',key=e.cat+'|'+name.toLowerCase();
+      let x=map[key];
+      if(!x){x=map[key]={id:'m'+e.id,cat:e.cat,k:e.k,name:name,sum:'',done:false,sid0:e.sid,notes:[]};out.push(x)}
+      if(e.d){x.notes.push({id:e.id,sid:e.sid,t:e.d});x.sum=e.d}
+      if(e.k)x.k=e.k;x.done=!!e.done;
+    });
+    n.journal.ents=out;n.journal.entries=n.journal.entries.filter(e=>e.cat!=='people'&&e.cat!=='leads');
+    if(old.length)JMIG=true;
+  }
   return n;
 }
-let S;
-try{S=JSON.parse(localStorage.getItem(KEY))||null}catch(e){S=null}
+let S,RAW=null;
+try{RAW=localStorage.getItem(KEY);S=JSON.parse(RAW)||null}catch(e){S=null}
 S=S&&typeof S==='object'?normalize(S):clone(DEF);
+// keep the sheet as it was before the journal conversion, just in case
+if(JMIG){try{localStorage.setItem(KEY+'-before-journal',RAW)}catch(e){}JMIG=false}
 let storageOK=true;
 function save(){
   if(pv)return; // a preview never touches the saved sheet
@@ -2353,7 +2387,7 @@ function renderJournal(){
   const body=$('j-body');body.innerHTML='';
   if(!j.sessions.length){
     const p=document.createElement('section');p.className='panel';
-    p.innerHTML='<h2>No sessions yet</h2><p class="fine">Press <b>New session</b> at the start of each game night. Each session gets a summary plus notes on characters, learned facts, and leads and places. <b>All sessions</b> gathers everything into one searchable view.</p>';
+    p.innerHTML='<h2>No sessions yet</h2><p class="fine">Press <b>New session</b> at the start of each game night. Each session gets a summary plus notes on characters, learned facts, and leads and places. <b>People &amp; places</b> gathers every character and lead across sessions, each with its own timeline.</p>';
     body.appendChild(p);return;
   }
   if(j.view==='all')renderJAll(body);else renderJSession(body,jSession(j.cur));
@@ -2375,14 +2409,16 @@ function renderJSession(body,x){
   ti.oninput=()=>{x.title=ti.value;save()};ti.onchange=renderJChips;
   da.oninput=()=>{x.date=da.value;save()};
   su.oninput=()=>{x.sum=su.value;save()};
-  const n=j.entries.filter(e=>e.sid===x.id).length;
+  const n=j.entries.filter(e=>e.sid===x.id).length+ents().reduce((m,e)=>m+e.notes.filter(t=>t.sid===x.id).length,0);
   p.querySelector('.j-del').appendChild(armBtn('Delete session',n?`Click again: deletes ${n} note${n===1?'':'s'} too`:'Click again to delete','btn small danger',()=>{
     j.sessions=j.sessions.filter(y=>y!==x);j.entries=j.entries.filter(e=>e.sid!==x.id);j.cur=null;
+    // drop that session's notes; a record that only existed in it goes too
+    j.ents=ents().filter(e=>{e.notes=e.notes.filter(t=>t.sid!==x.id);if(e.sid0===x.id){if(!e.notes.length)return false;e.sid0=e.notes[0].sid}return true});
     save();renderJournal();toast('Session deleted',sessLabel(x),'✗');
   }));
   body.appendChild(p);
   const g=document.createElement('div');g.className='j-grid';
-  JCATS.forEach(c=>g.appendChild(jPanel(c,j.entries.filter(e=>e.sid===x.id&&e.cat===c.id),{sid:x.id})));
+  JCATS.forEach(c=>g.appendChild(ENT_CATS.includes(c.id)?entPanel(c,ents().filter(e=>e.cat===c.id&&entInSession(e,x.id)),{sid:x.id}):jPanel(c,j.entries.filter(e=>e.sid===x.id&&e.cat===c.id),{sid:x.id})));
   body.appendChild(g);
 }
 // The type selector and title/details fields, shared by the add and edit forms.
@@ -2475,7 +2511,7 @@ function jItem(e,c,showSess,hideTag){
 function renderJAll(body){
   const j=J();
   const tools=document.createElement('section');tools.className='panel';
-  tools.innerHTML='<div class="j-tools"><input type="search" id="j-q" placeholder="Search every session: names, places, facts" aria-label="Search the journal"></div><div class="filters" role="group" aria-label="Show"></div><div class="filters j-kf" role="group" aria-label="Type" hidden></div>';
+  tools.innerHTML='<div class="j-tools"><input type="search" id="j-q" placeholder="Search people, places, notes and facts" aria-label="Search the journal"></div><div class="filters" role="group" aria-label="Show"></div><div class="filters j-kf" role="group" aria-label="Type" hidden></div>';
   const qi=tools.querySelector('#j-q');qi.value=jQ;
   const chips=(w,list,cur,set)=>list.forEach(([k,l])=>{const b=document.createElement('button');b.type='button';b.textContent=l;b.setAttribute('aria-pressed',String(cur===k));b.onclick=()=>{set(k);renderJournal()};w.appendChild(b)});
   chips(tools.querySelector('.filters'),[['all','Everything']].concat(JCATS.map(c=>[c.id,c.n]),[['sum','Session summaries']]),jCat,k=>{jCat=k;jKindF='all'});
@@ -2492,6 +2528,15 @@ function renderJAll(body){
     const g=document.createElement('div');g.className='j-grid';
     JCATS.forEach(c=>{
       if(jCat!=='all'&&jCat!==c.id)return;
+      if(ENT_CATS.includes(c.id)){
+        const ord=sessOrder();
+        const el=ents().filter(e=>e.cat===c.id&&(jKindF==='all'||kindOf(c,e.k)[0]===jKindF)&&m(e.name,e.sum,kindOf(c,e.k)[1],...e.notes.map(t=>t.t)));
+        if(q&&!el.length&&jCat==='all')return;
+        // most recently noted first, finished items last
+        el.sort((a,b)=>(canTick(c,a)&&a.done)-(canTick(c,b)&&b.done)||entLast(b,ord)-entLast(a,ord)||a.name.localeCompare(b.name));
+        g.appendChild(entPanel(c,el,{byKind:jKindF==='all',hideTag:jKindF!=='all',empty:q?'Nothing matches.':'Nothing noted yet.'}));
+        return;
+      }
       let list=j.entries.filter(e=>e.cat===c.id&&(jKindF==='all'||!c.kinds||kindOf(c,e.k)[0]===jKindF)&&m(e.t,e.d,c.kinds?kindOf(c,e.k)[1]:''));
       if(q&&!list.length&&jCat==='all')return;
       // characters read best alphabetically; everything else newest first, with open items on top
@@ -2524,6 +2569,175 @@ function renderJAll(body){
   qi.oninput=()=>{jQ=qi.value;fill()};
   fill();
 }
+/* ---------- journal: people & places across sessions ---------- */
+// Characters and Leads & places are records (J().ents) that build up over sessions:
+// {id, cat, k: type, name, sum: what I know now, done, sid0: session it first appeared, notes:[{id, sid, t}]}.
+const ENT_CATS=['people','leads'];
+const ents=()=>J().ents;
+const sessOrder=()=>Object.fromEntries(J().sessions.map((x,i)=>[x.id,i]));
+const entFind=(cat,name)=>{const k=name.trim().toLowerCase();return ents().find(e=>e.cat===cat&&e.name.trim().toLowerCase()===k)};
+// The latest session a record was noted in (or where it first appeared).
+function entLast(e,ord){ord=ord||sessOrder();let m=e.sid0 in ord?ord[e.sid0]:-1;e.notes.forEach(n=>{if(n.sid in ord&&ord[n.sid]>m)m=ord[n.sid]});return m}
+const entInSession=(e,sid)=>e.sid0===sid||e.notes.some(n=>n.sid===sid);
+let entOpen=null,entNoteEdit=null;
+function entRow(e,c,opts){
+  const li=document.createElement('li');li.className='j-item ent'+(e.done&&canTick(c,e)?' done':'');
+  if(canTick(c,e)){
+    const cb=document.createElement('input');cb.type='checkbox';cb.checked=!!e.done;cb.setAttribute('aria-label','Done: '+e.name);
+    cb.onchange=()=>{e.done=cb.checked;save();renderJournal()};li.appendChild(cb);
+  }
+  const tx=document.createElement('div');tx.className='j-txt';
+  const top=document.createElement('span');top.className='j-top';
+  const kd=kindOf(c,e.k);
+  if(kd&&!opts.hideTag){const tg=document.createElement('span');tg.className='pill j-tag';tg.dataset.k=kd[0];tg.textContent=kd[1];top.appendChild(tg)}
+  const b=document.createElement('button');b.type='button';b.className='ent-name';b.textContent=e.name;b.onclick=()=>openEnt(e);top.appendChild(b);
+  if(opts.sid&&e.sid0===opts.sid){const t=document.createElement('span');t.className='pill ok';t.textContent='New';top.appendChild(t)}
+  tx.appendChild(top);
+  if(opts.sid){
+    // in a session: what was noted about it that session
+    e.notes.filter(n=>n.sid===opts.sid).forEach(n=>{const d=document.createElement('span');d.className='d';d.textContent=n.t;tx.appendChild(d)});
+  }else{
+    if(e.sum&&e.sum.trim()!==e.name.trim()){const d=document.createElement('span');d.className='d ent-sum';d.textContent=e.sum;tx.appendChild(d)}
+    const ord=sessOrder(),last=J().sessions[entLast(e,ord)];
+    const m=document.createElement('span');m.className='sess';m.textContent=(last?'Last noted: '+sessLabel(last):'')+` · ${e.notes.length} note${e.notes.length===1?'':'s'}`;tx.appendChild(m);
+  }
+  const acts=document.createElement('span');acts.className='j-acts';
+  const op=document.createElement('button');op.type='button';op.className='x';op.textContent='Open';op.onclick=()=>openEnt(e);acts.appendChild(op);
+  li.append(tx,acts);
+  return li;
+}
+// A Characters or Leads & places panel. opts.sid: one session's view with an add form; otherwise every record.
+function entPanel(c,list,opts){
+  const p=document.createElement('section');p.className='panel';
+  p.innerHTML='<div class="panel-head"><h2></h2><span class="fine"></span></div>';
+  p.querySelector('h2').textContent=c.n;
+  const ticks=list.filter(e=>canTick(c,e)),open=ticks.filter(e=>!e.done).length;
+  p.querySelector('.fine').textContent=list.length?list.length+(ticks.length?` · ${open} open`:''):'';
+  const groups=c.groups||(opts.byKind&&c.kinds?c.kinds.map(([k,l])=>[l,x=>x===k]):null);
+  const addList=(items,tagOff)=>{const ul=document.createElement('ul');ul.className='j-list';items.forEach(e=>ul.appendChild(entRow(e,c,Object.assign({},opts,{hideTag:tagOff}))));p.appendChild(ul)};
+  if(!list.length){const e=document.createElement('p');e.className='s-empty';e.textContent=opts.empty||(opts.sid?'Nothing noted this session.':'Nothing noted yet.');p.appendChild(e)}
+  else if(groups){
+    groups.forEach(([lab,f])=>{
+      const sub=list.filter(e=>f(kindOf(c,e.k)[0]));if(!sub.length)return;
+      const h=document.createElement('div');h.className='label j-sub';h.textContent=`${lab} · ${sub.length}`;p.appendChild(h);
+      addList(sub,opts.hideTag||lab==='Party'||(opts.byKind&&!c.groups));
+    });
+  }else addList(list,opts.hideTag);
+  if(opts.sid)p.appendChild(entAddForm(c,opts.sid));
+  return p;
+}
+// Add to a session: a name that matches an existing record adds a note to it; a new name creates one.
+function entAddForm(c,sid){
+  const f=document.createElement('form');f.className='j-add';f.dataset.jadd=c.id;
+  const row=document.createElement('div');row.className='j-row';
+  const sel=document.createElement('select');sel.setAttribute('aria-label',c.n+': '+c.kl);
+  c.kinds.forEach(([k,l,h])=>{const o=document.createElement('option');o.value=k;o.textContent=l;o.title=h;sel.appendChild(o)});
+  sel.value=jKind[c.id]||c.def;sel.onchange=()=>{jKind[c.id]=sel.value;hint()};
+  const ti=document.createElement('input');ti.setAttribute('aria-label',c.n+': '+c.t);
+  const dl=document.createElement('datalist');dl.id='dl-'+c.id;
+  ents().filter(e=>e.cat===c.id).forEach(e=>{const o=document.createElement('option');o.value=e.name;dl.appendChild(o)});
+  ti.setAttribute('list',dl.id);
+  row.append(sel,ti);f.append(row,dl);
+  const info=document.createElement('span');info.className='fine ent-hint';f.appendChild(info);
+  const ta=document.createElement('textarea');ta.placeholder=c.id==='people'?'What you learned about them this session':'What you found out this session';ta.setAttribute('aria-label',c.n+': details');f.appendChild(ta);
+  const hint=()=>{
+    ti.placeholder=kindOf(c,sel.value)[2];
+    const ex=ti.value.trim()&&entFind(c.id,ti.value);
+    sel.disabled=!!ex;
+    if(ex){sel.value=kindOf(c,ex.k)[0];info.textContent=`Adds a note to ${ex.name} (${kindOf(c,ex.k)[1]}), already in your journal with ${ex.notes.length} note${ex.notes.length===1?'':'s'}.`}
+    else{sel.value=jKind[c.id]||c.def;info.textContent=ti.value.trim()?`New ${c.id==='people'?'character':'entry'}.`:''}
+  };
+  ti.oninput=hint;hint();
+  const bar=document.createElement('div');bar.className='toolbar';bar.innerHTML='<button class="btn small primary" type="submit">Add</button><span class="fine">Ctrl+Enter adds from the text box</span>';f.appendChild(bar);
+  ta.onkeydown=ev=>{if(ev.key==='Enter'&&(ev.ctrlKey||ev.metaKey)){ev.preventDefault();f.requestSubmit()}};
+  f.onsubmit=ev=>{
+    ev.preventDefault();const name=ti.value.trim(),d=ta.value.trim();
+    if(!name){ti.focus();return}
+    let e=entFind(c.id,name);
+    if(e){if(!d){ta.focus();return}e.notes.push({id:uid(),sid:sid,t:d})}
+    else{e={id:uid(),cat:c.id,k:sel.value,name:name,sum:d,done:false,sid0:sid,notes:d?[{id:uid(),sid:sid,t:d}]:[]};ents().push(e)}
+    jFocus=c.id;save();renderJournal();
+  };
+  return f;
+}
+// The card for one record: edit it, read its timeline, add notes, merge duplicates.
+function openEnt(e){entOpen=e;entNoteEdit=null;renderEnt();const d=$('ent-dlg');if(!d.open)d.showModal()}
+$('ent-x').onclick=()=>$('ent-dlg').close();
+$('ent-dlg').addEventListener('close',()=>{entOpen=null;renderJournal()});
+function renderEnt(){
+  const e=entOpen;if(!e)return;
+  const c=JCAT(e.cat),w=$('ent-body');w.innerHTML='';
+  $('ent-h').textContent=e.name||'Untitled';
+  const top=document.createElement('div');top.className='lu-sec';
+  top.innerHTML='<div class="j-row"><select></select><input></div><label class="ent-done" hidden><input type="checkbox"> Done</label><label class="label">What I know now</label><textarea class="ent-sumed" placeholder="A summary you keep up to date: who they are, what they want, where things stand"></textarea>';
+  const sel=top.querySelector('select'),nm=top.querySelector('input:not([type])'),sm=top.querySelector('textarea'),dn=top.querySelector('.ent-done'),cb=dn.querySelector('input');
+  c.kinds.forEach(([k,l])=>{const o=document.createElement('option');o.value=k;o.textContent=l;sel.appendChild(o)});
+  sel.value=kindOf(c,e.k)[0];sel.setAttribute('aria-label','Type');sel.onchange=()=>{e.k=sel.value;save();renderEnt()};
+  nm.value=e.name;nm.setAttribute('aria-label','Name');nm.oninput=()=>{e.name=nm.value;$('ent-h').textContent=e.name||'Untitled';save()};
+  sm.value=e.sum||'';sm.oninput=()=>{e.sum=sm.value;save()};
+  dn.hidden=!canTick(c,e);cb.checked=!!e.done;cb.onchange=()=>{e.done=cb.checked;save()};
+  w.appendChild(top);
+  // timeline, newest session first
+  const ord=sessOrder();
+  const tl=document.createElement('div');tl.className='lu-sec';
+  tl.innerHTML='<h3>Timeline</h3>';
+  const ul=document.createElement('ul');ul.className='j-list';
+  e.notes.slice().sort((a,b)=>(ord[b.sid]??-1)-(ord[a.sid]??-1)).forEach(n=>{
+    const li=document.createElement('li');li.className='j-item';
+    const tx=document.createElement('div');tx.className='j-txt';
+    const x=jSession(n.sid);
+    const s=document.createElement('button');s.type='button';s.className='ent-sess';s.textContent=x?sessLabel(x):'Deleted session';
+    s.onclick=()=>{if(!x)return;J().cur=x.id;J().view='session';$('ent-dlg').close();window.scrollTo(0,0)};
+    tx.appendChild(s);
+    if(entNoteEdit===n.id){
+      const ta=document.createElement('textarea');ta.value=n.t;tx.appendChild(ta);
+      const bar=document.createElement('div');bar.className='toolbar';bar.innerHTML='<button class="btn small primary" type="button">Save</button><button class="btn small" type="button">Cancel</button>';
+      bar.children[0].onclick=()=>{n.t=ta.value.trim()||n.t;entNoteEdit=null;save();renderEnt()};
+      bar.children[1].onclick=()=>{entNoteEdit=null;renderEnt()};
+      tx.appendChild(bar);setTimeout(()=>ta.focus(),0);
+    }else{const d=document.createElement('span');d.className='d';d.textContent=n.t;tx.appendChild(d)}
+    const acts=document.createElement('span');acts.className='j-acts';
+    const ed=document.createElement('button');ed.type='button';ed.className='x';ed.textContent='Edit';ed.onclick=()=>{entNoteEdit=n.id;renderEnt()};
+    acts.append(ed,delBtn(()=>{e.notes=e.notes.filter(y=>y!==n);save();renderEnt()}));
+    li.append(tx,acts);ul.appendChild(li);
+  });
+  if(!e.notes.length){const p=document.createElement('p');p.className='s-empty';p.textContent='No session notes yet.';tl.appendChild(p)}else tl.appendChild(ul);
+  // add a note to any session
+  if(J().sessions.length){
+    const f=document.createElement('form');f.className='j-add';
+    const ss=document.createElement('select');ss.setAttribute('aria-label','Session');
+    J().sessions.slice().reverse().forEach(x=>{const o=document.createElement('option');o.value=x.id;o.textContent=sessLabel(x);ss.appendChild(o)});
+    if(J().cur)ss.value=J().cur;
+    const ta=document.createElement('textarea');ta.placeholder='Add a note';ta.setAttribute('aria-label','New note');
+    const bar=document.createElement('div');bar.className='toolbar';bar.innerHTML='<button class="btn small primary" type="submit">Add note</button>';
+    f.append(ss,ta,bar);
+    f.onsubmit=ev=>{ev.preventDefault();const t=ta.value.trim();if(!t){ta.focus();return}e.notes.push({id:uid(),sid:ss.value,t:t});save();renderEnt()};
+    tl.appendChild(f);
+  }
+  w.appendChild(tl);
+  // merge a duplicate into this one, or delete
+  const tools=document.createElement('div');tools.className='lu-sec';
+  const others=ents().filter(x=>x!==e&&x.cat===e.cat);
+  if(others.length){
+    const row=document.createElement('div');row.className='toolbar';
+    const ms=document.createElement('select');ms.setAttribute('aria-label','Merge with');
+    others.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach(x=>{const o=document.createElement('option');o.value=x.id;o.textContent=x.name;ms.appendChild(o)});
+    const lab=document.createElement('span');lab.className='fine';lab.textContent='Same as';
+    row.append(lab,ms,armBtn('Merge into this','Click again to merge','btn small',()=>{
+      const o=others.find(x=>x.id===ms.value);if(!o)return;
+      e.notes=e.notes.concat(o.notes);
+      if(o.sum&&o.sum!==e.sum)e.sum=(e.sum?e.sum+'\n\n':'')+o.sum;
+      const ord2=sessOrder();if(o.sid0 in ord2&&(!(e.sid0 in ord2)||ord2[o.sid0]<ord2[e.sid0]))e.sid0=o.sid0;
+      J().ents=ents().filter(x=>x!==o);save();renderEnt();toast('Merged',`${o.name} is now part of ${e.name}.`,'✓');
+    }));
+    tools.appendChild(row);
+  }
+  const del=document.createElement('div');del.className='toolbar';
+  del.appendChild(armBtn(`Delete ${e.name||'this'}`,'Click again: deletes it and its notes','btn small danger',()=>{J().ents=ents().filter(x=>x!==e);save();$('ent-dlg').close()}));
+  tools.appendChild(del);
+  w.appendChild(tools);
+}
+
 document.querySelectorAll('[data-jview]').forEach(b=>b.onclick=()=>{J().view=b.dataset.jview;jEdit=null;save();renderJournal()});
 $('j-new').onclick=()=>{
   const j=J();const n=j.sessions.reduce((m,x)=>Math.max(m,x.n),0)+1;
