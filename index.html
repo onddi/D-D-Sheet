@@ -505,7 +505,14 @@ body:has(dialog[open]){overflow:hidden}
 .j-tag[data-k="hostile"]{border-color:var(--danger);color:var(--danger)}
 .ent-name{border:0;background:none;padding:0;font:inherit;font-weight:600;color:var(--ink);text-align:left;cursor:pointer}
 .ent-name:hover{color:var(--accent);text-decoration:underline}
-.ent-sum{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rt{display:flex;flex-direction:column;gap:2px;white-space:normal}
+.rt p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.rt ul{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:1px;list-style:disc}
+.rt li{display:list-item}
+.rt li{overflow-wrap:anywhere}
+.rt li::marker{color:var(--accent)}
+.rt li.sub{margin-left:1.1em;list-style-type:circle}
+.rt-more{font-size:.74rem;color:var(--muted)}
 .ent-sess{border:0;background:none;padding:0;font:600 .74rem var(--mono);color:var(--accent);text-align:left;cursor:pointer}
 .ent-hint{min-height:1em}
 .ent-done{display:flex;gap:6px;align-items:center;font-size:.88rem}
@@ -2359,6 +2366,24 @@ $('eq-form').addEventListener('submit',e=>{
 });
 
 /* ---------- journal ---------- */
+// Notes typed with "- " (or "* ", "•") lines show as bullet points; indented ones nest a level.
+// max: show only the first few lines, then "+N more".
+function richText(str,max){
+  const box=document.createElement('div');box.className='rt';
+  let ul=null,shown=0,total=0;
+  const bullet=/^(\s*)[-*•]\s+/;
+  String(str||'').split(/\r?\n/).forEach(l=>{
+    if(!l.trim()){ul=null;return}
+    total++;if(max&&shown>=max)return;shown++;
+    const m=bullet.exec(l);
+    if(m){
+      if(!ul){ul=document.createElement('ul');box.appendChild(ul)}
+      const li=document.createElement('li');li.textContent=l.slice(m[0].length);if(m[1].length>=2)li.className='sub';ul.appendChild(li);
+    }else{ul=null;const p=document.createElement('p');p.textContent=l;box.appendChild(p)}
+  });
+  if(max&&total>shown){const m=document.createElement('span');m.className='rt-more';m.textContent=`+${total-shown} more`;box.appendChild(m)}
+  return box;
+}
 // t: label for the short title field (none = details only). kinds: [id, label, hint] for the type selector.
 // check: kinds that can be ticked off once done. groups: fixed sub-lists inside the panel.
 const JCATS=[
@@ -2513,7 +2538,7 @@ function jItem(e,c,showSess,hideTag){
     if(e.t){const b=document.createElement('b');b.textContent=e.t;top.appendChild(b)}
     tx.appendChild(top);
   }
-  if(e.d){const d=document.createElement('span');d.className='d';d.textContent=e.d;tx.appendChild(d)}
+  if(e.d){const d=richText(e.d);d.classList.add('d');tx.appendChild(d)}
   if(showSess){const x=jSession(e.sid);if(x){const m=document.createElement('span');m.className='sess';m.textContent=sessLabel(x)+(x.date?' · '+fmtDate(x.date):'');tx.appendChild(m)}}
   const acts=document.createElement('span');acts.className='j-acts';
   const ed=document.createElement('button');ed.type='button';ed.className='x';ed.textContent='Edit';ed.onclick=()=>{jEdit=e.id;renderJournal()};
@@ -2569,7 +2594,7 @@ function renderJAll(body){
           const tx=document.createElement('div');tx.className='j-txt';
           const b=document.createElement('b');b.textContent=sessLabel(x);tx.appendChild(b);
           if(x.date){const d=document.createElement('span');d.className='sess';d.textContent=fmtDate(x.date);tx.appendChild(d)}
-          const sm=document.createElement('p');sm.className='j-sum';sm.textContent=x.sum||'No summary written.';if(!x.sum)sm.classList.add('fine');tx.appendChild(sm);
+          const sm=x.sum?richText(x.sum):document.createElement('p');sm.classList.add('j-sum');if(!x.sum){sm.textContent='No summary written.';sm.classList.add('fine')}tx.appendChild(sm);
           const op=document.createElement('button');op.type='button';op.className='btn small';op.textContent='Open';
           op.onclick=()=>{j.cur=x.id;j.view='session';save();renderJournal();window.scrollTo(0,0)};
           li.append(tx,op);ul.appendChild(li);
@@ -2608,9 +2633,9 @@ function entRow(e,c,opts){
   tx.appendChild(top);
   if(opts.sid){
     // in a session: what was noted about it that session
-    e.notes.filter(n=>n.sid===opts.sid).forEach(n=>{const d=document.createElement('span');d.className='d';d.textContent=n.t;tx.appendChild(d)});
+    e.notes.filter(n=>n.sid===opts.sid).forEach(n=>{const d=richText(n.t);d.classList.add('d');tx.appendChild(d)});
   }else{
-    if(e.sum&&e.sum.trim()!==e.name.trim()){const d=document.createElement('span');d.className='d ent-sum';d.textContent=e.sum;tx.appendChild(d)}
+    if(e.sum&&e.sum.trim()!==e.name.trim()){const d=richText(e.sum,3);d.classList.add('d','ent-sum');tx.appendChild(d)}
     const ord=sessOrder(),last=J().sessions[entLast(e,ord)];
     const m=document.createElement('span');m.className='sess';m.textContent=(last?'Last noted: '+sessLabel(last):'')+` · ${e.notes.length} note${e.notes.length===1?'':'s'}`;tx.appendChild(m);
   }
@@ -2712,7 +2737,7 @@ function renderEnt(){
       bar.children[0].onclick=()=>{n.t=ta.value.trim()||n.t;entNoteEdit=null;save();renderEnt()};
       bar.children[1].onclick=()=>{entNoteEdit=null;renderEnt()};
       tx.appendChild(bar);setTimeout(()=>ta.focus(),0);
-    }else{const d=document.createElement('span');d.className='d';d.textContent=n.t;tx.appendChild(d)}
+    }else{const d=richText(n.t);d.classList.add('d');tx.appendChild(d)}
     const acts=document.createElement('span');acts.className='j-acts';
     const ed=document.createElement('button');ed.type='button';ed.className='x';ed.textContent='Edit';ed.onclick=()=>{entNoteEdit=n.id;renderEnt()};
     acts.append(ed,delBtn(()=>{e.notes=e.notes.filter(y=>y!==n);save();renderEnt()}));
