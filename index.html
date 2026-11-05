@@ -2354,7 +2354,7 @@ $('eq-form').addEventListener('submit',e=>{
 const JCATS=[
  {id:'people',n:'Characters',t:'Name',d:'Who they are, what they want, how they feel about Ash',kl:'Who',def:'unknown',
   kinds:[['party','Party member','A fellow adventurer'],['ally','Ally','Friendly to Ash, or owes them'],['neutral','Neutral','No side taken yet'],['hostile','Hostile','A rival or enemy'],['unknown','Unknown','Hard to read']],
-  groups:[['Party',k=>k==='party'],['Others',k=>k!=='party']]},
+  groups:[['Party',k=>k==='party'],['Allies',k=>k==='ally'],['Neutral',k=>k==='neutral'],['Hostile',k=>k==='hostile'],['Unknown',k=>k==='unknown']]},
  {id:'facts',n:'Learned facts',d:'Something you found out, e.g. The pendant’s crest belongs to House Vael'},
  {id:'leads',n:'Leads & places',t:'Title',d:'Details: who, where, and why it matters',kl:'Type',def:'goal',
   kinds:[['goal','Goal','Something Ash or the party wants to do'],['quest','Quest','A job someone gave you'],['target','Target','Someone or something to find, follow or stop'],['lead','Lead','A rumor or hint worth following up'],['question','Open question','Something you still don’t know'],['promise','Promise or debt','A favor owed, by Ash or to Ash'],['place','Place','A location worth remembering'],['item','Item','Loot, an heirloom, a key, a letter'],['faction','Faction','A group, guild, noble house or cult']],
@@ -2453,7 +2453,8 @@ function jPanel(c,list,opts){
       const sub=list.filter(e=>f(kindOf(c,e.k)[0]));if(!sub.length)return;
       const h=document.createElement('div');h.className='label j-sub';h.textContent=`${lab} · ${sub.length}`;p.appendChild(h);
       // a tag that only repeats the heading is dropped; under "Others" it shows the attitude
-      addList(sub,opts.hideTag||lab==='Party'||(opts.byKind&&!c.groups));
+      // the group heading already names the type, so the tag is dropped
+      addList(sub,true);
     });
   }else addList(list,opts.hideTag);
   if(opts.sid){
@@ -2620,7 +2621,8 @@ function entPanel(c,list,opts){
     groups.forEach(([lab,f])=>{
       const sub=list.filter(e=>f(kindOf(c,e.k)[0]));if(!sub.length)return;
       const h=document.createElement('div');h.className='label j-sub';h.textContent=`${lab} · ${sub.length}`;p.appendChild(h);
-      addList(sub,opts.hideTag||lab==='Party'||(opts.byKind&&!c.groups));
+      // the group heading already names the type, so the tag is dropped
+      addList(sub,true);
     });
   }else addList(list,opts.hideTag);
   if(opts.sid)p.appendChild(entAddForm(c,opts.sid));
