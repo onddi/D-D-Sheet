@@ -529,6 +529,10 @@ body:has(dialog[open]){overflow:hidden}
 .j-grp[data-k="ally"]{border-left-color:var(--good)}
 .j-grp[data-k="hostile"]{border-left-color:var(--danger);background:var(--danger-soft)}
 .j-grp[data-k="neutral"],.j-grp[data-k="unknown"]{border-left-color:var(--line)}
+.boost{display:inline-flex;align-items:center;gap:2px;margin-left:6px;padding:0 6px 0 4px;border-radius:999px;font:600 .72rem/1.5 var(--mono);color:var(--accent);background:var(--accent-soft);vertical-align:middle;cursor:help}
+.boost svg{width:11px;height:11px;fill:currentColor}
+.boost-n{color:var(--accent);font-weight:700}
+.btn.primary .boost-n{color:inherit}
 .rt-more{border:0;background:none;padding:0;font:inherit;font-size:.74rem;color:var(--accent);cursor:pointer;text-align:left;align-self:flex-start}
 .ent-av{--av:34px;width:var(--av);height:var(--av);flex:none;border-radius:50%;display:inline-grid;place-items:center;overflow:hidden;background:var(--sunk);border:1px solid var(--line);color:var(--muted);font:600 calc(var(--av)*.36)/1 var(--body);cursor:pointer;user-select:none}
 .ent-av img{width:100%;height:100%;object-fit:cover;display:block}
@@ -1305,7 +1309,7 @@ function atkRow(sp){
   if(sp.weapon)return {n:sp.n,note:sp.note,hit:spellAtk(),dice:tier()>1?[[1,4],[tier()-1,6,'Radiant']]:[[1,4]],flat:mod('cha'),type:'Piercing or Radiant'};
   if(!sp.dice||sp.heal)return null;
   const beams=sp.sc==='beams'?tier():sp.sc==='rays'?3+upBy(sp):1;
-  return {n:sp.n,beams:beams,note:(beams>1?`${beams} ${sp.sc==='rays'?'rays':'beams'}, roll each · `:'')+(agon(sp)?'Agonizing Blast · ':'')+(sp.note||''),hit:sp.atk?spellAtk():null,save:sp.save?sp.save.toUpperCase().slice(0,1)+sp.save.slice(1,3):null,dice:scaled(sp),flat:agon(sp),type:sp.type,alt:sp.alt&&{label:sp.alt.label,dice:scaled({lvl:sp.lvl,dice:sp.alt.dice})}};
+  return {n:sp.n,beams:beams,note:(beams>1?`${beams} ${sp.sc==='rays'?'rays':'beams'}, roll each · `:'')+(sp.note||''),hit:sp.atk?spellAtk():null,save:sp.save?sp.save.toUpperCase().slice(0,1)+sp.save.slice(1,3):null,dice:scaled(sp),flat:agon(sp),boost:!!agon(sp),type:sp.type,alt:sp.alt&&{label:sp.alt.label,dice:scaled({lvl:sp.lvl,dice:sp.alt.dice})}};
 }
 // A weapon's attack: proficiency + ability + magic bonus to hit; die + ability + magic bonus damage.
 const WPN_AB={fin:'Finesse (best of Str/Dex)',str:'Strength',dex:'Dexterity',cha:'Charisma (pact weapon)'};
@@ -1338,7 +1342,7 @@ function renderAttacks(){
   rows.forEach(a=>{
     const tr=document.createElement('tr');
     // Hex only adds to attack rolls, never to saving-throw damage
-    const dl=d=>d.map(([c,s])=>`${c}d${s}`).join('+')+(a.flat?sg(a.flat):'')+(hexApplies()&&!a.save?' +1d6':'')+(a.beams>1?' each':'');
+    const dl=d=>d.map(([c,s])=>`${c}d${s}`).join('+')+(a.flat?(a.boost?`<span class="boost-n" title="Agonizing Blast">${sg(a.flat)}</span>`:sg(a.flat)):'')+(hexApplies()&&!a.save?' +1d6':'')+(a.beams>1?' each':'');
     tr.innerHTML=`<td><strong></strong><span class="note"></span></td><td>${a.save?`<span class="dc num">DC ${dc} ${a.save}</span>`:`<button class="rb">${sg(a.hit)}</button>`}</td><td><button class="rb">${dl(a.dice)}</button>${a.alt?` <button class="rb">${dl(a.alt.dice)} ${a.alt.label}</button>`:''}</td>`;
     tr.querySelector('strong').textContent=a.n;tr.querySelector('.note').textContent=a.note;
     const bs=[...tr.querySelectorAll('.rb')];
@@ -1608,14 +1612,14 @@ function renderSpells(){
     if(sp.g){const h=document.createElement('div');h.className='label group-title';h.textContent=sp.g;w.appendChild(h);return}
     const el=document.createElement('details');el.className='spell';el.dataset.n=sp.n;if(open.has(sp.n))el.open=true;
     const tags=(sp.c?'<span class="tag c">Conc.</span>':'')+(sp.ritual?'<span class="tag">Ritual</span>':'')+(sp.patron?'<span class="tag">Patron</span>':'')
-      +(agon(sp)?`<span class="tag on" title="Agonizing Blast adds your Charisma modifier to each beam">Agonizing ${sg(agon(sp))}</span>`:'')
+      +(agon(sp)?`<span class="boost" title="Agonizing Blast: ${sg(agon(sp))} damage on each beam" aria-label="Agonizing Blast ${sg(agon(sp))}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5l1.6 4.2 4.4 1.3-4.4 1.3L8 14.5 6.4 8.3 2 7l4.4-1.3z"/></svg>${sg(agon(sp))}</span>`:'')
       +(sp.sc==='beams'&&hasInv('Repelling Blast')?'<span class="tag on" title="Each beam that hits pushes the target 10 ft">Repelling</span>':'')
       +(sp.sc==='beams'&&hasInv('Eldritch Spear')?'<span class="tag on" title="Eldritch Spear extends the range">Spear</span>':'');
     el.innerHTML=`<summary><span class="nm">${sp.n}${tags}</span><span class="meta">${sp.m}</span><span class="acts"></span></summary><div class="body"><p></p></div>`;
     el.querySelector('.body p').textContent=fillText(sp,sp.t,true);el.querySelector('.meta').textContent=fillText(sp,sp.m);
     const gr=growthEl(sp.n);if(gr)el.querySelector('.body').appendChild(gr);
     const acts=el.querySelector('.acts');
-    const mk=(label,fn,primary)=>{const b=document.createElement('button');b.className='btn small'+(primary?' primary':'');b.textContent=label;b.onclick=e=>{e.preventDefault();fn()};acts.appendChild(b)};
+    const mk=(label,fn,primary)=>{const b=document.createElement('button');b.className='btn small'+(primary?' primary':'');b.textContent=label;b.onclick=e=>{e.preventDefault();fn()};acts.appendChild(b);return b};
     const ar=atkRow(sp);
     const run=fxList().find(f=>f.n===sp.n)||(sp.c&&S.conc===sp.n);
     if(run)mk('Active',()=>toast(sp.n+' is active',sp.n==='Hex'?'To curse a new target after this one drops, use a Bonus Action. No slot needed.':'End it under Active effects if you want to cast it again.','✦'),false);
@@ -1626,7 +1630,8 @@ function renderSpells(){
       if(ar.save)mk('DC '+dc+' '+ar.save,()=>toast(sp.n,`The target makes a ${ar.save} save against DC ${dc}.`,'DC'),false);
       else if(ar.hit!=null)mk(ar.beams>1?`Attack ×${ar.beams}`:'Attack',()=>attackRoll(sp.n,ar.hit,ar.beams),sp.lvl===0);
       // the damage button shows the dice, with any bonus (Agonizing Blast) and Hex included
-      mk('Damage '+diceStr(ar.dice)+(ar.flat?sg(ar.flat):'')+(hexApplies()&&!ar.save?' +1d6':'')+(ar.beams>1?' each':''),()=>dmg(sp.n,ar.dice,ar.flat,ar.type,!!ar.save));
+      const db=mk('',()=>dmg(sp.n,ar.dice,ar.flat,ar.type,!!ar.save));
+      db.innerHTML='Damage '+diceStr(ar.dice)+(ar.flat?(agon(sp)?`<span class="boost-n" title="Agonizing Blast">${sg(ar.flat)}</span>`:sg(ar.flat)):'')+(hexApplies()&&!ar.save?' +1d6':'')+(ar.beams>1?' each':'');
       if(ar.alt)mk(ar.alt.label,()=>dmg(sp.n,ar.alt.dice,0,ar.type,!!ar.save));
     }
     if(sp.heal)mk('Heal',()=>{const x=scaled(sp)[0],r=[];for(let i=0;i<x[0];i++)r.push(d(x[1]));const t=r.reduce((a,b)=>a+b,0)+mod('cha');toast(sp.n+' healing',`${x[0]}d${x[1]} [${r.join(',')}] ${sg(mod('cha'))}`,'+'+t)});
