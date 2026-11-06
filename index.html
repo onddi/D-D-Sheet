@@ -529,6 +529,25 @@ body:has(dialog[open]){overflow:hidden}
 .j-grp[data-k="ally"]{border-left-color:var(--good)}
 .j-grp[data-k="hostile"]{border-left-color:var(--danger);background:var(--danger-soft)}
 .j-grp[data-k="neutral"],.j-grp[data-k="unknown"]{border-left-color:var(--line)}
+.rt-more{border:0;background:none;padding:0;font:inherit;font-size:.74rem;color:var(--accent);cursor:pointer;text-align:left;align-self:flex-start}
+.ent-av{--av:34px;width:var(--av);height:var(--av);flex:none;border-radius:50%;display:inline-grid;place-items:center;overflow:hidden;background:var(--sunk);border:1px solid var(--line);color:var(--muted);font:600 calc(var(--av)*.36)/1 var(--body);cursor:pointer;user-select:none}
+.ent-av img{width:100%;height:100%;object-fit:cover;display:block}
+.ent-av[data-k="party"]{background:var(--accent-soft);color:var(--accent)}
+.ent-av[data-k="ally"]{color:var(--good)}
+.ent-av[data-k="hostile"]{background:var(--danger-soft);color:var(--danger)}
+.ent-av.drag{outline:2px dashed var(--accent);outline-offset:2px}
+.ent-avrow{display:flex;gap:14px;align-items:center}
+.ent-avside{display:flex;flex-direction:column;gap:6px;min-width:0}
+.j-item.ent{align-items:flex-start}
+.qn-box{position:relative}
+.qn textarea{min-height:0;resize:vertical}
+.qn-dd{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:20;list-style:none;margin:0;padding:4px;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-height:280px;overflow:auto}
+.qn-dd li{display:flex;gap:8px;align-items:center;padding:6px 8px;border-radius:6px;cursor:pointer}
+.qn-dd li.on,.qn-dd li:hover{background:var(--accent-soft)}
+.qn-nm{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qn-new{font-weight:500;color:var(--accent)}
+.qn-foot{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.qn-prev{min-height:1.2em;flex:1;min-width:0}
 .j-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .j-tools input{flex:1 1 240px;min-width:0;padding:7px 10px}
 .j-sum{white-space:pre-wrap;overflow-wrap:anywhere;margin:0}
@@ -2381,7 +2400,14 @@ function richText(str,max){
       const li=document.createElement('li');li.textContent=l.slice(m[0].length);if(m[1].length>=2)li.className='sub';ul.appendChild(li);
     }else{ul=null;const p=document.createElement('p');p.textContent=l;box.appendChild(p)}
   });
-  if(max&&total>shown){const m=document.createElement('span');m.className='rt-more';m.textContent=`+${total-shown} more`;box.appendChild(m)}
+  if(max&&total>shown){
+    const m=document.createElement('button');m.type='button';m.className='rt-more';m.textContent=`+${total-shown} more`;
+    m.onclick=ev=>{ev.stopPropagation();const full=richText(str);full.className=box.className;
+      const less=document.createElement('button');less.type='button';less.className='rt-more';less.textContent='Show less';
+      less.onclick=e2=>{e2.stopPropagation();const short=richText(str,max);short.className=full.className;full.replaceWith(short)};
+      full.appendChild(less);box.replaceWith(full)};
+    box.appendChild(m);
+  }
   return box;
 }
 // t: label for the short title field (none = details only). kinds: [id, label, hint] for the type selector.
@@ -2425,6 +2451,7 @@ function renderJournal(){
     p.innerHTML='<h2>No sessions yet</h2><p class="fine">Press <b>New session</b> at the start of each game night. Each session gets a summary plus notes on characters, learned facts, and leads and places. <b>People &amp; places</b> gathers every character and lead across sessions, each with its own timeline.</p>';
     body.appendChild(p);return;
   }
+  renderQuickNote(body);
   if(j.view==='all')renderJAll(body);else renderJSession(body,jSession(j.cur));
   if(jFocus){const f=body.querySelector(`[data-jadd="${jFocus}"] input, [data-jadd="${jFocus}"] textarea`);if(f)f.focus();jFocus=null}
 }
@@ -2624,6 +2651,7 @@ function entRow(e,c,opts){
     const cb=document.createElement('input');cb.type='checkbox';cb.checked=!!e.done;cb.setAttribute('aria-label','Done: '+e.name);
     cb.onchange=()=>{e.done=cb.checked;save();renderJournal()};li.appendChild(cb);
   }
+  const av=entAvatar(e,34);av.onclick=()=>openEnt(e);li.appendChild(av);
   const tx=document.createElement('div');tx.className='j-txt';
   const top=document.createElement('span');top.className='j-top';
   const kd=kindOf(c,e.k);
@@ -2709,6 +2737,20 @@ function renderEnt(){
   const e=entOpen;if(!e)return;
   const c=JCAT(e.cat),w=$('ent-body');w.innerHTML='';
   $('ent-h').textContent=e.name||'Untitled';
+  const avRow=document.createElement('div');avRow.className='ent-avrow';
+  const big=entAvatar(e,88);avRow.appendChild(big);
+  const avc=document.createElement('div');avc.className='toolbar';
+  const fl=document.createElement('input');fl.type='file';fl.accept='image/*';fl.hidden=true;fl.onchange=()=>{const f=fl.files&&fl.files[0];if(f)setEntImage(e,f);fl.value=''};
+  const up=document.createElement('button');up.type='button';up.className='btn small';up.textContent=e.img?'Change picture':'Add picture';up.onclick=()=>fl.click();
+  avc.append(fl,up);
+  if(e.img){const rm=document.createElement('button');rm.type='button';rm.className='btn small danger';rm.textContent='Remove';rm.onclick=()=>{delete e.img;save();renderEnt()};avc.appendChild(rm)}
+  const hint=document.createElement('span');hint.className='fine';hint.textContent='Or drop an image on the circle. It’s shrunk and saved with the sheet.';
+  const side=document.createElement('div');side.className='ent-avside';side.append(avc,hint);avRow.appendChild(side);
+  ['dragenter','dragover'].forEach(ev=>big.addEventListener(ev,x=>{x.preventDefault();big.classList.add('drag')}));
+  ['dragleave','drop'].forEach(ev=>big.addEventListener(ev,x=>{x.preventDefault();big.classList.remove('drag')}));
+  big.addEventListener('drop',x=>{const f=x.dataTransfer&&x.dataTransfer.files&&x.dataTransfer.files[0];if(f)setEntImage(e,f)});
+  big.onclick=()=>fl.click();
+  w.appendChild(avRow);
   const top=document.createElement('div');top.className='lu-sec';
   top.innerHTML='<div class="j-row"><select></select><input></div><label class="ent-done" hidden><input type="checkbox"> Done</label><label class="label">What I know now</label><textarea class="ent-sumed" placeholder="A summary you keep up to date: who they are, what they want, where things stand"></textarea>';
   const sel=top.querySelector('select'),nm=top.querySelector('input:not([type])'),sm=top.querySelector('textarea'),dn=top.querySelector('.ent-done'),cb=dn.querySelector('input');
@@ -2777,6 +2819,168 @@ function renderEnt(){
   del.appendChild(armBtn(`Delete ${e.name||'this'}`,'Click again: deletes it and its notes','btn small danger',()=>{J().ents=ents().filter(x=>x!==e);save();$('ent-dlg').close()}));
   tools.appendChild(del);
   w.appendChild(tools);
+}
+
+/* ---------- journal: avatars ---------- */
+// Shrink an image to a small square-ish thumbnail so many fit in browser storage.
+function shrinkImage(file,max,done){
+  if(!file||!/^image\//.test(file.type)){toast('Not an image','Choose a PNG, JPG, WebP or GIF file.','✗','fumble');return}
+  const url=URL.createObjectURL(file),im=new Image();
+  im.onload=()=>{
+    const sc=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));
+    const c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.naturalWidth*sc));c.height=Math.max(1,Math.round(im.naturalHeight*sc));
+    c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);
+    let data=c.toDataURL('image/webp',0.82);if(!data.startsWith('data:image/webp'))data=c.toDataURL('image/jpeg',0.82);
+    done(data);
+  };
+  im.onerror=()=>{URL.revokeObjectURL(url);toast('Couldn’t read that image','Try a different file.','✗','fumble')};
+  im.src=url;
+}
+// A round avatar: the picture, or the record's initials on a tint for its type.
+function entAvatar(e,size){
+  const a=document.createElement('span');a.className='ent-av';a.dataset.k=e.k||'';a.style.setProperty('--av',size+'px');
+  if(e.img){const i=document.createElement('img');i.src=e.img;i.alt='';a.appendChild(i)}
+  else a.textContent=(e.name||'?').split(/\s+/).filter(w=>/^[\p{L}\p{N}]/u.test(w)).slice(0,2).map(w=>w[0].toUpperCase()).join('')||'?';
+  return a;
+}
+function setEntImage(e,file){
+  shrinkImage(file,192,data=>{
+    const prev=e.img;e.img=data;save();
+    if(!storageOK){e.img=prev;save();toast('Image not saved','Browser storage is full. Try a smaller image or remove some.','✗','fumble')}
+    renderEnt();
+  });
+}
+
+/* ---------- journal: quick note with @mentions ---------- */
+// "@Haldren is a viking" adds "is a viking" to Haldren; "Met @Mira at the inn" adds the whole line to Mira;
+// a note with no @mention becomes a learned fact. Notes go to the current session.
+let qnFocus=false,qnLast=null,qnText='';
+const qnSid=()=>{const j=J();return jSession(j.cur)?j.cur:(j.sessions.length?j.sessions[j.sessions.length-1].id:null)};
+const isWordCh=ch=>/[\p{L}\p{N}]/u.test(ch||'');
+// The longest record name that the text right after an @ starts with.
+function qnMatch(text,i){
+  const rest=text.slice(i+1).toLowerCase();let best=null;
+  ents().forEach(e=>{const n=e.name.trim().toLowerCase();if(n&&rest.startsWith(n)&&!isWordCh(rest.charAt(n.length))&&(!best||n.length>best.len))best={e:e,len:n.length}});
+  return best;
+}
+// Split a note into mentions and text. Leading mentions are the subjects and get the rest of the line;
+// mentions later in the line get the whole line with names written out.
+function qnParse(text){
+  const parts=[],bad=[];let i=0,buf='';
+  while(i<text.length){
+    if(text[i]==='@'&&(i===0||!isWordCh(text[i-1]))){
+      const m=qnMatch(text,i);
+      if(m){if(buf)parts.push(buf);buf='';parts.push(m.e);i+=1+m.len;continue}
+      const w=/^@([^\s@]+)/.exec(text.slice(i));if(w)bad.push(w[1]);
+    }
+    buf+=text[i];i++;
+  }
+  if(buf)parts.push(buf);
+  const name=x=>typeof x==='string'?x:x.name;
+  const whole=parts.map(name).join('').replace(/\s+/g,' ').trim();
+  const subjects=[];let k=0;
+  while(k<parts.length){const x=parts[k];if(typeof x!=='string'){subjects.push(x);k++;continue}if(subjects.length&&/^[\s,&]*(and\s*)?$/i.test(x)&&typeof parts[k+1]==='object'){k++;continue}break}
+  const rest=parts.slice(k).map(name).join('').replace(/^[\s:,\-–—]+/,'').replace(/\s+/g,' ').trim();
+  const targets=[];
+  subjects.forEach(e=>{if(!targets.some(t=>t.e===e))targets.push({e:e,t:rest||whole})});
+  parts.slice(k).forEach(x=>{if(typeof x==='object'&&!targets.some(t=>t.e===x))targets.push({e:x,t:whole})});
+  return {targets:targets,bad:bad,whole:whole};
+}
+const addBullet=(sum,line)=>(sum&&sum.trim()?sum.replace(/\s+$/,'')+'\n':'')+'- '+line;
+function qnSubmit(text){
+  const sid=qnSid();if(!sid||!text.trim())return false;
+  const p=qnParse(text);
+  if(p.bad.length){toast('Who is that?',`No match for @${p.bad[0]}. Pick a name from the list, or create it there.`,'@','fumble');return false}
+  if(!p.targets.length){
+    const f={id:uid(),sid:sid,cat:'facts',t:'',d:p.whole,done:false};J().entries.push(f);
+    qnLast={facts:[f.id],ents:[]};toast('Learned fact added',p.whole,'✦');
+  }else{
+    qnLast={facts:[],ents:[]};
+    p.targets.forEach(({e,t})=>{const n={id:uid(),sid:sid,t:t};qnLast.ents.push({id:e.id,sum:e.sum,note:n.id});e.sum=addBullet(e.sum,t);e.notes.push(n)});
+    toast('Added to '+gList(p.targets.map(x=>x.e.name)),p.targets[0].t,'✦');
+  }
+  save();return true;
+}
+function qnUndo(){
+  if(!qnLast)return;const j=J();
+  j.entries=j.entries.filter(e=>!qnLast.facts.includes(e.id));
+  qnLast.ents.forEach(u=>{const e=ents().find(x=>x.id===u.id);if(e){e.sum=u.sum;e.notes=e.notes.filter(n=>n.id!==u.note)}});
+  qnLast=null;save();renderJournal();toast('Undone','The last quick note was removed.','↺');
+}
+function renderQuickNote(body){
+  const sid=qnSid();if(!sid)return;
+  const x=jSession(sid);
+  const p=document.createElement('section');p.className='panel qn';
+  p.innerHTML=`<div class="panel-head"><h2>Quick note</h2><span class="fine"></span></div>
+    <div class="qn-box"><textarea rows="2" placeholder="Type @ to pick a character or place: “@Haldren is a viking”. No @ adds a learned fact."></textarea><ul class="qn-dd" role="listbox" hidden></ul></div>
+    <div class="qn-foot"><span class="fine qn-prev"></span><span class="toolbar"></span></div>`;
+  p.querySelector('.panel-head .fine').textContent='Goes to '+sessLabel(x)+'. Enter adds it, Shift+Enter starts a new line.';
+  const ta=p.querySelector('textarea'),dd=p.querySelector('.qn-dd'),prev=p.querySelector('.qn-prev'),bar=p.querySelector('.qn-foot .toolbar');
+  ta.value=qnText;
+  const add=document.createElement('button');add.type='button';add.className='btn small primary';add.textContent='Add';
+  add.onclick=()=>{if(qnSubmit(ta.value)){qnText='';qnFocus=true;renderJournal()}};
+  if(qnLast){const u=document.createElement('button');u.type='button';u.className='btn small';u.textContent='Undo last';u.onclick=qnUndo;bar.appendChild(u)}
+  bar.appendChild(add);
+  let opts=[],idx=0,act=null;
+  // the @word being typed at the caret, if any
+  const active=()=>{const pos=ta.selectionStart,before=ta.value.slice(0,pos);const m=/(^|[^\p{L}\p{N}])@([^@\n]{0,40})$/u.exec(before);return m?{start:pos-m[2].length-1,q:m[2]}:null};
+  const preview=()=>{
+    const v=ta.value.trim();if(!v){prev.textContent='';return}
+    const r=qnParse(v);
+    prev.textContent=r.bad.length?`No match for @${r.bad[0]} yet: pick it from the list or create it.`:r.targets.length?r.targets.map(t=>`→ ${t.e.name}: ${t.t}`).join('   '):'→ Learned fact';
+  };
+  const close=()=>{dd.hidden=true;opts=[];act=null};
+  const pick=o=>{
+    let e=o.e;
+    if(!e){e={id:uid(),cat:o.cat,k:o.cat==='people'?'unknown':'lead',name:o.name,sum:'',done:false,sid0:sid,notes:[]};ents().push(e);save();toast('Created '+e.name,`As ${o.cat==='people'?'a character (type Unknown)':'a lead'}; change the type on its card.`,'+')}
+    const v=ta.value,end=ta.selectionStart;
+    ta.value=v.slice(0,act.start)+'@'+e.name+' '+v.slice(end);
+    const c=act.start+e.name.length+2;ta.setSelectionRange(c,c);qnText=ta.value;close();preview();ta.focus();
+  };
+  const show=()=>{
+    act=active();
+    if(!act){close();return}
+    const q=act.q.toLowerCase();
+    // a finished mention followed by more text needs no list
+    if(q&&ents().some(e=>{const n=e.name.toLowerCase();return q.startsWith(n+' ')&&q.length>n.length+1})){close();return}
+    const list=ents().filter(e=>{const n=e.name.toLowerCase();return !q||n.startsWith(q)||n.split(/[\s&(),-]+/).some(w=>w&&w.startsWith(q))})
+      .sort((a,b)=>(b.name.toLowerCase().startsWith(q))-(a.name.toLowerCase().startsWith(q))||a.name.localeCompare(b.name)).slice(0,8);
+    opts=list.map(e=>({e:e}));
+    const nm=act.q.trim();
+    if(nm&&nm.split(/\s+/).length<=4&&!ents().some(e=>e.name.toLowerCase()===nm.toLowerCase()))opts.push({cat:'people',name:nm},{cat:'leads',name:nm});
+    if(!opts.length){close();return}
+    idx=Math.min(idx,opts.length-1);
+    dd.innerHTML='';
+    opts.forEach((o,i)=>{
+      const li=document.createElement('li');li.setAttribute('role','option');li.className=i===idx?'on':'';li.setAttribute('aria-selected',String(i===idx));
+      if(o.e){
+        const c=JCAT(o.e.cat),kd=kindOf(c,o.e.k);
+        li.appendChild(entAvatar(o.e,26));
+        const t=document.createElement('span');t.className='qn-nm';t.textContent=o.e.name;li.appendChild(t);
+        const tg=document.createElement('span');tg.className='pill j-tag';tg.dataset.k=kd[0];tg.textContent=kd[1];li.appendChild(tg);
+      }else{
+        const t=document.createElement('span');t.className='qn-nm qn-new';t.textContent=`+ New ${o.cat==='people'?'character':'lead or place'} “${o.name}”`;li.appendChild(t);
+      }
+      li.onmousedown=ev=>{ev.preventDefault();pick(o)};
+      dd.appendChild(li);
+    });
+    dd.hidden=false;
+  };
+  ta.oninput=()=>{qnText=ta.value;idx=0;show();preview()};
+  ta.onclick=show;
+  ta.onblur=()=>setTimeout(close,120);
+  ta.onkeydown=ev=>{
+    if(!dd.hidden&&opts.length){
+      if(ev.key==='ArrowDown'){ev.preventDefault();idx=(idx+1)%opts.length;show();return}
+      if(ev.key==='ArrowUp'){ev.preventDefault();idx=(idx-1+opts.length)%opts.length;show();return}
+      if(ev.key==='Enter'||ev.key==='Tab'){ev.preventDefault();pick(opts[idx]);return}
+      if(ev.key==='Escape'){ev.preventDefault();close();return}
+    }
+    if(ev.key==='Enter'&&!ev.shiftKey){ev.preventDefault();add.click()}
+  };
+  preview();
+  body.appendChild(p);
+  if(qnFocus){qnFocus=false;setTimeout(()=>{ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length)},0)}
 }
 
 document.querySelectorAll('[data-jview]').forEach(b=>b.onclick=()=>{J().view=b.dataset.jview;jEdit=null;save();renderJournal()});
