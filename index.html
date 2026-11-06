@@ -430,10 +430,14 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
 .grow .g span.now{border-color:var(--accent);background:var(--accent-soft)}
 /* concentration check */
 .cc-dlg{border-color:var(--warn);width:min(480px,calc(100vw - 24px))}
-.cc-box{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:8px;background:var(--warn-soft);border:1px solid var(--warn)}
+#cc-body{display:flex;flex-direction:column;gap:16px}
+.cc-box{display:flex;flex-direction:column;gap:10px;padding:16px 18px;border-radius:10px;background:var(--warn-soft);border:1px solid var(--warn)}
+.cc-bar{gap:10px}
+.cc-dlg .dlg-in{gap:14px;padding:20px}
 .cc-box p{margin:0}
-.cc-dc{font-family:var(--display);font-size:1.5rem;line-height:1.1}
+.cc-dc{font-family:var(--display);font-size:1.5rem;line-height:1.15;margin:2px 0}
 .cc-dc b{font-size:1.9rem}
+.cc-how{line-height:1.6}
 .cc-how .boost{margin-left:4px}
 .cc-res{font-weight:600}
 .cc-res.ok{color:var(--good)}
@@ -1029,7 +1033,7 @@ td .boost{margin:3px 0 0;display:flex;width:max-content}
 <script>
 (function(){
 const KEY='ash-sheet-v1';
-const APP_VERSION='2026-11-06.2';
+const APP_VERSION='2026-11-06.3';
 const AB=[['str','Strength'],['dex','Dexterity'],['con','Constitution'],['int','Intelligence'],['wis','Wisdom'],['cha','Charisma']];
 const SAVES=['wis','cha'];
 // Level. pv is a preview level that is never saved; lvl() is what every number on the sheet follows.
