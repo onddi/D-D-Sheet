@@ -649,6 +649,12 @@ html.cb-open,html.cb-open body{overflow:hidden}
 button.cb-chip:hover{border-color:var(--k-red);color:#ffd6d6}
 .cb-quote{font-family:var(--display);font-style:italic;font-size:15px;color:#c9b8b8}
 .cb-add{display:flex;gap:6px}.cb-add input{flex:1}
+.cb-party{display:flex;flex-wrap:wrap;gap:6px}
+.cb-pm{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;padding:6px 10px;background:#0b1210;border:1px solid #2f4a3a;color:#9fc4ab}
+.cb-pm svg{width:12px;height:12px}
+.cb-pm[aria-pressed="true"]{background:#11261a;border-color:#7fd99a;color:#d6ffe0}
+.cb-pm.sel{box-shadow:0 0 0 1px #7fd99a,0 0 12px rgba(127,217,154,.45)}
+.cb-pm em{font-style:normal;color:#7fd99a}
 
 /* radar */
 .cb-radar{grid-area:radar;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
@@ -657,9 +663,7 @@ button.cb-chip:hover{border-color:var(--k-red);color:#ffd6d6}
 #cb-svg{display:block;width:100%;height:100%;overflow:visible;touch-action:none;user-select:none;-webkit-user-select:none}
 .cb-dot{cursor:grab;outline:none}.cb-dot.drag{cursor:grabbing}
 .cb-dot:focus-visible .ring{stroke:#fff}
-.cb-sweep{transform-origin:262px 262px;animation:cbsweep 6s linear infinite}
 .cb-ping{transform-box:fill-box;transform-origin:center;animation:cbping 1.6s ease-out infinite}
-@keyframes cbsweep{to{transform:rotate(-360deg)}}
 @keyframes cbping{0%{transform:scale(.7);opacity:.9}100%{transform:scale(1.7);opacity:0}}
 .cb-hint{margin:0;font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--k-mut);text-transform:uppercase;text-align:center}
 .cb-empty{position:absolute;left:50%;top:62%;transform:translateX(-50%);margin:0;text-align:center;color:var(--k-mut);font-size:15px;pointer-events:none;width:70%}
@@ -838,10 +842,13 @@ button.cb-chip:hover{border-color:var(--k-red);color:#ffd6d6}
         <div class="cb-h"><b>Foes</b><span class="cb-cap">HP unknown · track hits</span></div>
         <div id="cb-foes"></div>
         <form class="cb-add" id="cb-add"><input id="cb-add-n" placeholder="Add a foe, e.g. Goblin" aria-label="New foe's name" autocomplete="off"><button class="cb-btn ghost" type="submit">Add</button></form>
+        <div class="cb-h" style="margin-top:10px"><b>Party</b><span class="cb-cap">Tap to show on the radar</span></div>
+        <div class="cb-party" id="cb-party" role="group" aria-label="Party members on the radar"></div>
+        <form class="cb-add" id="cb-padd"><input id="cb-padd-n" placeholder="Someone else, e.g. Haldren" aria-label="Party member's name" autocomplete="off"><button class="cb-btn ghost" type="submit" style="color:#7fd99a;border-color:#7fd99a">Add</button></form>
       </section>
       <section class="cb-radar" aria-label="Range radar">
         <div class="cb-rwrap"><svg id="cb-svg" viewBox="0 0 524 524" role="group" aria-label="Range radar: Ash in the middle, foes by distance"></svg><p class="cb-empty" id="cb-empty">Add a foe to put it on the radar</p><div class="cb-dice" id="cb-dice" role="dialog" aria-label="Dice tray" hidden></div></div>
-        <p class="cb-hint">Drag a foe to set its distance · tap to target</p>
+        <p class="cb-hint">Drag a dot to set its distance · tap to target</p>
       </section>
       <section class="cb-target" id="cb-target" aria-label="Target"></section>
       <section class="cb-ash" id="cb-ash" aria-label="Ash"></section>
@@ -1251,7 +1258,7 @@ button.cb-chip:hover{border-color:var(--k-red);color:#ffd6d6}
 <script>
 (function(){
 const KEY='ash-sheet-v1';
-const APP_VERSION='2026-11-06.7';
+const APP_VERSION='2026-11-06.8';
 const AB=[['str','Strength'],['dex','Dexterity'],['con','Constitution'],['int','Intelligence'],['wis','Wisdom'],['cha','Charisma']];
 const SAVES=['wis','cha'];
 // Level. pv is a preview level that is never saved; lvl() is what every number on the sheet follows.
@@ -2617,13 +2624,17 @@ function CB(){
   if(!S.combat||typeof S.combat!=='object')S.combat={};
   const c=S.combat;
   if(!Array.isArray(c.foes))c.foes=[];
+  if(!Array.isArray(c.allies))c.allies=[];
+  c.allies.forEach(x=>{x.ally=true;x.ft=x.ft||10;if(typeof x.ang!=='number')x.ang=270});
   if(!c.eco||typeof c.eco!=='object')c.eco={a:true,b:true,r:true,mv:0};
   if(!c.turn)c.turn=1;
   c.foes.forEach(f=>{if(!Array.isArray(f.cond))f.cond=[];f.w=f.w||0;f.hits=f.hits||0;f.ft=f.ft||30;if(typeof f.ang!=='number')f.ang=90});
   return c;
 }
 const cbFoe=id=>CB().foes.find(f=>f.id===id);
-const cbSel=()=>cbFoe(CB().sel)||null;
+const cbSel=()=>cbFoe(CB().sel)||null; // the selected foe
+const cbAny=id=>cbFoe(id)||CB().allies.find(x=>x.id===id);
+const cbTgt=()=>cbAny(CB().sel)||null; // the selected foe or party member
 const cbHexed=f=>!!f&&S.conc==='Hex'&&CB().hex===f.id;
 function ftToR(ft){
   if(ft>=120)return Math.min(262,258+(ft-120)/10);
@@ -2673,6 +2684,10 @@ function cbStatus(a,f,c){
 }
 function cbReach(a,f,c){
   if(a.ft==null)return {t:'READY',cls:'ok'};
+  if(f&&f.ally){
+    if(a.kind!=='util'||a.n==='Hex')return {t:'ALLY',cls:'off'};
+    return f.ft>a.ft?{t:'TOO FAR',cls:'off'}:{t:'IN RANGE',cls:'ok'};
+  }
   // utility spells aim at a point or an ally, so just show their range
   if(a.kind==='util')return {t:a.ft<=5?'TOUCH':a.ft+' FT',cls:''};
   if(!f||f.w>=4)return {t:a.ft<=5?'TOUCH':a.ft+' FT',cls:'ok'};
@@ -2709,10 +2724,10 @@ function cbSub(a){
 
 function renderCombat(){
   const c=CB();
-  if(c.sel&&!cbFoe(c.sel))c.sel=null;
+  if(c.sel&&!cbAny(c.sel))c.sel=null;
   if(!c.sel&&c.foes.length)c.sel=(c.foes.find(f=>f.w<4)||c.foes[0]).id;
   if(c.hex&&!cbFoe(c.hex))c.hex=null;
-  renderCbFoes();renderCbRadar();renderCbTarget();renderCbAsh();renderCbBar();renderCbTurn();renderCbDice();
+  renderCbFoes();renderCbParty();renderCbRadar();renderCbTarget();renderCbAsh();renderCbBar();renderCbTurn();renderCbDice();
 }
 function cbGauge(w){
   let s='';for(let i=0;i<4;i++){const on=w<4&&i<=w;s+=`<i${on?` style="background:${CB_COL[w]};border-color:${CB_COL[w]}"`:''}></i>`}
@@ -2735,17 +2750,43 @@ function renderCbFoes(){
     w.appendChild(b);
   });
 }
+// Party members from the journal (Party and Ally types), plus anyone already on the radar.
+function renderCbParty(){
+  const c=CB(),w=$('cb-party');w.innerHTML='';
+  const names=[],seen=new Set();
+  J().ents.filter(e=>e.cat==='people'&&(e.k==='party'||e.k==='ally')&&!e.done).sort((a,b)=>(a.k!=='party')-(b.k!=='party'))
+    .forEach(e=>{const k=e.name.toLowerCase();if(!seen.has(k)){seen.add(k);names.push({n:e.name,eid:e.id})}});
+  c.allies.forEach(x=>{const k=x.name.toLowerCase();if(!seen.has(k)){seen.add(k);names.push({n:x.name})}});
+  if(!names.length){w.innerHTML='<p class="cb-none" style="font-size:14px">Party members from your journal show up here.</p>';return}
+  names.forEach(m=>{
+    const on=c.allies.find(x=>x.name.toLowerCase()===m.n.toLowerCase()),b=document.createElement('button');
+    b.type='button';b.className='cb-pm'+(on&&c.sel===on.id?' sel':'');b.setAttribute('aria-pressed',String(!!on));
+    b.innerHTML=`<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1 11 6 6 11 1 6Z" fill="${on?'#7fd99a':'none'}" stroke="#7fd99a" stroke-width="1.4"/></svg><span></span>${on?`<em>${on.ft} ft</em>`:''}`;
+    b.querySelector('span').textContent=m.n;
+    b.title=on?'Tap to select, again to take off the radar':'Put on the radar, 10 ft from Ash';
+    b.onclick=()=>{
+      if(on&&c.sel!==on.id){c.sel=on.id}
+      else if(on){c.allies=c.allies.filter(x=>x!==on);c.sel=null}
+      else{const a={id:uid(),name:m.n,eid:m.eid||null,ft:10,ang:(c.allies.length*71+250)%360,ally:true};c.allies.push(a);c.sel=a.id}
+      save();renderCombat();
+    };
+    w.appendChild(b);
+  });
+}
+$('cb-padd').onsubmit=e=>{
+  e.preventDefault();const c=CB(),i=$('cb-padd-n'),n=i.value.trim();if(!n)return i.focus();
+  if(!c.allies.some(x=>x.name.toLowerCase()===n.toLowerCase())){const a={id:uid(),name:n,ft:10,ang:(c.allies.length*71+250)%360,ally:true};c.allies.push(a);c.sel=a.id}
+  i.value='';save();renderCombat();
+};
 function renderCbRadar(){
   const c=CB(),svg=$('cb-svg'),R=ft=>ftToR(ft).toFixed(1);
   // label each ring with what reaches exactly that far
   const lab={};cbActions().forEach(a=>{if(a.ft>5&&!a.wpn&&(a.kind!=='util'||a.n==='Hex'))(lab[a.ft]=lab[a.ft]||[]).push(a.n)});
-  let s=`<defs><radialGradient id="cb-rg"><stop offset="0" stop-color="#5ff0cf" stop-opacity=".10"/><stop offset="1" stop-color="#5ff0cf" stop-opacity=".02"/></radialGradient>
-    <linearGradient id="cb-sw" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5ff0cf" stop-opacity="0"/><stop offset="1" stop-color="#5ff0cf" stop-opacity=".26"/></linearGradient></defs>
+  let s=`<defs><radialGradient id="cb-rg"><stop offset="0" stop-color="#5ff0cf" stop-opacity=".10"/><stop offset="1" stop-color="#5ff0cf" stop-opacity=".02"/></radialGradient></defs>
     <circle cx="${CBC}" cy="${CBC}" r="${R(120)}" fill="url(#cb-rg)" stroke="#5ff0cf" stroke-width="2" style="filter:drop-shadow(0 0 8px rgba(95,240,207,.6))"/>`;
   [90,60,30].forEach(ft=>{s+=`<circle cx="${CBC}" cy="${CBC}" r="${R(ft)}" fill="none" stroke="${ft===90&&lab[90]?'#9b7cf0':'#2f5a4f'}" stroke-width="${ft===90&&lab[90]?1.5:1}"${ft===90&&lab[90]?' stroke-dasharray="6 6"':''}/>`});
   s+=`<circle cx="${CBC}" cy="${CBC}" r="${R(5)}" fill="rgba(255,207,107,.10)" stroke="#ffcf6b" stroke-width="1.5"/>
     <path d="M${CBC} 4V520M4 ${CBC}H520" stroke="#1d3a33" stroke-width="1"/>
-    <g class="cb-sweep"><path d="M${CBC} ${CBC}L520 ${CBC}A258 258 0 0 0 459.6 96.2Z" fill="url(#cb-sw)"/></g>
     <g font-family="Rajdhani,sans-serif" font-weight="700" font-size="12" letter-spacing="1.2">`;
   [120,90,60,30].forEach(ft=>{
     const t=ft+(lab[ft]?' · '+lab[ft].join(', ').toUpperCase():''),col=ft===120?'#5ff0cf':ft===90&&lab[90]?'#b9a6f5':'#6f9488';
@@ -2754,7 +2795,7 @@ function renderCbRadar(){
   s+=`<text x="${CBC-40}" y="${CBC+58}" fill="#ffcf6b">5 · MELEE</text></g>
     <path d="M${CBC} ${CBC-14}L${CBC+12} ${CBC+8}L${CBC-12} ${CBC+8}Z" fill="#5ff0cf" stroke="#c9fff0" stroke-width="1.5"/>
     <text x="${CBC}" y="${CBC+26}" text-anchor="middle" font-family="Cinzel,serif" font-weight="700" font-size="12" fill="#c9fff0">ASH</text>`;
-  const sel=cbSel();
+  const sel=cbTgt();
   if(sel){const [x,y]=cbXY(sel);s+=`<line x1="${CBC}" y1="${CBC}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#5ff0cf" stroke-width="1.5" opacity=".45"/>`}
   c.foes.slice().sort((a,b)=>(a.id===c.sel)-(b.id===c.sel)).forEach(f=>{
     const [x,y]=cbXY(f),on=f.id===c.sel,down=f.w>=4,col=down?'#6c7d77':on?'#9b7cf0':f.ft<=5?'#ffcf6b':'#c43b45';
@@ -2766,10 +2807,20 @@ function renderCbRadar(){
       <text class="lbl" y="${on?32:29}" text-anchor="middle" font-family="Rajdhani,sans-serif" font-weight="700" font-size="12" fill="${on?'#e5dbff':'#8fb3a8'}">${f.ft} FT</text>
     </g>`;
   });
+  c.allies.forEach(f=>{
+    const [x,y]=cbXY(f),on=f.id===c.sel;
+    s+=`<g class="cb-dot" data-id="${esc(f.id)}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})" tabindex="0" role="button" aria-label="${esc(f.name)}, party, ${f.ft} feet. Drag, or use the arrow keys, to change the distance.">
+      <circle r="26" fill="transparent"/>
+      ${on?`<circle class="cb-ping" r="22" fill="none" stroke="#7fd99a" stroke-width="2"/>`:''}
+      <path class="ring" d="M0 ${on?-16:-14}L${on?16:14} 0 0 ${on?16:14} ${on?-16:-14} 0Z" fill="#11261a" stroke="#7fd99a" stroke-width="${on?3:2.2}"${on?' style="filter:drop-shadow(0 0 10px rgba(127,217,154,.8))"':''}/>
+      <text y="4" text-anchor="middle" font-family="Cinzel,serif" font-weight="700" font-size="10" fill="#d6ffe0">${esc(cbIni(f.name))}</text>
+      <text class="lbl" y="${on?32:29}" text-anchor="middle" font-family="Rajdhani,sans-serif" font-weight="700" font-size="12" fill="#7fd99a">${f.ft} FT</text>
+    </g>`;
+  });
   svg.innerHTML=s;
-  $('cb-empty').hidden=c.foes.length>0;
+  $('cb-empty').hidden=c.foes.length+c.allies.length>0;
   svg.querySelectorAll('.cb-dot').forEach(g=>{
-    const f=cbFoe(g.dataset.id);
+    const f=cbAny(g.dataset.id);
     g.onpointerdown=e=>{
       if(e.button)return;e.preventDefault();
       try{g.setPointerCapture(e.pointerId)}catch(err){}
@@ -2801,7 +2852,21 @@ function cbArm(btn,label,onDo){
   };
 }
 function renderCbTarget(){
-  const c=CB(),f=cbSel(),w=$('cb-target');
+  const c=CB(),f=cbSel(),w=$('cb-target'),al=cbTgt();
+  if(al&&al.ally){
+    w.innerHTML=`<div class="cb-tg cut" style="background:#7fd99a"><div class="cut" style="background:#0c1a12">
+      <div class="cb-h"><span class="cb-cap" style="color:#7fd99a">Party member</span><span class="cb-cap">Not a target for attacks</span></div>
+      <span class="nm" style="font-family:Cinzel,serif;font-weight:800;font-size:21px"></span>
+      <div class="cb-row"><span class="cb-cap" style="flex:1">Distance from Ash</span><span class="cb-step"><button type="button" id="cbt-near" aria-label="5 feet closer">−</button><span style="color:#7fd99a">${al.ft} FT</span><button type="button" id="cbt-far" aria-label="5 feet farther">+</button></span></div>
+      <p class="cb-none" style="font-size:14px">Spells like Guidance check their range against them. Pick a foe to attack.</p>
+      <div class="cb-row"><button type="button" class="cb-btn quiet" id="cbt-rm" style="margin-left:auto">Take off the radar</button></div>
+    </div></div>`;
+    w.querySelector('.nm').textContent=al.name;
+    $('cbt-near').onclick=()=>{al.ft=Math.max(5,al.ft-5);save();renderCombat()};
+    $('cbt-far').onclick=()=>{al.ft+=5;save();renderCombat()};
+    $('cbt-rm').onclick=()=>{c.allies=c.allies.filter(x=>x!==al);c.sel=null;save();renderCombat()};
+    return;
+  }
   if(!f){w.innerHTML='<div class="cb-tg none cut"><div class="cut"><span class="cb-cap">Target</span><p class="cb-none">Pick a foe on the radar or in the list. Your actions check their range against it.</p></div></div>';return}
   w.innerHTML=`<div class="cb-tg cut"><div class="cut">
     <div class="cb-h"><span class="cb-cap" style="color:#b9a6f5">Target</span><span class="cb-cap">${cbHitsTxt(f)}</span></div>
@@ -2865,7 +2930,7 @@ function renderCbAsh(){
   $('cba-heal').onclick=()=>healBy(amtv());
 }
 function renderCbBar(){
-  const c=CB(),f=cbSel(),w=$('cb-bar'),acts=cbActions();w.innerHTML='';
+  const c=CB(),f=cbTgt(),w=$('cb-bar'),acts=cbActions();w.innerHTML='';
   let best=null; // the first damaging action that's fully usable gets the highlight
   [['a','Action','#5ff0cf'],['b','Bonus action','#b9a6f5'],['r','Reaction','#ffcf6b']].forEach(([k,lab,col])=>{
     const list=acts.filter(a=>a.k===k);if(!list.length)return;
@@ -2873,7 +2938,7 @@ function renderCbBar(){
     g.innerHTML=`<span class="cb-cap" style="color:${col}">${lab}${c.eco[k]?'':' · spent'}</span><div class="cb-tiles"></div>`;
     list.forEach(a=>{
       const st=cbStatus(a,f,c),t=document.createElement('button');t.type='button';
-      const isBest=!best&&f&&a.kind!=='util'&&st.t==='IN RANGE';if(isBest)best=a;
+      const isBest=!best&&f&&!f.ally&&a.kind!=='util'&&st.t==='IN RANGE';if(isBest)best=a;
       t.className=`cb-tile k-${k} ${st.cls}${isBest?' best':''}`;
       t.title=a.sp?a.sp.m:(a.atk&&a.atk.note)||'';
       t.innerHTML=`${cbIcon(a)}<span class="tn"></span><span class="ts"></span><span class="tt">${st.t}</span>`;
@@ -2910,14 +2975,15 @@ function renderCbTurn(){
 /* the dice tray pops up over the radar */
 let cbD=null;
 function cbUse(a){
-  const c=CB(),f=cbSel(),st=cbStatus(a,f,c);
+  const c=CB(),f=cbTgt(),st=cbStatus(a,f,c);
+  if(f&&f.ally&&(a.kind!=='util'||a.n==='Hex')){toast(a.n,`${f.name} is in your party. Pick a foe on the radar to attack.`,'—');return}
   if(st.t==='NO SLOT'){toast(a.n,'No pact slot left. Take a short rest.','—','fumble');return}
   if(a.sp&&(a.slot||a.sp.c||a.sp.dur||a.sp.aoa||a.sp.lasting)){
     const before=S.slotsUsed;cast(a.sp);
     if(a.slot&&S.slotsUsed===before)return;
   }else if(a.kind==='util')toast(a.n,f&&a.ft?`${f.name} is ${f.ft} ft away · range ${a.ft<=5?'touch':a.ft+' ft'}`:'Used','✦');
   c.eco[a.k]=false;
-  if(a.n==='Hex'&&f)c.hex=f.id;
+  if(a.n==='Hex'&&f&&!f.ally)c.hex=f.id;
   if(a.kind!=='util')cbD={a:a,fid:f?f.id:null,mode:st.dis?'dis':'norm',why:st.why||'',beam:1,beams:a.atk.beams||1,ph:'ready'};
   save();renderAll();
 }
