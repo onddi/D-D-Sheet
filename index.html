@@ -428,6 +428,17 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
 .grow .g span{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:6px;padding:3px 8px;background:var(--surface);font-size:.78rem}
 .grow .g i{font-style:normal;color:var(--muted);font-size:.68rem}
 .grow .g span.now{border-color:var(--accent);background:var(--accent-soft)}
+/* concentration check */
+.cc-dlg{border-color:var(--warn);width:min(480px,calc(100vw - 24px))}
+.cc-box{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:8px;background:var(--warn-soft);border:1px solid var(--warn)}
+.cc-box p{margin:0}
+.cc-dc{font-family:var(--display);font-size:1.5rem;line-height:1.1}
+.cc-dc b{font-size:1.9rem}
+.cc-how .boost{margin-left:4px}
+.cc-res{font-weight:600}
+.cc-res.ok{color:var(--good)}
+.cc-res.bad{color:var(--danger)}
+.btn.primary.danger{background:var(--danger);border-color:var(--danger);color:#fff}
 /* rest dialog and Book of Shadows editor */
 body:has(dialog[open]){overflow:hidden}
 .dlg{overscroll-behavior:contain;border:1px solid var(--line);border-radius:12px;padding:0;background:var(--surface);color:var(--ink);width:min(720px,calc(100vw - 24px));max-height:calc(100dvh - 24px)}
@@ -969,6 +980,7 @@ td .boost{margin:3px 0 0;display:flex;width:max-content}
         <label class="label" for="bk-text">Backup text</label>
         <textarea id="bk-text" style="min-height:70px;font-family:var(--mono);font-size:.75rem" placeholder="Paste a backup here and choose Restore"></textarea>
         <div class="toolbar"><button class="btn small primary" id="bk-restore">Restore from text</button></div>
+        <p class="fine">Sheet version <span class="num" id="app-ver"></span>. If a change doesn’t show up, refresh the page (Ctrl/Cmd+Shift+R).</p>
       </section>
     </div>
   </div>
@@ -980,6 +992,13 @@ td .boost{margin:3px 0 0;display:flex;width:max-content}
     <div class="panel-head"><h2 id="rest-h"></h2><button class="x" type="button" id="rest-x">Close</button></div>
     <p class="dlg-sum" id="rest-sum"></p>
     <div id="book-ed"></div>
+  </div>
+</dialog>
+
+<dialog class="dlg cc-dlg" id="cc-dlg" aria-labelledby="cc-h">
+  <div class="dlg-in">
+    <div class="panel-head"><h2 id="cc-h">Concentration check</h2><span class="fine" id="cc-q"></span></div>
+    <div id="cc-body"></div>
   </div>
 </dialog>
 
@@ -1010,6 +1029,7 @@ td .boost{margin:3px 0 0;display:flex;width:max-content}
 <script>
 (function(){
 const KEY='ash-sheet-v1';
+const APP_VERSION='2026-11-06.2';
 const AB=[['str','Strength'],['dex','Dexterity'],['con','Constitution'],['int','Intelligence'],['wis','Wisdom'],['cha','Charisma']];
 const SAVES=['wis','cha'];
 // Level. pv is a preview level that is never saved; lvl() is what every number on the sheet follows.
@@ -1294,7 +1314,7 @@ $('hp-dmg').onclick=()=>{
       dsResult();
     }
   }
-  if(S.conc)toast('Concentration check',`DC ${Math.min(30,Math.max(10,Math.floor(total/2)))} Con save for ${S.conc}`+(hasInv('Eldritch Mind')?', with Advantage (Eldritch Mind)':''),'!');
+  if(S.conc)concCheck(total);
   save();renderAll();
 };
 $('hp-heal').onclick=()=>{
@@ -1318,6 +1338,39 @@ $('ds-roll').onclick=()=>{
   else if(r>=10){markDs('s');msg='Success'}else{markDs('f');msg='Failure'}
   toast('Death save',msg,r,r===20?'crit':r===1?'fumble':'');dsResult();save();renderAll();
 };
+
+/* ---------- concentration checks ---------- */
+// Taking damage while concentrating means a Con save; each hit is its own save, so they queue up.
+let ccQueue=[],ccRoll=null;
+function concCheck(damage){
+  ccQueue.push({dmg:damage,dc:Math.min(30,Math.max(10,Math.floor(damage/2)))});
+  renderCC();const d=$('cc-dlg');if(!d.open)d.showModal();
+}
+function renderCC(){
+  const c=ccQueue[0],w=$('cc-body');w.innerHTML='';
+  if(!c||!S.conc){ccQueue=[];const d=$('cc-dlg');if(d.open)d.close();return}
+  const adv=hasInv('Eldritch Mind'),b=sg(mod('con'));
+  $('cc-q').textContent=ccQueue.length>1?`${ccQueue.length} checks waiting`:'';
+  const box=document.createElement('div');box.className='cc-box';
+  box.innerHTML=`<p class="cc-why"></p><p class="cc-dc">DC <b>${c.dc}</b> Constitution save</p><p class="cc-how"></p>`;
+  box.querySelector('.cc-why').textContent=`You took ${c.dmg} damage while concentrating on ${S.conc}.`;
+  box.querySelector('.cc-how').innerHTML=adv?`Roll <b>2d20, keep the higher</b>, and add <b>${b}</b>. <span class="boost">Eldritch Mind · Advantage</span>`:`Roll <b>1d20</b> and add <b>${b}</b>.`;
+  if(ccRoll){const r=document.createElement('p');r.className='cc-res '+(ccRoll.ok?'ok':'bad');r.textContent=`Rolled ${ccRoll.det} = ${ccRoll.tot}: ${ccRoll.ok?'you keep '+S.conc:S.conc+' ends'}.`;box.appendChild(r)}
+  w.appendChild(box);
+  const bar=document.createElement('div');bar.className='toolbar cc-bar';
+  const kept=document.createElement('button');kept.className='btn primary';kept.textContent='Kept it';
+  kept.onclick=()=>{ccQueue.shift();ccRoll=null;renderCC()};
+  const lost=document.createElement('button');lost.className='btn danger';lost.textContent=`Lost it: end ${S.conc}`;
+  lost.onclick=()=>{const n=S.conc;endFx(n);S.conc=null;ccQueue=[];ccRoll=null;save();renderAll();renderCC();toast(n+' ended','Concentration broken.','↺')};
+  const roll=document.createElement('button');roll.className='btn';roll.textContent='Roll it for me';
+  roll.onclick=()=>{const a=d(20),b2=d(20),k=adv?Math.max(a,b2):a,tot=k+mod('con');ccRoll={det:(adv?`[${a}, ${b2}] keep ${k}`:`[${a}]`)+' '+b,tot:tot,ok:tot>=c.dc};renderCC()};
+  // after a sheet roll, the matching answer is the main button
+  if(ccRoll&&!ccRoll.ok){lost.className='btn primary danger';kept.className='btn'}
+  bar.append(kept,lost);if(!ccRoll)bar.append(roll);
+  w.appendChild(bar);
+  setTimeout(()=>(ccRoll&&!ccRoll.ok?lost:kept).focus(),0);
+}
+$('cc-dlg').addEventListener('cancel',e=>e.preventDefault()); // answer it, so it isn't skipped by accident
 
 /* ---------- attacks ---------- */
 // How a damaging spell rolls: an attack (hit bonus) or a saving throw (save ability). Null if it deals no damage.
@@ -3900,6 +3953,7 @@ $('lvl-btn').onclick=openHistory;
 $('pv-exit').onclick=()=>setPreview(pvSnap?pvSnap.level||1:1);
 
 levelSync();
+$('app-ver').textContent=APP_VERSION;
 loadFields();renderAll();renderOptions();renderRef();
 (function(){let ok=true;try{localStorage.setItem(KEY+'-probe','1');localStorage.removeItem(KEY+'-probe')}catch(e){ok=false}
   $('save-status').textContent=ok?'Saving in this browser':'Not saving: browser storage is blocked. Use a backup.';})();
