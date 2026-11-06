@@ -600,11 +600,17 @@ td .boost{margin:3px 0 0;display:flex;width:max-content}
 
 /* combat: a game-styled HUD for Ash and the foes. Dark in both themes. Wider than the sheet on big screens. */
 .cb{--k-ink:#e8f1ee;--k-mut:#8fb3a8;--k-dim:#6c7d77;--k-line:#2f5a4f;--k-teal:#5ff0cf;--k-teal-d:#0f2620;--k-vio:#9b7cf0;--k-vio-l:#d4c2ff;--k-amb:#ffcf6b;--k-red:#ff5c5c;--k-foe:#c43b45;--k-foe-l:#4a2328;
-  --cbw:min(1360px,calc(100vw - 32px));position:relative;width:var(--cbw);margin-inline:calc((100% - var(--cbw))/2);
+  position:fixed;inset:0;z-index:6;overflow:auto;overscroll-behavior:contain;
   color:var(--k-ink);font-family:"Rajdhani",var(--body);font-size:15px;line-height:1.3;color-scheme:dark;
-  background:radial-gradient(ellipse at 50% 32%,#12261f 0%,#070a0d 62%),#070a0d;border-radius:14px;padding:20px;isolation:isolate;
-  display:grid;gap:18px 20px;grid-template-columns:280px minmax(0,1fr) 330px;grid-template-areas:"foes radar target" "ash bar turn";align-items:start}
-.cb::before{content:"";position:absolute;inset:0;border-radius:inherit;background-image:linear-gradient(rgba(95,240,207,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(95,240,207,.05) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:-1}
+  background:linear-gradient(rgba(95,240,207,.05) 1px,transparent 1px) 0 0/40px 40px,linear-gradient(90deg,rgba(95,240,207,.05) 1px,transparent 1px) 0 0/40px 40px,radial-gradient(ellipse at 50% 38%,#12261f 0%,#070a0d 62%) fixed,#070a0d;
+  padding:max(16px,env(safe-area-inset-top)) max(24px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(24px,env(safe-area-inset-left));
+  display:grid;gap:18px 24px;grid-template-columns:300px minmax(0,1fr) 340px;grid-template-rows:auto 1fr auto;grid-template-areas:"top top top" "foes radar target" "ash bar turn";align-items:start}
+html.cb-open,html.cb-open body{overflow:hidden}
+.cb-top{grid-area:top;display:flex;align-items:center;gap:12px}
+.cb-top b{font-family:"Cinzel",var(--display);font-weight:800;font-size:20px;letter-spacing:.18em;text-transform:uppercase}
+.cb-top .sp{flex:1}
+.cb-top .cb-btn{display:inline-flex;align-items:center;gap:6px}
+.cb-top svg{width:16px;height:16px}
 .cb button{font-family:inherit;color:inherit}
 .cb button:focus-visible,.cb input:focus-visible,.cb select:focus-visible{outline:2px solid var(--k-teal);outline-offset:2px}
 .cb input,.cb select{font-family:inherit;font-size:15px;color:var(--k-ink);background:#0b1210;border:1px solid var(--k-line);border-radius:0;padding:7px 10px;min-width:0}
@@ -646,8 +652,9 @@ button.cb-chip:hover{border-color:var(--k-red);color:#ffd6d6}
 
 /* radar */
 .cb-radar{grid-area:radar;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
-.cb-rwrap{position:relative;width:min(100%,540px);aspect-ratio:1}
-.cb-rwrap svg{display:block;width:100%;height:100%;overflow:visible;touch-action:none;user-select:none;-webkit-user-select:none}
+.cb-radar{align-self:center}
+.cb-rwrap{position:relative;width:min(100%,780px,max(320px,calc(100dvh - 430px)));aspect-ratio:1}
+#cb-svg{display:block;width:100%;height:100%;overflow:visible;touch-action:none;user-select:none;-webkit-user-select:none}
 .cb-dot{cursor:grab;outline:none}.cb-dot.drag{cursor:grabbing}
 .cb-dot:focus-visible .ring{stroke:#fff}
 .cb-sweep{transform-origin:262px 262px;animation:cbsweep 6s linear infinite}
@@ -658,7 +665,7 @@ button.cb-chip:hover{border-color:var(--k-red);color:#ffd6d6}
 .cb-empty{position:absolute;left:50%;top:62%;transform:translateX(-50%);margin:0;text-align:center;color:var(--k-mut);font-size:15px;pointer-events:none;width:70%}
 
 /* dice tray: pops up over the radar */
-.cb-dice{position:absolute;inset:6%;z-index:3;display:flex;flex-direction:column;gap:12px;padding:16px 18px;background:radial-gradient(circle at 50% 35%,rgba(95,240,207,.16),transparent 62%),rgba(7,12,11,.94);border:1px solid var(--k-teal);box-shadow:0 0 40px rgba(95,240,207,.2);overflow:auto;animation:cbin .18s ease-out}
+.cb-dice{position:absolute;inset:max(0px,calc(50% - 230px));min-width:0;z-index:3;display:flex;flex-direction:column;gap:12px;padding:16px 18px;background:radial-gradient(circle at 50% 35%,rgba(95,240,207,.16),transparent 62%),rgba(7,12,11,.94);border:1px solid var(--k-teal);box-shadow:0 0 40px rgba(95,240,207,.2);overflow:auto;animation:cbin .18s ease-out}
 @keyframes cbin{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
 .cb-x{border:0;background:none;color:var(--k-mut);font-size:24px;line-height:1;padding:0 4px}
 .cb-dt{font-family:"Cinzel",var(--display);font-weight:700;font-size:19px}
@@ -666,7 +673,7 @@ button.cb-chip:hover{border-color:var(--k-red);color:#ffd6d6}
 .cb-dn{margin:0;color:var(--k-mut);font-size:15px}
 .cb-dn b{color:var(--k-ink)}
 .cb-dn.warn{color:var(--k-amb)}
-.cb-roll{display:flex;align-items:center;justify-content:center;gap:18px;flex:1;min-height:120px}
+.cb-roll{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 18px;flex:1;min-height:120px}
 .cb-d20{width:110px;height:110px;flex:none;filter:drop-shadow(0 0 14px rgba(95,240,207,.6))}
 .cb-d20.anim{animation:cbtumble .9s cubic-bezier(.2,.8,.2,1)}
 .cb-d20.anim text{animation:cbfade .9s}
@@ -724,7 +731,7 @@ button.cb-chip:hover{border-color:var(--k-red);color:#ffd6d6}
 .cb-conc>span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cb-conc em{font-style:normal;font-size:12px;color:var(--k-teal);white-space:nowrap}
 .cb-conc button{font-size:11px;padding:3px 8px}
-.cb-hpin{width:64px}
+.cb-hpin{width:74px;flex:none}
 .cb-downchip{padding:4px 8px;background:#3a1016;border:1px solid var(--k-foe);color:#ffd6d6;font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
 
 /* hotbar */
@@ -756,8 +763,15 @@ button.cb-chip:hover{border-color:var(--k-red);color:#ffd6d6}
 .cb-end{font-family:"Cinzel",var(--display)!important;font-size:18px;font-weight:800;letter-spacing:.14em;color:#04140f;background:var(--k-teal);border:0;padding:15px 0;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);box-shadow:0 0 20px rgba(95,240,207,.35)}
 .cb-end:hover{background:#8ff7df}
 
-@media (max-width:999px){
-  .cb{grid-template-columns:minmax(0,1fr);grid-template-areas:"ash" "radar" "target" "bar" "turn" "foes";padding:14px 12px;gap:16px}
+@media (min-width:760px) and (max-width:1199px){
+  .cb{grid-template-columns:minmax(0,1fr) 320px;grid-template-rows:auto;grid-template-areas:"top top" "radar target" "radar foes" "ash turn" "bar bar"}
+  .cb-rwrap{width:min(100%,640px)}
+  .cb-ash,.cb-turn,.cb-bar{align-self:start}
+}
+@media (max-width:759px){
+  .cb{grid-template-columns:minmax(0,1fr);grid-template-rows:none;grid-template-areas:"top" "ash" "radar" "target" "bar" "turn" "foes";padding:max(12px,env(safe-area-inset-top)) 12px max(24px,env(safe-area-inset-bottom));gap:16px}
+  .cb-rwrap{width:100%}
+  .cb-top .cb-btn span{display:none}
   .cb-ash,.cb-bar,.cb-turn{align-self:auto}
   .cb-bar{flex-direction:column;align-items:stretch}
   .cb-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr))}
@@ -816,6 +830,10 @@ button.cb-chip:hover{border-color:var(--k-red);color:#ffd6d6}
 
   <div id="tab-combat" hidden>
     <div class="cb" id="cb">
+      <div class="cb-top"><b>Combat</b><span class="cb-cap" id="cb-turnlbl"></span><span class="sp"></span>
+        <button type="button" class="cb-btn quiet" id="cb-fs" aria-label="Full screen" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span>Full screen</span></button>
+        <button type="button" class="cb-btn quiet" id="cb-close" aria-label="Back to the sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span>Back to sheet</span></button>
+      </div>
       <section class="cb-foes" aria-label="Foes">
         <div class="cb-h"><b>Foes</b><span class="cb-cap">HP unknown · track hits</span></div>
         <div id="cb-foes"></div>
@@ -1233,7 +1251,7 @@ button.cb-chip:hover{border-color:var(--k-red);color:#ffd6d6}
 <script>
 (function(){
 const KEY='ash-sheet-v1';
-const APP_VERSION='2026-11-06.5';
+const APP_VERSION='2026-11-06.6';
 const AB=[['str','Strength'],['dex','Dexterity'],['con','Constitution'],['int','Intelligence'],['wis','Wisdom'],['cha','Charisma']];
 const SAVES=['wis','cha'];
 // Level. pv is a preview level that is never saved; lvl() is what every number on the sheet follows.
@@ -2567,11 +2585,13 @@ function renderRef(){
 }
 $('ref-q').oninput=()=>renderRef();
 
+let cbLast='sheet';
 function showTab(t){
   if(pv&&(t==='journal'||t==='story')){setPreview(S.level||1);toast('Preview ended','Back to your real sheet, so notes are saved.','↺')}
   document.querySelectorAll('[data-tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===t)));
   $('tab-sheet').hidden=t!=='sheet';$('tab-options').hidden=t!=='options';$('tab-ref').hidden=t!=='ref';$('tab-guide').hidden=t!=='guide';$('tab-story').hidden=t!=='story';$('tab-journal').hidden=t!=='journal';$('tab-combat').hidden=t!=='combat';
-  if(t==='combat')renderCombat();
+  document.documentElement.classList.toggle('cb-open',t==='combat');
+  if(t==='combat')renderCombat();else{cbLast=t;if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})}
   if(t==='sheet')fitEquip();
   try{localStorage.setItem(KEY+'-tab',t)}catch(e){}
 }
@@ -2868,6 +2888,7 @@ function renderCbBar(){
 const CB_GEM=(fill,stroke)=>`<svg viewBox="0 0 34 34" aria-hidden="true"><path d="M17 2 32 17 17 32 2 17Z" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/></svg>`;
 function renderCbTurn(){
   const c=CB(),w=$('cb-turn'),mv=c.eco.mv||0;
+  $('cb-turnlbl').textContent='Turn '+c.turn+(c.foes.length?' · '+c.foes.filter(f=>f.w<4).length+' standing':'');
   w.innerHTML=`<div class="cb-h"><span class="cb-cap">This turn</span><span class="cb-cap" style="color:var(--k-teal)">Turn ${c.turn}</span></div>
     <div class="cb-gems" id="cbu-gems"></div>
     <div class="cb-mv"><div class="cb-h"><span class="cb-cap" style="color:var(--k-ink)">Move</span><span class="cb-row" style="gap:6px"><button type="button" class="cb-btn quiet" id="cbu-mvm" aria-label="Moved 5 feet less" style="padding:2px 8px">−</button><span class="cb-cap" style="color:var(--k-teal)">${Math.max(0,30-mv)} / 30 FT LEFT</span><button type="button" class="cb-btn quiet" id="cbu-mvp" aria-label="Moved 5 feet" style="padding:2px 8px">+5</button></span></div><div class="cb-mvbar"><i style="width:${Math.max(0,30-mv)/30*100}%"></i></div></div>
@@ -2938,7 +2959,7 @@ function renderCbDice(){
   const acts=[];
   if(cbD.ph==='ready'&&isSave){
     h+=`<p class="cb-dn">${f?who:'The target'} makes a <b>${esc(a.atk.save)}</b> save against <b>DC ${8+PB+mod('cha')}</b>. Ask the DM how it went.</p><div class="cb-roll">${CB_D20('DC')}</div>`;
-    acts.push(['Failed · roll damage','pri',()=>cbHit(true)],['Failed · I roll','ghost',()=>cbHit(false)]);
+    acts.push(['Failed · roll damage for me','pri',()=>cbHit(true)],['Failed · I’ll roll damage','ghost',()=>cbHit(false)]);
     if(a.sp&&a.sp.lvl>=1)acts.push(['Saved · half damage','',()=>cbHit(true,true)]);
     acts.push(['Saved','quiet',()=>cbNext()]);
   }else if(cbD.ph==='ready'){
@@ -2951,7 +2972,7 @@ function renderCbDice(){
     const cls=cbD.k===20?' crit':cbD.k===1?' fumble':'';
     h+=`<div class="cb-roll${anim?' anim':''}">${CB_D20(cbD.k).replace('class="cb-d20"','class="cb-d20'+(anim?' anim':'')+'"')}<div class="cb-tot${anim?' anim':''}${cls}"><b>${cbD.tot}</b><span>${cbD.k===20?'Critical hit':cbD.k===1?'Natural 1 · miss':'to hit'}</span></div></div>
       <p class="cb-dn" style="text-align:center">${esc(cbD.det)}${cbD.k===20?' · damage dice are doubled':''}</p>`;
-    if(cbD.k!==1)acts.push(['Hit · roll damage','pri',()=>cbHit(true)],['Hit · I roll','ghost',()=>cbHit(false)]);
+    if(cbD.k!==1)acts.push(['Hit · roll damage for me','pri',()=>cbHit(true)],['Hit · I’ll roll damage','ghost',()=>cbHit(false)]);
     acts.push(['Miss',cbD.k===1?'pri':'quiet',()=>cbNext()]);
   }else{
     const g=cbD.dmg;
@@ -2969,6 +2990,14 @@ function renderCbDice(){
   const ti=$('cbd-t');
   if(ti){const use=()=>{const v=parseInt(ti.value,10);if(v>=1&&v<=20)cbRollD20(v);else ti.focus()};$('cbd-use').onclick=use;ti.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();use()}}}
   const first=bar.querySelector('.pri');if(first&&!w.contains(document.activeElement))first.focus({preventScroll:true});
+}
+$('cb-close').onclick=()=>showTab(cbLast);
+// The real Fullscreen API where the browser has one (not iPhone Safari); the tab already fills the window.
+if(document.documentElement.requestFullscreen){
+  const fs=$('cb-fs');fs.hidden=false;
+  const lbl=()=>{const on=!!document.fullscreenElement;fs.querySelector('span').textContent=on?'Exit full screen':'Full screen';fs.setAttribute('aria-label',on?'Exit full screen':'Full screen')};
+  fs.onclick=()=>{(document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()).catch(()=>{})};
+  document.addEventListener('fullscreenchange',lbl);
 }
 $('cb-add').onsubmit=e=>{
   e.preventDefault();
