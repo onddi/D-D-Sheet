@@ -543,7 +543,20 @@ body:has(dialog[open]){overflow:hidden}
 .ent-avrow{display:flex;gap:14px;align-items:center}
 .ent-avside{display:flex;flex-direction:column;gap:6px;min-width:0}
 .j-item.ent{align-items:flex-start}
-.qn-box{position:relative}
+.qn-box{position:relative;display:flex;gap:6px;align-items:stretch}
+.qn-box textarea{flex:1;min-width:0}
+.qn-pk{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;width:52px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--muted);cursor:pointer}
+.qn-pk b{font:700 1.1rem/1 var(--mono);color:var(--accent)}
+.qn-pk span{font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.qn-pk:hover{border-color:var(--accent);color:var(--ink)}
+.qn-pop{position:absolute;left:0;top:calc(100% + 4px);z-index:21;width:min(460px,100%);display:flex;flex-direction:column;gap:8px;padding:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.qn-pop input[type=search]{padding:7px 10px;width:100%}
+.qn-kinds button{font-size:.78rem;padding:3px 9px}
+.qn-plist{list-style:none;margin:0;padding:0;max-height:min(320px,45vh);overflow:auto;overscroll-behavior:contain}
+.qn-plist li{display:flex;gap:8px;align-items:center;padding:6px 8px;border-radius:6px;cursor:pointer}
+.qn-plist li.on,.qn-plist li:hover{background:var(--accent-soft)}
+.qn-plist .qn-empty{color:var(--muted);cursor:default;font-size:.85rem}
+.qn-plist .qn-empty:hover{background:none}
 .qn textarea{min-height:0;resize:vertical}
 .qn-dd{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:20;list-style:none;margin:0;padding:4px;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-height:min(360px,50vh);overflow:auto;overscroll-behavior:contain}
 .qn-dd li{display:flex;gap:8px;align-items:center;padding:6px 8px;border-radius:6px;cursor:pointer}
@@ -2917,12 +2930,13 @@ function qnUndo(){
   qnLast.ents.forEach(u=>{const e=ents().find(x=>x.id===u.id);if(e){e.sum=u.sum;e.notes=e.notes.filter(n=>n.id!==u.note)}});
   qnLast=null;save();renderJournal();toast('Undone','The last quick note was removed.','↺');
 }
+document.addEventListener('mousedown',ev=>{document.querySelectorAll('.qn-pop:not([hidden])').forEach(x=>{if(!x.parentElement.contains(ev.target))x.hidden=true})});
 function renderQuickNote(body){
   const sid=qnSid();if(!sid)return;
   const x=jSession(sid);
   const p=document.createElement('section');p.className='panel qn';
   p.innerHTML=`<div class="panel-head"><h2>Quick note</h2><span class="fine"></span></div>
-    <div class="qn-box"><textarea rows="2" placeholder="Type @ to pick a character or place: “@Haldren is a viking”. No @ adds a learned fact."></textarea><ul class="qn-dd" role="listbox" hidden></ul></div>
+    <div class="qn-box"><button type="button" class="qn-pk" title="Pick a character or place by type" aria-haspopup="listbox"><b>@</b><span>Pick</span></button><textarea rows="2" placeholder="Type @ to pick a character or place: “@Haldren is a viking”. No @ adds a learned fact."></textarea><ul class="qn-dd" role="listbox" hidden></ul><div class="qn-pop" hidden></div></div>
     <div class="qn-foot"><span class="fine qn-prev"></span><span class="toolbar"></span></div>`;
   p.querySelector('.panel-head .fine').textContent='Goes to '+sessLabel(x)+'. Enter adds it, Shift+Enter starts a new line.';
   const ta=p.querySelector('textarea'),dd=p.querySelector('.qn-dd'),prev=p.querySelector('.qn-prev'),bar=p.querySelector('.qn-foot .toolbar');
@@ -2940,12 +2954,66 @@ function renderQuickNote(body){
     prev.textContent=r.bad.length?`No match for @${r.bad[0]} yet: pick it from the list or create it.`:r.targets.length?r.targets.map(t=>`→ ${t.e.name}: ${t.t}`).join('   '):'→ Learned fact';
   };
   const close=()=>{dd.hidden=true;opts=[];act=null};
+  const optLi=(o,on)=>{
+    const li=document.createElement('li');li.setAttribute('role','option');li.className=on?'on':'';li.setAttribute('aria-selected',String(on));
+    if(o.e){
+      const c=JCAT(o.e.cat),kd=kindOf(c,o.e.k);
+      li.appendChild(entAvatar(o.e,26));
+      const t=document.createElement('span');t.className='qn-nm';t.textContent=o.e.name;li.appendChild(t);
+      const tg=document.createElement('span');tg.className='pill j-tag';tg.dataset.k=kd[0];tg.textContent=kd[1];li.appendChild(tg);
+    }else{
+      const t=document.createElement('span');t.className='qn-nm qn-new';t.textContent=`+ New ${o.k?kindOf(JCAT(o.cat),o.k)[1].toLowerCase():o.cat==='people'?'character':'lead or place'} “${o.name}”`;li.appendChild(t);
+    }
+    li.onmousedown=ev=>{ev.preventDefault();act=dd.hidden?null:act;pick(o)};
+    return li;
+  };
+  // the picker: choose Characters or Leads & places (and a type), then search inside it
+  const pk=p.querySelector('.qn-pk'),pop=p.querySelector('.qn-pop');
+  let pc='people',pkf='all',pq='',pidx=0,popts=[];
+  const renderPop=()=>{
+    pop.innerHTML='';
+    const c=JCAT(pc);
+    const seg=document.createElement('div');seg.className='seg';seg.setAttribute('role','group');seg.setAttribute('aria-label','Kind of record');
+    ENT_CATS.forEach(cid=>{const b=document.createElement('button');b.type='button';b.textContent=JCAT(cid).n;b.setAttribute('aria-pressed',String(pc===cid));b.onmousedown=ev=>ev.preventDefault();b.onclick=()=>{pc=cid;pkf='all';pidx=0;renderPop()};seg.appendChild(b)});
+    const chips=document.createElement('div');chips.className='filters qn-kinds';chips.setAttribute('role','group');chips.setAttribute('aria-label','Type');
+    [['all','All']].concat(c.kinds.map(([k,l])=>[k,l])).forEach(([k,l])=>{
+      const n=k==='all'?ents().filter(e=>e.cat===pc).length:ents().filter(e=>e.cat===pc&&kindOf(c,e.k)[0]===k).length;
+      if(k!=='all'&&!n)return;
+      const b=document.createElement('button');b.type='button';b.textContent=`${l} ${n}`;b.setAttribute('aria-pressed',String(pkf===k));b.onmousedown=ev=>ev.preventDefault();b.onclick=()=>{pkf=k;pidx=0;renderPop()};chips.appendChild(b);
+    });
+    const si=document.createElement('input');si.type='search';si.placeholder=pc==='people'?'Search characters, or type a new name':'Search leads and places, or type a new name';si.value=pq;si.setAttribute('aria-label','Search');
+    const ul=document.createElement('ul');ul.className='qn-plist';ul.setAttribute('role','listbox');
+    const fill=()=>{
+      const q=pq.trim().toLowerCase();
+      const list=ents().filter(e=>e.cat===pc&&(pkf==='all'||kindOf(c,e.k)[0]===pkf)&&(!q||e.name.toLowerCase().includes(q)))
+        .sort((a,b)=>(!!q&&b.name.toLowerCase().startsWith(q))-(!!q&&a.name.toLowerCase().startsWith(q))||a.name.localeCompare(b.name));
+      popts=list.map(e=>({e:e}));
+      if(q&&!ents().some(e=>e.cat===pc&&e.name.toLowerCase()===q))popts.push({cat:pc,name:pq.trim(),k:pkf!=='all'?pkf:undefined});
+      pidx=Math.min(pidx,Math.max(0,popts.length-1));
+      ul.innerHTML='';
+      popts.forEach((o,i)=>{const li=optLi(o,i===pidx);li.onmousedown=ev=>{ev.preventDefault();act=null;pick(o)};ul.appendChild(li)});
+      if(!popts.length){const li=document.createElement('li');li.className='qn-empty';li.textContent='Nothing yet. Type a name to add one.';ul.appendChild(li)}
+      const on=ul.querySelector('li.on');if(on)on.scrollIntoView({block:'nearest'});
+    };
+    si.oninput=()=>{pq=si.value;pidx=0;fill()};
+    si.onkeydown=ev=>{
+      if(ev.key==='ArrowDown'){ev.preventDefault();if(popts.length){pidx=(pidx+1)%popts.length;fill()}}
+      else if(ev.key==='ArrowUp'){ev.preventDefault();if(popts.length){pidx=(pidx-1+popts.length)%popts.length;fill()}}
+      else if(ev.key==='Enter'){ev.preventDefault();if(popts[pidx]){act=null;pick(popts[pidx])}}
+      else if(ev.key==='Escape'){ev.preventDefault();pop.hidden=true;ta.focus()}
+    };
+    pop.append(seg,chips,si,ul);fill();
+    si.focus();
+  };
+  pk.onclick=()=>{if(pop.hidden){close();pq='';pidx=0;pop.hidden=false;renderPop()}else pop.hidden=true};
   const pick=o=>{
     let e=o.e;
-    if(!e){e={id:uid(),cat:o.cat,k:o.cat==='people'?'unknown':'lead',name:o.name,sum:'',done:false,sid0:sid,notes:[]};ents().push(e);save();toast('Created '+e.name,`As ${o.cat==='people'?'a character (type Unknown)':'a lead'}; change the type on its card.`,'+')}
-    const v=ta.value,end=ta.selectionStart;
-    ta.value=v.slice(0,act.start)+'@'+e.name+' '+v.slice(end);
-    const c=act.start+e.name.length+2;ta.setSelectionRange(c,c);qnText=ta.value;close();preview();ta.focus();
+    if(!e){const k=o.k||(o.cat==='people'?'unknown':'lead');e={id:uid(),cat:o.cat,k:k,name:o.name,sum:'',done:false,sid0:sid,notes:[]};ents().push(e);save();toast('Created '+e.name,`As ${kindOf(JCAT(o.cat),k)[1]}; change the type on its card.`,'+')}
+    const v=ta.value;let at,end;
+    if(act){at=act.start;end=ta.selectionStart}else{at=ta.selectionStart;end=ta.selectionEnd}
+    const before=v.slice(0,at),pre=act||!before||/\s$/.test(before)?'':' ';
+    ta.value=before+pre+'@'+e.name+' '+v.slice(end);
+    const c=(before+pre).length+e.name.length+2;ta.focus();ta.setSelectionRange(c,c);qnText=ta.value;close();pop.hidden=true;preview();
   };
   const show=()=>{
     act=active();
@@ -2961,19 +3029,7 @@ function renderQuickNote(body){
     if(!opts.length){close();return}
     idx=Math.min(idx,opts.length-1);
     dd.innerHTML='';
-    opts.forEach((o,i)=>{
-      const li=document.createElement('li');li.setAttribute('role','option');li.className=i===idx?'on':'';li.setAttribute('aria-selected',String(i===idx));
-      if(o.e){
-        const c=JCAT(o.e.cat),kd=kindOf(c,o.e.k);
-        li.appendChild(entAvatar(o.e,26));
-        const t=document.createElement('span');t.className='qn-nm';t.textContent=o.e.name;li.appendChild(t);
-        const tg=document.createElement('span');tg.className='pill j-tag';tg.dataset.k=kd[0];tg.textContent=kd[1];li.appendChild(tg);
-      }else{
-        const t=document.createElement('span');t.className='qn-nm qn-new';t.textContent=`+ New ${o.cat==='people'?'character':'lead or place'} “${o.name}”`;li.appendChild(t);
-      }
-      li.onmousedown=ev=>{ev.preventDefault();pick(o)};
-      dd.appendChild(li);
-    });
+    opts.forEach((o,i)=>dd.appendChild(optLi(o,i===idx)));
     dd.hidden=false;
     const on=dd.querySelector('li.on');if(on)on.scrollIntoView({block:'nearest'});
   };
