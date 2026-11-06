@@ -1658,7 +1658,7 @@ function renderSpells(){
   });
   renderSlots();
   $('conc-name').textContent=S.conc||'Nothing';
-  $('conc').classList.toggle('active',!!S.conc);
+  $('conc').classList.toggle('active',!!S.conc);$('conc').hidden=!S.conc;
   $('conc-drop').hidden=!S.conc;
   $('conc-save').textContent='Con save';$('conc-em').hidden=!hasInv('Eldritch Mind');
 }
