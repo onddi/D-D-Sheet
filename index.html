@@ -529,8 +529,9 @@ body:has(dialog[open]){overflow:hidden}
 .j-grp[data-k="ally"]{border-left-color:var(--good)}
 .j-grp[data-k="hostile"]{border-left-color:var(--danger);background:var(--danger-soft)}
 .j-grp[data-k="neutral"],.j-grp[data-k="unknown"]{border-left-color:var(--line)}
-.boost{display:inline-flex;align-items:center;gap:2px;margin-left:6px;padding:0 6px 0 4px;border-radius:999px;font:600 .72rem/1.5 var(--mono);color:var(--accent);background:var(--accent-soft);vertical-align:middle;cursor:help}
+.boost{display:inline-flex;align-items:center;gap:3px;margin-left:6px;white-space:nowrap;padding:0 6px 0 4px;border-radius:999px;font:600 .72rem/1.5 var(--mono);color:var(--accent);background:var(--accent-soft);vertical-align:middle;cursor:help}
 .boost svg{width:11px;height:11px;fill:currentColor}
+td .boost{margin:3px 0 0;display:flex;width:max-content}
 .boost-n{color:var(--accent);font-weight:700}
 .btn.primary .boost-n{color:inherit}
 .rt-more{border:0;background:none;padding:0;font:inherit;font-size:.74rem;color:var(--accent);cursor:pointer;text-align:left;align-self:flex-start}
@@ -1358,6 +1359,7 @@ function renderAttacks(){
     const dl=d=>d.map(([c,s])=>`${c}d${s}`).join('+')+(a.flat?(a.boost?`<span class="boost-n" title="Agonizing Blast">${sg(a.flat)}</span>`:sg(a.flat)):'')+(hexApplies()&&!a.save?' +1d6':'')+(a.beams>1?' each':'');
     tr.innerHTML=`<td><strong></strong><span class="note"></span></td><td>${a.save?`<span class="dc num">DC ${dc} ${a.save}</span>`:`<button class="rb">${sg(a.hit)}</button>`}</td><td><button class="rb">${dl(a.dice)}</button>${a.alt?` <button class="rb">${dl(a.alt.dice)} ${a.alt.label}</button>`:''}</td>`;
     tr.querySelector('strong').textContent=a.n;tr.querySelector('.note').textContent=a.note;
+    if(a.boost){const bz=document.createElement('span');bz.className='boost';bz.title=`Agonizing Blast: ${sg(a.flat)} damage on each beam`;bz.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5l1.6 4.2 4.4 1.3-4.4 1.3L8 14.5 6.4 8.3 2 7l4.4-1.3z"/></svg>Agonizing Blast '+sg(a.flat);tr.querySelector('.note').after(bz)}
     const bs=[...tr.querySelectorAll('.rb')];
     if(!a.save)bs.shift().onclick=()=>attackRoll(a.n,a.hit,a.beams);
     bs[0].onclick=()=>dmg(a.n,a.dice,a.flat,a.type,!!a.save);
@@ -1625,7 +1627,7 @@ function renderSpells(){
     if(sp.g){const h=document.createElement('div');h.className='label group-title';h.textContent=sp.g;w.appendChild(h);return}
     const el=document.createElement('details');el.className='spell';el.dataset.n=sp.n;if(open.has(sp.n))el.open=true;
     const tags=(sp.c?'<span class="tag c">Conc.</span>':'')+(sp.ritual?'<span class="tag">Ritual</span>':'')+(sp.patron?'<span class="tag">Patron</span>':'')
-      +(agon(sp)?`<span class="boost" title="Agonizing Blast: ${sg(agon(sp))} damage on each beam" aria-label="Agonizing Blast ${sg(agon(sp))}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5l1.6 4.2 4.4 1.3-4.4 1.3L8 14.5 6.4 8.3 2 7l4.4-1.3z"/></svg>${sg(agon(sp))}</span>`:'')
+      +(agon(sp)?`<span class="boost" title="Agonizing Blast: ${sg(agon(sp))} damage on each beam" aria-label="Agonizing Blast ${sg(agon(sp))}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5l1.6 4.2 4.4 1.3-4.4 1.3L8 14.5 6.4 8.3 2 7l4.4-1.3z"/></svg>Agonizing Blast ${sg(agon(sp))}</span>`:'')
       +(sp.sc==='beams'&&hasInv('Repelling Blast')?'<span class="tag on" title="Each beam that hits pushes the target 10 ft">Repelling</span>':'')
       +(sp.sc==='beams'&&hasInv('Eldritch Spear')?'<span class="tag on" title="Eldritch Spear extends the range">Spear</span>':'');
     el.innerHTML=`<summary><span class="nm">${sp.n}${tags}</span><span class="meta">${sp.m}</span><span class="acts"></span></summary><div class="body"><p></p></div>`;
