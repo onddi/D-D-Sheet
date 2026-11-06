@@ -541,7 +541,7 @@ body:has(dialog[open]){overflow:hidden}
 .j-item.ent{align-items:flex-start}
 .qn-box{position:relative}
 .qn textarea{min-height:0;resize:vertical}
-.qn-dd{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:20;list-style:none;margin:0;padding:4px;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-height:280px;overflow:auto}
+.qn-dd{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:20;list-style:none;margin:0;padding:4px;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-height:min(360px,50vh);overflow:auto;overscroll-behavior:contain}
 .qn-dd li{display:flex;gap:8px;align-items:center;padding:6px 8px;border-radius:6px;cursor:pointer}
 .qn-dd li.on,.qn-dd li:hover{background:var(--accent-soft)}
 .qn-nm{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -2949,7 +2949,7 @@ function renderQuickNote(body){
     // a finished mention followed by more text needs no list
     if(q&&ents().some(e=>{const n=e.name.toLowerCase();return q.startsWith(n+' ')&&q.length>n.length+1})){close();return}
     const list=ents().filter(e=>{const n=e.name.toLowerCase();return !q||n.startsWith(q)||n.split(/[\s&(),-]+/).some(w=>w&&w.startsWith(q))})
-      .sort((a,b)=>(b.name.toLowerCase().startsWith(q))-(a.name.toLowerCase().startsWith(q))||a.name.localeCompare(b.name)).slice(0,8);
+      .sort((a,b)=>(b.name.toLowerCase().startsWith(q))-(a.name.toLowerCase().startsWith(q))||a.name.localeCompare(b.name));
     opts=list.map(e=>({e:e}));
     const nm=act.q.trim();
     if(nm&&nm.split(/\s+/).length<=4&&!ents().some(e=>e.name.toLowerCase()===nm.toLowerCase()))opts.push({cat:'people',name:nm},{cat:'leads',name:nm});
@@ -2970,6 +2970,7 @@ function renderQuickNote(body){
       dd.appendChild(li);
     });
     dd.hidden=false;
+    const on=dd.querySelector('li.on');if(on)on.scrollIntoView({block:'nearest'});
   };
   ta.oninput=()=>{qnText=ta.value;idx=0;show();preview()};
   ta.onclick=show;
