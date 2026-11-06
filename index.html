@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ash, Changeling Warlock</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Rajdhani:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
 /* Layout: a working table-side sheet. Pewter "mirror" neutrals for a shapeshifter, one verdigris eldritch accent. Header strip, then a 3-column grid that stacks on phones. */
 :root{
@@ -598,6 +598,176 @@ td .boost{margin:3px 0 0;display:flex;width:max-content}
 .j-sum{white-space:pre-wrap;overflow-wrap:anywhere;margin:0}
 .rows-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding-top:6px}
 
+/* combat: a game-styled HUD for Ash and the foes. Dark in both themes. Wider than the sheet on big screens. */
+.cb{--k-ink:#e8f1ee;--k-mut:#8fb3a8;--k-dim:#6c7d77;--k-line:#2f5a4f;--k-teal:#5ff0cf;--k-teal-d:#0f2620;--k-vio:#9b7cf0;--k-vio-l:#d4c2ff;--k-amb:#ffcf6b;--k-red:#ff5c5c;--k-foe:#c43b45;--k-foe-l:#4a2328;
+  --cbw:min(1360px,calc(100vw - 32px));position:relative;width:var(--cbw);margin-inline:calc((100% - var(--cbw))/2);
+  color:var(--k-ink);font-family:"Rajdhani",var(--body);font-size:15px;line-height:1.3;color-scheme:dark;
+  background:radial-gradient(ellipse at 50% 32%,#12261f 0%,#070a0d 62%),#070a0d;border-radius:14px;padding:20px;isolation:isolate;
+  display:grid;gap:18px 20px;grid-template-columns:280px minmax(0,1fr) 330px;grid-template-areas:"foes radar target" "ash bar turn";align-items:start}
+.cb::before{content:"";position:absolute;inset:0;border-radius:inherit;background-image:linear-gradient(rgba(95,240,207,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(95,240,207,.05) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:-1}
+.cb button{font-family:inherit;color:inherit}
+.cb button:focus-visible,.cb input:focus-visible,.cb select:focus-visible{outline:2px solid var(--k-teal);outline-offset:2px}
+.cb input,.cb select{font-family:inherit;font-size:15px;color:var(--k-ink);background:#0b1210;border:1px solid var(--k-line);border-radius:0;padding:7px 10px;min-width:0}
+.cb .cut{clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px)}
+.cb-cap{font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--k-mut);text-transform:uppercase}
+.cb-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.cb-h b{font-family:"Cinzel",var(--display);font-weight:800;font-size:17px;letter-spacing:.16em;text-transform:uppercase}
+.cb-none{margin:0;color:var(--k-mut);font-size:15px}
+.cb-row{display:flex;gap:8px;align-items:center}.cb-row.wrap{flex-wrap:wrap;gap:6px}
+.cb-btn{font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;background:#10201c;border:1px solid var(--k-line);padding:8px 12px;border-radius:0;white-space:nowrap}
+.cb-btn:hover{border-color:var(--k-teal)}
+.cb-btn.pri{color:#04140f;background:var(--k-teal);border-color:var(--k-teal);box-shadow:0 0 16px rgba(95,240,207,.35)}
+.cb-btn.ghost{background:transparent;color:var(--k-teal);border-color:var(--k-teal)}
+.cb-btn.red{color:#ffd6d6;background:#3a1016;border-color:var(--k-foe)}
+.cb-btn.vio{color:var(--k-vio-l);background:#1f1836;border-color:#7a5cd6}
+.cb-btn.quiet{background:transparent;border-color:#33473f;color:var(--k-mut)}
+.cb-btn.arm{border-color:var(--k-red);color:var(--k-red)}
+
+/* foes */
+.cb-foes{grid-area:foes;display:flex;flex-direction:column;gap:10px}
+#cb-foes{display:flex;flex-direction:column;gap:10px}
+.cb-foe{display:block;width:100%;padding:1px;border:0;background:var(--k-foe-l);text-align:left}
+.cb-foe>span{display:flex;flex-direction:column;gap:6px;background:#120c0e;padding:10px 12px}
+.cb-foe[aria-pressed="true"]{padding:2px;background:var(--k-vio);filter:drop-shadow(0 0 12px rgba(155,124,240,.5))}
+.cb-foe[aria-pressed="true"]>span{background:#151024}
+.cb-foe.down{opacity:.5}
+.cb-foe .top{display:flex;align-items:center;gap:10px}
+.cb-ini{width:32px;height:32px;flex:none;display:grid;place-items:center;background:#3a1418;color:#ff8a8a;font-family:"Cinzel",var(--display);font-weight:700;font-size:12px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.cb-nm{flex:1;min-width:0;font-family:"Cinzel",var(--display);font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cb-ft{font-size:21px;font-weight:700;white-space:nowrap}.cb-ft small{font-size:12px}
+.cb-gauge{display:flex;gap:3px}.cb-gauge i{flex:1;height:8px;border:1px solid #5a2228;background:#1a0c0e}
+.cb-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.cb-pips{display:inline-flex;gap:2px}
+.cb-chip{padding:1px 7px;font-size:11px;font-weight:700;letter-spacing:.08em;border:1px solid #33473f;background:#1c2522;color:#b9c4c2;text-transform:uppercase}
+.cb-chip.hex{background:#2a1c47;color:var(--k-vio-l);border-color:#7a5cd6}
+button.cb-chip:hover{border-color:var(--k-red);color:#ffd6d6}
+.cb-quote{font-family:var(--display);font-style:italic;font-size:15px;color:#c9b8b8}
+.cb-add{display:flex;gap:6px}.cb-add input{flex:1}
+
+/* radar */
+.cb-radar{grid-area:radar;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+.cb-rwrap{position:relative;width:min(100%,540px);aspect-ratio:1}
+.cb-rwrap svg{display:block;width:100%;height:100%;overflow:visible;touch-action:none;user-select:none;-webkit-user-select:none}
+.cb-dot{cursor:grab;outline:none}.cb-dot.drag{cursor:grabbing}
+.cb-dot:focus-visible .ring{stroke:#fff}
+.cb-sweep{transform-origin:262px 262px;animation:cbsweep 6s linear infinite}
+.cb-ping{transform-box:fill-box;transform-origin:center;animation:cbping 1.6s ease-out infinite}
+@keyframes cbsweep{to{transform:rotate(-360deg)}}
+@keyframes cbping{0%{transform:scale(.7);opacity:.9}100%{transform:scale(1.7);opacity:0}}
+.cb-hint{margin:0;font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--k-mut);text-transform:uppercase;text-align:center}
+.cb-empty{position:absolute;left:50%;top:62%;transform:translateX(-50%);margin:0;text-align:center;color:var(--k-mut);font-size:15px;pointer-events:none;width:70%}
+
+/* dice tray: pops up over the radar */
+.cb-dice{position:absolute;inset:6%;z-index:3;display:flex;flex-direction:column;gap:12px;padding:16px 18px;background:radial-gradient(circle at 50% 35%,rgba(95,240,207,.16),transparent 62%),rgba(7,12,11,.94);border:1px solid var(--k-teal);box-shadow:0 0 40px rgba(95,240,207,.2);overflow:auto;animation:cbin .18s ease-out}
+@keyframes cbin{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+.cb-x{border:0;background:none;color:var(--k-mut);font-size:24px;line-height:1;padding:0 4px}
+.cb-dt{font-family:"Cinzel",var(--display);font-weight:700;font-size:19px}
+.cb-dt span{color:var(--k-teal)}
+.cb-dn{margin:0;color:var(--k-mut);font-size:15px}
+.cb-dn b{color:var(--k-ink)}
+.cb-dn.warn{color:var(--k-amb)}
+.cb-roll{display:flex;align-items:center;justify-content:center;gap:18px;flex:1;min-height:120px}
+.cb-d20{width:110px;height:110px;flex:none;filter:drop-shadow(0 0 14px rgba(95,240,207,.6))}
+.cb-d20.anim{animation:cbtumble .9s cubic-bezier(.2,.8,.2,1)}
+.cb-d20.anim text{animation:cbfade .9s}
+@keyframes cbtumble{0%{transform:rotate(0) scale(.5);opacity:.3}30%{transform:rotate(300deg) scale(1.12);opacity:1}60%{transform:rotate(560deg) scale(.95)}85%,100%{transform:rotate(720deg) scale(1)}}
+@keyframes cbfade{0%,70%{opacity:0}100%{opacity:1}}
+.cb-tot{display:flex;flex-direction:column;line-height:1}
+.cb-tot b{font-family:"Cinzel",var(--display);font-weight:800;font-size:60px;color:var(--k-teal);text-shadow:0 0 18px rgba(95,240,207,.6)}
+.cb-tot.anim b{animation:cbpop 1.2s ease-out}
+@keyframes cbpop{0%,65%{opacity:0;transform:scale(.5)}82%{opacity:1;transform:scale(1.18)}100%{transform:scale(1)}}
+.cb-tot span{font-size:14px;font-weight:700;letter-spacing:.14em;color:#c9fff0;text-transform:uppercase}
+.cb-tot.crit b{color:var(--k-amb);text-shadow:0 0 18px rgba(255,207,107,.7)}.cb-tot.fumble b{color:var(--k-red);text-shadow:none}
+.cb-dice-row{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:260px}
+.cb-die{min-width:40px;height:40px;padding:0 6px;display:grid;place-items:center;font-weight:700;font-size:18px;border:2px solid var(--k-teal);background:var(--k-teal-d);border-radius:8px;box-shadow:0 0 10px rgba(95,240,207,.3)}
+.cb-die.hex{border-color:var(--k-vio);background:#1f1836;color:var(--k-vio-l)}
+.cb-die.flat{border-style:dashed;font-size:15px;box-shadow:none}
+.anim .cb-die{animation:cbdie .5s ease-out both}
+@keyframes cbdie{0%{opacity:0;transform:translateY(-14px) rotate(-90deg) scale(.4)}100%{opacity:1;transform:none}}
+.cb-dacts{display:flex;flex-wrap:wrap;gap:8px}.cb-dacts .cb-btn{flex:1 1 auto}
+.cb-seg{display:flex}.cb-seg button{flex:1;font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:7px 4px;background:#0b1210;border:1px solid var(--k-line);color:var(--k-mut)}
+.cb-seg button+button{border-left:0}
+.cb-seg button[aria-pressed="true"]{background:var(--k-teal-d);color:var(--k-teal);border-color:var(--k-teal)}
+.cb-table{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--k-mut);text-transform:uppercase}
+.cb-table input{width:64px}
+
+/* target */
+.cb-target{grid-area:target}
+.cb-tg{padding:2px;background:var(--k-vio)}.cb-tg>div{background:#100c1c;padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.cb-tg.none{background:var(--k-line);padding:1px}.cb-tg.none>div{background:#0b1210}
+.cb-tg .nm{font-family:"Cinzel",var(--display);font-weight:800;font-size:21px;line-height:1.1;background:transparent;border:0;border-bottom:1px solid transparent;padding:0;width:100%}
+.cb-tg .nm:hover,.cb-tg .nm:focus{border-bottom-color:#3b3350}
+.cb-step{display:flex;align-items:center}
+.cb-step button{width:40px;height:38px;font-size:18px;font-weight:700;background:#10201c;border:1px solid var(--k-line)}
+.cb-step span{min-width:66px;text-align:center;font-weight:700;font-size:20px;color:var(--k-vio)}
+.cb-field{display:flex;flex-direction:column;gap:6px}
+.cb-states{display:flex;flex-wrap:wrap;gap:4px}
+.cb-states button{flex:1 1 auto;font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:7px 6px;background:#120c0e;border:1px solid}
+.cb-dm{font-family:var(--display)!important;font-style:italic;font-size:17px!important;width:100%;background:#0b0814!important;border-color:#3b3350!important}
+
+/* Ash */
+.cb-ash{grid-area:ash;align-self:end;display:flex;gap:14px;align-items:flex-start;position:relative}
+.cb-pw{position:relative;flex:none;padding-bottom:8px}
+.cb-port{position:relative;width:84px;height:96px;flex:none;background:var(--k-teal);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.cb-port>span{position:absolute;inset:3px;background:#0d1a17 center/cover no-repeat;clip-path:inherit;display:grid;place-items:center;font-family:"Cinzel",var(--display);font-size:36px;font-weight:800;color:#c9fff0}
+.cb-lv{position:absolute;left:50%;bottom:0;transform:translateX(-50%);font-size:12px;font-weight:700;letter-spacing:.1em;background:var(--k-teal);color:#04140f;padding:1px 8px;white-space:nowrap}
+.cb-ashb{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.cb-hpn{font-size:15px;font-weight:700;color:var(--k-mut)}.cb-hpn b{font-size:24px;color:var(--k-ink);font-family:inherit;letter-spacing:0}.cb-hpn em{font-style:normal;color:#9fd8ff}
+.cb-hp{position:relative;height:18px;background:#0c1512;border:1px solid var(--k-line);overflow:hidden}
+.cb-hp i{position:absolute;top:0;bottom:0;left:0;background:linear-gradient(90deg,#1f8f6c,#5ff0cf)}
+.cb-hp i.low{background:linear-gradient(90deg,#8f1f2a,#ff5c5c)}
+.cb-hp i.t{background:#6fb7e8}
+.cb-hp::after{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(90deg,transparent 0 var(--seg,11px),rgba(0,0,0,.55) var(--seg,11px) calc(var(--seg,11px) + 1px))}
+.cb-stats{font-size:14px;font-weight:700;letter-spacing:.06em;flex-wrap:wrap}
+.cb-slot{width:20px;height:20px;padding:0;border:0;background:none}
+.cb-conc{display:flex;align-items:center;gap:8px;padding:5px 6px 5px 10px;background:#1a1430;border:1px solid #7a5cd6;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#e5dbff}
+.cb-conc>span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cb-conc em{font-style:normal;font-size:12px;color:var(--k-teal);white-space:nowrap}
+.cb-conc button{font-size:11px;padding:3px 8px}
+.cb-hpin{width:64px}
+.cb-downchip{padding:4px 8px;background:#3a1016;border:1px solid var(--k-foe);color:#ffd6d6;font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+
+/* hotbar */
+.cb-bar{grid-area:bar;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;align-self:end;min-width:0}
+.cb-grp{display:flex;flex-direction:column;gap:6px;min-width:0}
+.cb-grp.spent .cb-tiles{opacity:.45}
+.cb-tiles{display:flex;flex-wrap:wrap;gap:8px}
+.cb-tile{width:88px;height:106px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 4px;border:2px solid var(--k-line);background:#0e1614;text-align:center;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+.cb-tile:hover{background:#13211d}
+.cb-tile svg{width:30px;height:30px;flex:none}
+.cb-tile .tn{font-size:13px;font-weight:700;letter-spacing:.03em;line-height:1.05;text-transform:uppercase;overflow-wrap:anywhere}
+.cb-tile .ts{font-size:11.5px;color:#9fe6d4;white-space:nowrap}
+.cb-tile .tt{font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--k-mut)}
+.cb-tile.ok .tt{color:var(--k-teal)}
+.cb-tile.k-b{border-color:#5a4a8a}.cb-tile.k-r{border-color:#8a6a2c}
+.cb-tile.best{background:var(--k-teal-d);border-color:var(--k-teal);box-shadow:inset 0 0 18px rgba(95,240,207,.25)}
+.cb-tile.warn{border-color:#c48a2c}.cb-tile.warn .tt{color:var(--k-amb)}
+.cb-tile.off{background:#12110f;border-color:#4a3a22;color:var(--k-mut)}.cb-tile.off .tt{color:var(--k-amb)}.cb-tile.off svg{opacity:.5}
+.cb-tile.spent .tt{color:var(--k-dim)}
+
+/* this turn */
+.cb-turn{grid-area:turn;align-self:end;display:flex;flex-direction:column;gap:12px}
+.cb-gems{display:flex;justify-content:space-between;gap:6px}
+.cb-gem{display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:none;padding:0;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;flex:1}
+.cb-gem svg{width:32px;height:32px}
+.cb-gem[aria-pressed="false"]{opacity:.45}
+.cb-mv{display:flex;flex-direction:column;gap:5px}
+.cb-mvbar{height:8px;background:#0c1512;border:1px solid var(--k-line)}.cb-mvbar i{display:block;height:100%;background:var(--k-teal)}
+.cb-end{font-family:"Cinzel",var(--display)!important;font-size:18px;font-weight:800;letter-spacing:.14em;color:#04140f;background:var(--k-teal);border:0;padding:15px 0;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);box-shadow:0 0 20px rgba(95,240,207,.35)}
+.cb-end:hover{background:#8ff7df}
+
+@media (max-width:999px){
+  .cb{grid-template-columns:minmax(0,1fr);grid-template-areas:"ash" "radar" "target" "bar" "turn" "foes";padding:14px 12px;gap:16px}
+  .cb-ash,.cb-bar,.cb-turn{align-self:auto}
+  .cb-bar{flex-direction:column;align-items:stretch}
+  .cb-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr))}
+  .cb-tile{width:auto}
+  .cb-dice{inset:0}
+  .cb-port{width:64px;height:74px}.cb-port>span{font-size:28px}
+  .cb-bar{flex-wrap:nowrap}.cb-tiles{align-content:start}
+}
+@media (prefers-reduced-motion:reduce){.cb *,.cb *::before{animation:none!important}}
+
 /* roll log */
 .log{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:min(340px,calc(100vw - 32px));display:flex;flex-direction:column;gap:6px;z-index:10;pointer-events:none}
 .roll{pointer-events:auto;background:var(--ink);color:var(--bg);border-radius:8px;padding:9px 12px;box-shadow:0 6px 20px rgba(0,0,0,.25);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;animation:pop .18s ease-out}
@@ -630,6 +800,7 @@ td .boost{margin:3px 0 0;display:flex;width:max-content}
 
   <nav class="tabs" role="tablist" aria-label="Sheet sections">
     <button role="tab" id="tab-btn-sheet" data-tab="sheet" aria-selected="true">Character</button>
+    <button role="tab" id="tab-btn-combat" data-tab="combat" aria-selected="false">Combat</button>
     <button role="tab" id="tab-btn-journal" data-tab="journal" aria-selected="false">Journal</button>
     <button role="tab" id="tab-btn-story" data-tab="story" aria-selected="false">Story</button>
     <button role="tab" id="tab-btn-options" data-tab="options" aria-selected="false">Build &amp; plans</button>
@@ -642,6 +813,24 @@ td .boost{margin:3px 0 0;display:flex;width:max-content}
     <p class="fine" id="pv-note"></p>
     <details id="pv-more"><summary id="pv-sum"></summary><ul class="pv-list" id="pv-list"></ul></details>
   </section>
+
+  <div id="tab-combat" hidden>
+    <div class="cb" id="cb">
+      <section class="cb-foes" aria-label="Foes">
+        <div class="cb-h"><b>Foes</b><span class="cb-cap">HP unknown · track hits</span></div>
+        <div id="cb-foes"></div>
+        <form class="cb-add" id="cb-add"><input id="cb-add-n" placeholder="Add a foe, e.g. Goblin" aria-label="New foe's name" autocomplete="off"><button class="cb-btn ghost" type="submit">Add</button></form>
+      </section>
+      <section class="cb-radar" aria-label="Range radar">
+        <div class="cb-rwrap"><svg id="cb-svg" viewBox="0 0 524 524" role="group" aria-label="Range radar: Ash in the middle, foes by distance"></svg><p class="cb-empty" id="cb-empty">Add a foe to put it on the radar</p><div class="cb-dice" id="cb-dice" role="dialog" aria-label="Dice tray" hidden></div></div>
+        <p class="cb-hint">Drag a foe to set its distance · tap to target</p>
+      </section>
+      <section class="cb-target" id="cb-target" aria-label="Target"></section>
+      <section class="cb-ash" id="cb-ash" aria-label="Ash"></section>
+      <section class="cb-bar" id="cb-bar" aria-label="Actions"></section>
+      <section class="cb-turn" id="cb-turn" aria-label="This turn"></section>
+    </div>
+  </div>
 
   <div id="tab-journal" class="journal" hidden>
     <section class="panel">
@@ -1044,7 +1233,7 @@ td .boost{margin:3px 0 0;display:flex;width:max-content}
 <script>
 (function(){
 const KEY='ash-sheet-v1';
-const APP_VERSION='2026-11-06.4';
+const APP_VERSION='2026-11-06.5';
 const AB=[['str','Strength'],['dex','Dexterity'],['con','Constitution'],['int','Intelligence'],['wis','Wisdom'],['cha','Charisma']];
 const SAVES=['wis','cha'];
 // Level. pv is a preview level that is never saved; lvl() is what every number on the sheet follows.
@@ -1310,8 +1499,8 @@ function renderHP(){
 }
 const amt=()=>Math.max(0,parseInt($('hp-amt').value,10)||0);
 const DEAD={f0:true,f1:true,f2:true};
-$('hp-dmg').onclick=()=>{
-  const total=amt();if(!total)return;
+function takeDamage(total){
+  if(!total)return;
   let n=total;const absorbed=Math.min(S.temp,n);S.temp-=absorbed;n-=absorbed;
   if(S.hp>0){
     const left=n-S.hp;S.hp=Math.max(0,S.hp-n);
@@ -1331,11 +1520,13 @@ $('hp-dmg').onclick=()=>{
   }
   if(S.conc)concCheck(total);
   save();renderAll();
-};
-$('hp-heal').onclick=()=>{
+}
+$('hp-dmg').onclick=()=>takeDamage(amt());
+function healBy(n){
   if(dsState()==='dead'){toast('Ash is dead','Healing can’t help now; only magic like Revivify can. Untick the failure boxes if this was a mistake.','✝','fumble');return}
-  if(S.hp===0)S.ds={};S.hp=Math.min(maxHP(),S.hp+amt());save();renderAll();
-};
+  if(S.hp===0)S.ds={};S.hp=Math.min(maxHP(),S.hp+n);save();renderAll();
+}
+$('hp-heal').onclick=()=>healBy(amt());
 // Temporary HP don't stack: new temp HP replace the old ones, so this sets the value outright.
 $('hp-tmp').onclick=()=>{
   const v=amt();if(v===S.temp)return;
@@ -2379,7 +2570,8 @@ $('ref-q').oninput=()=>renderRef();
 function showTab(t){
   if(pv&&(t==='journal'||t==='story')){setPreview(S.level||1);toast('Preview ended','Back to your real sheet, so notes are saved.','↺')}
   document.querySelectorAll('[data-tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===t)));
-  $('tab-sheet').hidden=t!=='sheet';$('tab-options').hidden=t!=='options';$('tab-ref').hidden=t!=='ref';$('tab-guide').hidden=t!=='guide';$('tab-story').hidden=t!=='story';$('tab-journal').hidden=t!=='journal';
+  $('tab-sheet').hidden=t!=='sheet';$('tab-options').hidden=t!=='options';$('tab-ref').hidden=t!=='ref';$('tab-guide').hidden=t!=='guide';$('tab-story').hidden=t!=='story';$('tab-journal').hidden=t!=='journal';$('tab-combat').hidden=t!=='combat';
+  if(t==='combat')renderCombat();
   if(t==='sheet')fitEquip();
   try{localStorage.setItem(KEY+'-tab',t)}catch(e){}
 }
@@ -2393,6 +2585,399 @@ function showGuide(s){
 document.querySelectorAll('[data-gsec]').forEach(b=>b.onclick=()=>showGuide(b.dataset.gsec));
 (function(){let s='combat';try{s=localStorage.getItem(KEY+'-gsec')||'combat'}catch(e){}
   showGuide(['combat','explore','rest'].includes(s)?s:'combat')})();
+
+/* ---------- combat ---------- */
+// Only Ash and the foes. Foe HP is unknown at the table: track the hits Ash lands and how the DM says they look.
+const CB_ST=['Unhurt','Hurt','Bloodied','Near death','Down'];
+const CB_COL=['#7fd99a','#ffcf6b','#ff8a5c','#ff4d5a','#6c7d77'];
+const CB_CONDS=['Blinded','Charmed','Deafened','Frightened','Grappled','Incapacitated','Invisible','Paralyzed','Poisoned','Prone','Restrained','Stunned','Unconscious'];
+// Radar rings aren't to scale: the close ranges get more room. [feet, radius] in a 524-unit square.
+const CB_RR=[[0,0],[5,42],[30,112],[60,170],[90,216],[120,258]],CBC=262;
+function CB(){
+  if(!S.combat||typeof S.combat!=='object')S.combat={};
+  const c=S.combat;
+  if(!Array.isArray(c.foes))c.foes=[];
+  if(!c.eco||typeof c.eco!=='object')c.eco={a:true,b:true,r:true,mv:0};
+  if(!c.turn)c.turn=1;
+  c.foes.forEach(f=>{if(!Array.isArray(f.cond))f.cond=[];f.w=f.w||0;f.hits=f.hits||0;f.ft=f.ft||30;if(typeof f.ang!=='number')f.ang=90});
+  return c;
+}
+const cbFoe=id=>CB().foes.find(f=>f.id===id);
+const cbSel=()=>cbFoe(CB().sel)||null;
+const cbHexed=f=>!!f&&S.conc==='Hex'&&CB().hex===f.id;
+function ftToR(ft){
+  if(ft>=120)return Math.min(262,258+(ft-120)/10);
+  for(let i=1;i<CB_RR.length;i++){const [f0,r0]=CB_RR[i-1],[f1,r1]=CB_RR[i];if(ft<=f1)return r0+(r1-r0)*(ft-f0)/(f1-f0)}
+  return 258;
+}
+function rToFt(r){
+  if(r>=258)return 120;
+  for(let i=1;i<CB_RR.length;i++){const [f0,r0]=CB_RR[i-1],[f1,r1]=CB_RR[i];if(r<=r1)return f0+(f1-f0)*(r-r0)/(r1-r0)}
+  return 120;
+}
+const cbXY=f=>{const r=ftToR(f.ft),t=f.ang*Math.PI/180;return [CBC+r*Math.cos(t),CBC-r*Math.sin(t)]};
+// "Agdon Longscarf" → AL, "Bunny guard #2" → B2
+function cbIni(n){
+  const num=/(\d+)\s*$/.exec(n),w=n.replace(/#?\d+\s*$/,'').trim().split(/\s+/).filter(Boolean);
+  if(!w.length)return num?num[1]:'?';
+  return (num?w[0][0]+num[1]:w[0][0]+(w[1]?w[1][0]:'')).toUpperCase();
+}
+// Range and timing from a spell's meta line, e.g. "Action · 120 ft · Instant"
+function cbRange(sp){
+  const p=(sp.m||'').split(' · '),cost=p[0]||'',r=p[1]||'';
+  const k=/^bonus/i.test(cost)?'b':/^reaction/i.test(cost)?'r':/^action/i.test(cost)?'a':null;
+  const m=/(\d+)\s*ft/.exec(r),touch=/touch/i.test(r);
+  return {k:k,ft:touch?5:/^self/i.test(r)?null:m?+m[1]:null,touch:touch};
+}
+// Everything Ash can do in a fight, grouped by action, bonus action and reaction.
+function cbActions(){
+  const out=[],seen=new Set(),prep=preparedAll();
+  spellList().filter(x=>!x.g).forEach(sp=>{
+    if(seen.has(sp.n))return;
+    if(book().rituals.includes(sp.n)&&!prep.includes(sp.n))return; // rituals are for downtime
+    const r=cbRange(sp);if(!r.k)return;seen.add(sp.n);
+    const a=atkRow(sp);
+    out.push({n:sp.n,k:r.k,ft:r.ft,melee:r.touch,sp:sp,atk:a,kind:a?(a.save?'save':'atk'):'util',slot:sp.lvl>=1});
+  });
+  S.weapons.forEach(w=>{
+    const wr=weaponRow(w),t=/(?:thrown|range)\s*(\d+)\s*\/\s*(\d+)/i.exec(w.note||'');
+    out.push({n:wr.n,k:'a',ft:5,melee:true,thrown:t?[+t[1],+t[2]]:null,atk:wr,kind:'atk',wpn:true});
+  });
+  return out;
+}
+// How an action fares against the selected foe right now.
+function cbStatus(a,f,c){
+  if(a.slot&&!slotsLeft())return {t:'NO SLOT',cls:'off'};
+  const r=cbReach(a,f,c);
+  return c.eco[a.k]?r:Object.assign({},r,{t:'SPENT',cls:'spent'});
+}
+function cbReach(a,f,c){
+  if(a.ft==null)return {t:'READY',cls:'ok'};
+  // utility spells aim at a point or an ally, so just show their range
+  if(a.kind==='util')return {t:a.ft<=5?'TOUCH':a.ft+' FT',cls:''};
+  if(!f||f.w>=4)return {t:a.ft<=5?'TOUCH':a.ft+' FT',cls:'ok'};
+  const near=c.foes.some(x=>x.ft<=5&&x.w<4);
+  if(a.thrown&&f.ft>5){
+    if(f.ft>a.thrown[1])return {t:'TOO FAR',cls:'off'};
+    const dis=f.ft>a.thrown[0]||near;
+    return {t:dis?'DISADV.':'THROWN',cls:dis?'warn':'ok',dis:dis,why:f.ft>a.thrown[0]?'Long range':'A foe is within 5 ft of you'};
+  }
+  if(f.ft>a.ft)return {t:'TOO FAR',cls:'off'};
+  if(a.kind==='atk'&&!a.melee&&near)return {t:'DISADV.',cls:'warn',dis:true,why:'A foe is within 5 ft of you'};
+  return {t:'IN RANGE',cls:'ok'};
+}
+const CB_IC={
+  blast:'<svg viewBox="0 0 34 34" aria-hidden="true"><path d="M5 29 15 19 12 16 22 6 29 5 28 12 18 22 15 19" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+  touch:'<svg viewBox="0 0 30 30" aria-hidden="true"><path d="M17 2 8 16h7l-3 12 10-16h-7Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
+  blade:'<svg viewBox="0 0 30 30" aria-hidden="true"><path d="M6 24 20 10M17 7l6 6M8 19l3 3M4 26l3-3" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+  save:'<svg viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="4" fill="currentColor"/><circle cx="15" cy="15" r="9" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 3"/><circle cx="15" cy="15" r="13" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+  eye:'<svg viewBox="0 0 30 30" aria-hidden="true"><path d="M3 15c5-8 19-8 24 0-5 8-19 8-24 0Z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="15" cy="15" r="4" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+  hex:'<svg viewBox="0 0 30 30" aria-hidden="true"><path d="M15 2 26 8.5v13L15 28 4 21.5v-13Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 15c3-4 11-4 14 0-3 4-11 4-14 0Z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="15" cy="15" r="2" fill="currentColor"/></svg>',
+  shield:'<svg viewBox="0 0 30 30" aria-hidden="true"><path d="M15 3 25 7v7c0 7-5 11-10 13C10 25 5 21 5 14V7Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15 9v12M10 13l5-4 5 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+  flame:'<svg viewBox="0 0 28 28" aria-hidden="true"><path d="M14 3c4 6 8 8 8 14a8 8 0 0 1-16 0c0-5 4-7 5-11 2 3 3 4 3-3Z" fill="none" stroke="currentColor" stroke-width="2"/></svg>'
+};
+function cbIcon(a){
+  const k=a.wpn?'blade':a.n==='Hex'?'hex':a.sp&&a.sp.aoa?'shield':a.k==='r'?'flame':a.kind==='save'?'save':a.kind==='atk'?(a.melee?'touch':'blast'):'eye';
+  const col=a.k==='b'?'#b9a6f5':a.k==='r'?'#ffcf6b':'#c9fff0';
+  return CB_IC[k].replace('<svg','<svg style="color:'+col+'"');
+}
+function cbSub(a){
+  if(a.kind==='atk')return sg(a.atk.hit)+' · '+diceStr(a.atk.dice)+(a.atk.flat?sg(a.atk.flat):'');
+  if(a.kind==='save')return `DC ${8+PB+mod('cha')} ${a.atk.save}`;
+  return a.ft?(a.ft<=5?'Touch':a.ft+' ft'):'Self';
+}
+
+function renderCombat(){
+  const c=CB();
+  if(c.sel&&!cbFoe(c.sel))c.sel=null;
+  if(!c.sel&&c.foes.length)c.sel=(c.foes.find(f=>f.w<4)||c.foes[0]).id;
+  if(c.hex&&!cbFoe(c.hex))c.hex=null;
+  renderCbFoes();renderCbRadar();renderCbTarget();renderCbAsh();renderCbBar();renderCbTurn();renderCbDice();
+}
+function cbGauge(w){
+  let s='';for(let i=0;i<4;i++){const on=w<4&&i<=w;s+=`<i${on?` style="background:${CB_COL[w]};border-color:${CB_COL[w]}"`:''}></i>`}
+  return `<span class="cb-gauge" aria-hidden="true">${s}</span>`;
+}
+const CB_PIP='<svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1 11 6 6 11 1 6Z" fill="#ff5c5c"/></svg>';
+const cbPips=n=>n?`<span class="cb-pips">${CB_PIP.repeat(Math.min(n,8))}</span>`:'';
+const cbFtCol=f=>f.ft<=5?'var(--k-amb)':cbHexed(f)?'var(--k-vio)':'var(--k-mut)';
+const cbChips=f=>(cbHexed(f)?'<span class="cb-chip hex">Hexed</span>':'')+f.cond.map(x=>`<span class="cb-chip">${esc(x)}</span>`).join('');
+const cbHitsTxt=f=>`${f.hits} hit${f.hits===1?'':'s'}${f.dmg?' · '+f.dmg+' dmg':''}`;
+function renderCbFoes(){
+  const c=CB(),w=$('cb-foes');w.innerHTML='';
+  if(!c.foes.length){w.innerHTML='<p class="cb-none">No foes yet. Add one below: it starts 30 ft away, and you can drag it on the radar.</p>';return}
+  c.foes.forEach(f=>{
+    const b=document.createElement('button');b.type='button';b.className='cb-foe cut'+(f.w>=4?' down':'');b.setAttribute('aria-pressed',String(f.id===c.sel));
+    b.innerHTML=`<span class="cut"><span class="top"><span class="cb-ini" aria-hidden="true">${esc(cbIni(f.name))}</span><span class="cb-nm"></span><span class="cb-ft" style="color:${cbFtCol(f)}">${f.ft}<small> FT</small></span></span>${cbGauge(f.w)}<span class="cb-meta"><span style="color:${CB_COL[f.w]}">${CB_ST[f.w]}</span>${cbPips(f.hits)}<span style="color:var(--k-mut)">${cbHitsTxt(f)}</span>${cbChips(f)}</span>${f.dm?'<span class="cb-quote"></span>':''}</span>`;
+    b.querySelector('.cb-nm').textContent=f.name;
+    if(f.dm)b.querySelector('.cb-quote').textContent='“'+f.dm+'”';
+    b.onclick=()=>{c.sel=f.id;save();renderCombat()};
+    w.appendChild(b);
+  });
+}
+function renderCbRadar(){
+  const c=CB(),svg=$('cb-svg'),R=ft=>ftToR(ft).toFixed(1);
+  // label each ring with what reaches exactly that far
+  const lab={};cbActions().forEach(a=>{if(a.ft>5&&!a.wpn&&(a.kind!=='util'||a.n==='Hex'))(lab[a.ft]=lab[a.ft]||[]).push(a.n)});
+  let s=`<defs><radialGradient id="cb-rg"><stop offset="0" stop-color="#5ff0cf" stop-opacity=".10"/><stop offset="1" stop-color="#5ff0cf" stop-opacity=".02"/></radialGradient>
+    <linearGradient id="cb-sw" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5ff0cf" stop-opacity="0"/><stop offset="1" stop-color="#5ff0cf" stop-opacity=".26"/></linearGradient></defs>
+    <circle cx="${CBC}" cy="${CBC}" r="${R(120)}" fill="url(#cb-rg)" stroke="#5ff0cf" stroke-width="2" style="filter:drop-shadow(0 0 8px rgba(95,240,207,.6))"/>`;
+  [90,60,30].forEach(ft=>{s+=`<circle cx="${CBC}" cy="${CBC}" r="${R(ft)}" fill="none" stroke="${ft===90&&lab[90]?'#9b7cf0':'#2f5a4f'}" stroke-width="${ft===90&&lab[90]?1.5:1}"${ft===90&&lab[90]?' stroke-dasharray="6 6"':''}/>`});
+  s+=`<circle cx="${CBC}" cy="${CBC}" r="${R(5)}" fill="rgba(255,207,107,.10)" stroke="#ffcf6b" stroke-width="1.5"/>
+    <path d="M${CBC} 4V520M4 ${CBC}H520" stroke="#1d3a33" stroke-width="1"/>
+    <g class="cb-sweep"><path d="M${CBC} ${CBC}L520 ${CBC}A258 258 0 0 0 459.6 96.2Z" fill="url(#cb-sw)"/></g>
+    <g font-family="Rajdhani,sans-serif" font-weight="700" font-size="12" letter-spacing="1.2">`;
+  [120,90,60,30].forEach(ft=>{
+    const t=ft+(lab[ft]?' · '+lab[ft].join(', ').toUpperCase():''),col=ft===120?'#5ff0cf':ft===90&&lab[90]?'#b9a6f5':'#6f9488';
+    s+=`<text x="${CBC+6}" y="${(CBC-ftToR(ft)+16).toFixed(1)}" fill="${col}">${esc(t)}</text>`;
+  });
+  s+=`<text x="${CBC-40}" y="${CBC+58}" fill="#ffcf6b">5 · MELEE</text></g>
+    <path d="M${CBC} ${CBC-14}L${CBC+12} ${CBC+8}L${CBC-12} ${CBC+8}Z" fill="#5ff0cf" stroke="#c9fff0" stroke-width="1.5"/>
+    <text x="${CBC}" y="${CBC+26}" text-anchor="middle" font-family="Cinzel,serif" font-weight="700" font-size="12" fill="#c9fff0">ASH</text>`;
+  const sel=cbSel();
+  if(sel){const [x,y]=cbXY(sel);s+=`<line x1="${CBC}" y1="${CBC}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#5ff0cf" stroke-width="1.5" opacity=".45"/>`}
+  c.foes.slice().sort((a,b)=>(a.id===c.sel)-(b.id===c.sel)).forEach(f=>{
+    const [x,y]=cbXY(f),on=f.id===c.sel,down=f.w>=4,col=down?'#6c7d77':on?'#9b7cf0':f.ft<=5?'#ffcf6b':'#c43b45';
+    s+=`<g class="cb-dot" data-id="${esc(f.id)}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})" tabindex="0" role="button" aria-label="${esc(f.name)}, ${f.ft} feet. Drag, or use the arrow keys, to change the distance."${down?' opacity=".5"':''}>
+      <circle r="26" fill="transparent"/>
+      ${on?`<circle class="cb-ping" r="22" fill="none" stroke="#9b7cf0" stroke-width="2"/>`:''}
+      <circle class="ring" r="${on?14:12}" fill="${on?'#2a1c47':'#3a1418'}" stroke="${col}" stroke-width="${on?3:2.5}"${on?' style="filter:drop-shadow(0 0 10px rgba(155,124,240,.9))"':''}/>
+      <text y="4" text-anchor="middle" font-family="Cinzel,serif" font-weight="700" font-size="${on?11:10}" fill="${on?'#e5dbff':'#ffd6d6'}">${esc(cbIni(f.name))}</text>
+      <text class="lbl" y="${on?32:29}" text-anchor="middle" font-family="Rajdhani,sans-serif" font-weight="700" font-size="12" fill="${on?'#e5dbff':'#8fb3a8'}">${f.ft} FT</text>
+    </g>`;
+  });
+  svg.innerHTML=s;
+  $('cb-empty').hidden=c.foes.length>0;
+  svg.querySelectorAll('.cb-dot').forEach(g=>{
+    const f=cbFoe(g.dataset.id);
+    g.onpointerdown=e=>{
+      if(e.button)return;e.preventDefault();
+      try{g.setPointerCapture(e.pointerId)}catch(err){}
+      const st={x:e.clientX,y:e.clientY,drag:false};
+      g.onpointermove=ev=>{
+        if(!st.drag&&Math.hypot(ev.clientX-st.x,ev.clientY-st.y)<5)return;
+        st.drag=true;g.classList.add('drag');
+        const m=svg.getScreenCTM();if(!m)return;
+        const p=new DOMPoint(ev.clientX,ev.clientY).matrixTransform(m.inverse()),dx=p.x-CBC,dy=CBC-p.y;
+        f.ft=Math.max(5,Math.round(rToFt(Math.hypot(dx,dy))/5)*5);f.ang=Math.round(Math.atan2(dy,dx)*180/Math.PI);
+        const [x,y]=cbXY(f);g.setAttribute('transform',`translate(${x.toFixed(1)} ${y.toFixed(1)})`);g.querySelector('.lbl').textContent=f.ft+' FT';
+      };
+      g.onpointerup=g.onpointercancel=()=>{g.onpointermove=g.onpointerup=g.onpointercancel=null;c.sel=f.id;save();renderCombat()};
+    };
+    g.onkeydown=e=>{
+      const step={ArrowUp:5,ArrowRight:5,ArrowDown:-5,ArrowLeft:-5}[e.key];
+      if(e.key==='Enter'||e.key===' '){e.preventDefault();c.sel=f.id}
+      else if(step){e.preventDefault();f.ft=Math.max(5,f.ft+step)}
+      else return;
+      save();renderCombat();const n=svg.querySelector(`.cb-dot[data-id="${CSS.escape(f.id)}"]`);if(n)n.focus();
+    };
+  });
+}
+function cbArm(btn,label,onDo){
+  btn.onclick=()=>{
+    if(btn.dataset.armed){onDo();return}
+    btn.dataset.armed='1';const t=btn.textContent;btn.textContent=label;btn.classList.add('arm');
+    setTimeout(()=>{if(btn.isConnected){delete btn.dataset.armed;btn.textContent=t;btn.classList.remove('arm')}},3000);
+  };
+}
+function renderCbTarget(){
+  const c=CB(),f=cbSel(),w=$('cb-target');
+  if(!f){w.innerHTML='<div class="cb-tg none cut"><div class="cut"><span class="cb-cap">Target</span><p class="cb-none">Pick a foe on the radar or in the list. Your actions check their range against it.</p></div></div>';return}
+  w.innerHTML=`<div class="cb-tg cut"><div class="cut">
+    <div class="cb-h"><span class="cb-cap" style="color:#b9a6f5">Target</span><span class="cb-cap">${cbHitsTxt(f)}</span></div>
+    <input class="nm" id="cbt-n" aria-label="Foe name">
+    <div class="cb-row"><button type="button" class="cb-btn red" id="cbt-hit" style="flex:1">+ Log a hit</button>
+      <span class="cb-step"><button type="button" id="cbt-near" aria-label="5 feet closer">−</button><span>${f.ft} FT</span><button type="button" id="cbt-far" aria-label="5 feet farther">+</button></span></div>
+    <div class="cb-field"><span class="cb-cap">How it looks</span><div class="cb-states" id="cbt-st"></div></div>
+    <label class="cb-field"><span class="cb-cap">The DM says</span><input class="cb-dm" id="cbt-dm" placeholder="e.g. starting to look bloodied"></label>
+    <div class="cb-row wrap" id="cbt-cond"></div>
+    <div class="cb-row wrap" id="cbt-foot"></div>
+  </div></div>`;
+  const nm=$('cbt-n');nm.value=f.name;nm.oninput=()=>{f.name=nm.value;save()};nm.onchange=()=>{f.name=nm.value.trim()||'Foe';save();renderCombat()};
+  $('cbt-hit').onclick=()=>{f.hits++;if(f.w===0)f.w=1;save();renderCombat()};
+  $('cbt-near').onclick=()=>{f.ft=Math.max(5,f.ft-5);save();renderCombat()};
+  $('cbt-far').onclick=()=>{f.ft+=5;save();renderCombat()};
+  const st=$('cbt-st');
+  CB_ST.forEach((t,i)=>{
+    const b=document.createElement('button');b.type='button';b.textContent=t;b.setAttribute('aria-pressed',String(f.w===i));
+    b.style.borderColor=CB_COL[i]+'99';b.style.color=f.w===i?'#140808':CB_COL[i];if(f.w===i)b.style.background=CB_COL[i];
+    b.onclick=()=>{f.w=i;save();renderCombat()};st.appendChild(b);
+  });
+  const dm=$('cbt-dm');dm.value=f.dm||'';dm.oninput=()=>{f.dm=dm.value;save()};dm.onchange=()=>{f.dm=dm.value.trim();save();renderCombat()};
+  const cr=$('cbt-cond');
+  if(cbHexed(f))cr.insertAdjacentHTML('beforeend','<span class="cb-chip hex">Hexed</span>');
+  f.cond.forEach(x=>{const b=document.createElement('button');b.type='button';b.className='cb-chip';b.textContent=x+' ×';b.setAttribute('aria-label','Remove '+x);b.onclick=()=>{f.cond=f.cond.filter(y=>y!==x);save();renderCombat()};cr.appendChild(b)});
+  const sel=document.createElement('select');sel.setAttribute('aria-label','Add a condition');
+  sel.innerHTML='<option value="">+ Condition</option>'+CB_CONDS.filter(x=>!f.cond.includes(x)).map(x=>`<option>${x}</option>`).join('');
+  sel.style.cssText='font-size:12px;padding:3px 6px;font-weight:700;letter-spacing:.06em';
+  sel.onchange=()=>{if(sel.value){f.cond.push(sel.value);save();renderCombat()}};cr.appendChild(sel);
+  const ft=$('cbt-foot');
+  if(S.conc==='Hex'&&!cbHexed(f)){const b=document.createElement('button');b.type='button';b.className='cb-btn vio';b.textContent='Move Hex here';b.title='Bonus action, once the hexed creature drops to 0 HP';b.onclick=()=>{c.hex=f.id;c.eco.b=false;save();renderCombat();toast('Hex moved',`${f.name} is now cursed. Bonus action spent.`,'✦')};ft.appendChild(b)}
+  if(f.hits){const b=document.createElement('button');b.type='button';b.className='cb-btn quiet';b.textContent='Undo a hit';b.onclick=()=>{f.hits--;save();renderCombat()};ft.appendChild(b)}
+  const rm=document.createElement('button');rm.type='button';rm.className='cb-btn quiet';rm.textContent='Remove foe';rm.style.marginLeft='auto';
+  cbArm(rm,'Sure?',()=>{c.foes=c.foes.filter(x=>x!==f);if(c.sel===f.id)c.sel=null;save();renderCombat()});ft.appendChild(rm);
+}
+function renderCbAsh(){
+  const m=maxHP(),w=$('cb-ash'),tot=Math.max(m,S.hp+S.temp),fx=fxList().find(x=>x.n===S.conc),p=S.portrait&&S.portrait.src;
+  const n=WL.slots(lvl()),left=slotsLeft();
+  w.innerHTML=`<div class="cb-pw"><div class="cb-port"><span>${p?'':'A'}</span></div><span class="cb-lv">LV ${lvl()}</span></div>
+    <div class="cb-ashb">
+      <div class="cb-h"><b>Ash</b><span class="cb-hpn"><b>${S.hp}</b> / ${m}${S.temp?` <em>+${S.temp} temp</em>`:''}</span></div>
+      <div class="cb-hp" role="img" aria-label="Hit points ${S.hp} of ${m}${S.temp?', '+S.temp+' temporary':''}" style="--seg:${m<=40?Math.max(3,100/m):100}%"><i class="${S.hp<=m/2?'low':''}" style="width:${S.hp/tot*100}%"></i>${S.temp?`<i class="t" style="left:${S.hp/tot*100}%;width:${S.temp/tot*100}%"></i>`:''}</div>
+      <div class="cb-row cb-stats"><span>AC ${acVal()}</span><span style="color:var(--k-mut)">SPD 30</span><span class="cb-row" style="gap:4px;margin-left:auto" id="cba-sl" aria-label="Pact slots: ${left} of ${n} ready"></span></div>
+      ${S.conc?`<div class="cb-conc"><span></span>${hasInv('Eldritch Mind')?'<em>Mind · Adv</em>':''}<button type="button" class="cb-btn quiet" id="cba-drop">End</button></div>`:''}
+      ${S.hp===0?`<div class="cb-row"><span class="cb-downchip">Down · death saves</span><button type="button" class="cb-btn quiet" id="cba-ds">Open sheet</button></div>`:''}
+      <div class="cb-row"><input class="cb-hpin" id="cba-amt" type="number" inputmode="numeric" min="0" placeholder="HP" aria-label="Amount of damage or healing"><button type="button" class="cb-btn red" id="cba-dmg">Take hit</button><button type="button" class="cb-btn" id="cba-heal">Heal</button></div>
+    </div>`;
+  if(p)w.querySelector('.cb-port>span').style.backgroundImage=`url("${p.replace(/"/g,'%22')}")`;
+  if(S.conc)w.querySelector('.cb-conc span').textContent=S.conc+(fx&&fx.left!=null?' · '+fmtLeft(fx.left):'');
+  const sl=$('cba-sl');
+  for(let i=0;i<n;i++){
+    const ready=i<left,b=document.createElement('button');b.type='button';b.className='cb-slot';
+    b.setAttribute('aria-label',`Pact slot ${i+1}: ${ready?'ready':'spent'}`);
+    b.innerHTML=`<svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 1 17 9 9 17 1 9Z" fill="${ready?'#5ff0cf':'none'}" stroke="${ready?'#c9fff0':'#2f5a4f'}" stroke-width="1.5"/></svg>`;
+    b.onclick=()=>{S.slotsUsed+=ready?1:-1;save();renderAll()};sl.appendChild(b);
+  }
+  if(S.conc)$('cba-drop').onclick=()=>{endFx(S.conc);S.conc=null;save();renderAll()};
+  if(S.hp===0)$('cba-ds').onclick=()=>showTab('sheet');
+  const amtv=()=>Math.max(0,parseInt($('cba-amt').value,10)||0);
+  $('cba-dmg').onclick=()=>takeDamage(amtv());
+  $('cba-heal').onclick=()=>healBy(amtv());
+}
+function renderCbBar(){
+  const c=CB(),f=cbSel(),w=$('cb-bar'),acts=cbActions();w.innerHTML='';
+  let best=null; // the first damaging action that's fully usable gets the highlight
+  [['a','Action','#5ff0cf'],['b','Bonus action','#b9a6f5'],['r','Reaction','#ffcf6b']].forEach(([k,lab,col])=>{
+    const list=acts.filter(a=>a.k===k);if(!list.length)return;
+    const g=document.createElement('div');g.className='cb-grp'+(c.eco[k]?'':' spent');
+    g.innerHTML=`<span class="cb-cap" style="color:${col}">${lab}${c.eco[k]?'':' · spent'}</span><div class="cb-tiles"></div>`;
+    list.forEach(a=>{
+      const st=cbStatus(a,f,c),t=document.createElement('button');t.type='button';
+      const isBest=!best&&f&&a.kind!=='util'&&st.t==='IN RANGE';if(isBest)best=a;
+      t.className=`cb-tile k-${k} ${st.cls}${isBest?' best':''}`;
+      t.title=a.sp?a.sp.m:(a.atk&&a.atk.note)||'';
+      t.innerHTML=`${cbIcon(a)}<span class="tn"></span><span class="ts"></span><span class="tt">${st.t}</span>`;
+      t.querySelector('.tn').textContent=a.n;t.querySelector('.ts').textContent=cbSub(a);
+      t.setAttribute('aria-label',`${a.n}, ${cbSub(a)}, ${st.t.toLowerCase()}`);
+      t.onclick=()=>cbUse(a);
+      g.lastChild.appendChild(t);
+    });
+    w.appendChild(g);
+  });
+}
+const CB_GEM=(fill,stroke)=>`<svg viewBox="0 0 34 34" aria-hidden="true"><path d="M17 2 32 17 17 32 2 17Z" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/></svg>`;
+function renderCbTurn(){
+  const c=CB(),w=$('cb-turn'),mv=c.eco.mv||0;
+  w.innerHTML=`<div class="cb-h"><span class="cb-cap">This turn</span><span class="cb-cap" style="color:var(--k-teal)">Turn ${c.turn}</span></div>
+    <div class="cb-gems" id="cbu-gems"></div>
+    <div class="cb-mv"><div class="cb-h"><span class="cb-cap" style="color:var(--k-ink)">Move</span><span class="cb-row" style="gap:6px"><button type="button" class="cb-btn quiet" id="cbu-mvm" aria-label="Moved 5 feet less" style="padding:2px 8px">−</button><span class="cb-cap" style="color:var(--k-teal)">${Math.max(0,30-mv)} / 30 FT LEFT</span><button type="button" class="cb-btn quiet" id="cbu-mvp" aria-label="Moved 5 feet" style="padding:2px 8px">+5</button></span></div><div class="cb-mvbar"><i style="width:${Math.max(0,30-mv)/30*100}%"></i></div></div>
+    <button type="button" class="cb-end" id="cbu-end">End turn</button>
+    <button type="button" class="cb-btn quiet" id="cbu-fight">End fight</button>`;
+  const gw=$('cbu-gems');
+  [['a','Action','#5ff0cf','#c9fff0'],['b','Bonus','#a990ff','#e5dbff'],['r','Reaction','#ffcf6b','#fff0cc']].forEach(([k,lab,fill,stroke])=>{
+    const b=document.createElement('button');b.type='button';b.className='cb-gem';b.setAttribute('aria-pressed',String(!!c.eco[k]));
+    b.setAttribute('aria-label',`${lab}: ${c.eco[k]?'available':'spent'}`);
+    b.innerHTML=(c.eco[k]?CB_GEM(fill,stroke):CB_GEM('none',fill))+`<span style="color:${fill}">${lab}</span>`;
+    b.onclick=()=>{c.eco[k]=!c.eco[k];save();renderCombat()};gw.appendChild(b);
+  });
+  $('cbu-mvm').onclick=()=>{c.eco.mv=Math.max(0,mv-5);save();renderCombat()};
+  $('cbu-mvp').onclick=()=>{c.eco.mv=mv+5;save();renderCombat()};
+  $('cbu-end').onclick=()=>{c.eco={a:true,b:true,r:true,mv:0};c.turn++;cbD=null;advance(6);toast('Turn '+c.turn,'Action, bonus action, reaction and movement are back. Effects ran down by one round.','↻')};
+  cbArm($('cbu-fight'),'Clear all foes?',()=>{c.foes=[];c.sel=null;c.hex=null;c.turn=1;c.eco={a:true,b:true,r:true,mv:0};cbD=null;save();renderCombat();toast('Fight over','Foes cleared. Turn count reset.','✓')});
+}
+
+/* the dice tray pops up over the radar */
+let cbD=null;
+function cbUse(a){
+  const c=CB(),f=cbSel(),st=cbStatus(a,f,c);
+  if(st.t==='NO SLOT'){toast(a.n,'No pact slot left. Take a short rest.','—','fumble');return}
+  if(a.sp&&(a.slot||a.sp.c||a.sp.dur||a.sp.aoa||a.sp.lasting)){
+    const before=S.slotsUsed;cast(a.sp);
+    if(a.slot&&S.slotsUsed===before)return;
+  }else if(a.kind==='util')toast(a.n,f&&a.ft?`${f.name} is ${f.ft} ft away · range ${a.ft<=5?'touch':a.ft+' ft'}`:'Used','✦');
+  c.eco[a.k]=false;
+  if(a.n==='Hex'&&f)c.hex=f.id;
+  if(a.kind!=='util')cbD={a:a,fid:f?f.id:null,mode:st.dis?'dis':'norm',why:st.why||'',beam:1,beams:a.atk.beams||1,ph:'ready'};
+  save();renderAll();
+}
+function cbRollD20(table){
+  const a=cbD.a;let k,det;
+  if(table!=null){k=table;det=`Table roll [${k}]`}
+  else{const x=d(20),y=d(20);if(cbD.mode==='norm'){k=x;det=`d20 [${x}]`}else{k=cbD.mode==='adv'?Math.max(x,y):Math.min(x,y);det=`${cbD.mode==='adv'?'Advantage':'Disadvantage'} [${x}, ${y}]`}}
+  Object.assign(cbD,{k:k,tot:k+a.atk.hit,det:det+' '+sg(a.atk.hit).replace(/^([+-])/,'$1 '),crit:k===20,ph:'hit',anim:table==null});
+  renderCbDice();
+}
+// A hit (or a failed save). roll: roll the damage here. half: a leveled save spell's damage on a success.
+function cbHit(roll,half){
+  const f=cbFoe(cbD.fid),a=cbD.a;
+  if(f){f.hits++;if(f.w===0)f.w=1}
+  if(roll){
+    const crit=a.kind==='atk'&&cbD.crit,dice=a.atk.dice.map(x=>x.slice());
+    if(a.kind==='atk'&&cbHexed(f))dice.push([1,6,'Hex']);
+    let tot=a.atk.flat||0;const rolls=[];
+    dice.forEach(([n,s,l])=>{n=crit?n*2:n;for(let i=0;i<n;i++){const r=d(s);tot+=r;rolls.push({s:s,r:r,hex:l==='Hex'})}});
+    tot=Math.max(0,half?Math.floor(tot/2):tot);
+    cbD.dmg={tot:tot,rolls:rolls,flat:a.atk.flat||0,crit:crit,half:!!half,type:a.atk.type||''};cbD.ph='dmg';cbD.anim=true;
+    if(f)f.dmg=(f.dmg||0)+tot;
+  }else{save();return cbNext()}
+  save();renderCombat();
+}
+function cbNext(){
+  if(cbD&&cbD.beam<cbD.beams){Object.assign(cbD,{beam:cbD.beam+1,ph:'ready',k:null,dmg:null,crit:false})}else cbD=null;
+  renderCombat();
+}
+const CB_D20=k=>`<svg class="cb-d20" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 4 90 27v46L50 96 10 73V27Z" fill="#0f2620" stroke="#5ff0cf" stroke-width="3" stroke-linejoin="round"/><path d="M50 4 30 40h40ZM30 40 10 27M70 40l20-13M30 40 50 76 70 40M30 40 10 73M70 40l20 33M50 76v20M50 76 10 73M50 76l40-3" fill="none" stroke="#5ff0cf" stroke-width="1.5" stroke-linejoin="round" opacity=".7"/><text x="50" y="62" text-anchor="middle" font-family="Cinzel,serif" font-weight="800" font-size="${String(k).length>1?22:26}" fill="#c9fff0">${k}</text></svg>`;
+function renderCbDice(){
+  const w=$('cb-dice');
+  if(!cbD){w.hidden=true;w.innerHTML='';return}
+  const a=cbD.a,f=cbFoe(cbD.fid),isSave=a.kind==='save',anim=cbD.anim;cbD.anim=false;
+  w.hidden=false;
+  const who=f?esc(f.name):'the target';
+  let h=`<div class="cb-h"><span class="cb-cap" style="color:var(--k-teal)">${isSave?'Saving throw':'Attack roll'}${cbD.beams>1?` · beam ${cbD.beam} of ${cbD.beams}`:''}</span><button type="button" class="cb-x" id="cbd-x" aria-label="Close the dice tray">×</button></div>
+    <div class="cb-dt">${esc(a.n)} <span>→</span> ${who}</div>`;
+  const acts=[];
+  if(cbD.ph==='ready'&&isSave){
+    h+=`<p class="cb-dn">${f?who:'The target'} makes a <b>${esc(a.atk.save)}</b> save against <b>DC ${8+PB+mod('cha')}</b>. Ask the DM how it went.</p><div class="cb-roll">${CB_D20('DC')}</div>`;
+    acts.push(['Failed · roll damage','pri',()=>cbHit(true)],['Failed · I roll','ghost',()=>cbHit(false)]);
+    if(a.sp&&a.sp.lvl>=1)acts.push(['Saved · half damage','',()=>cbHit(true,true)]);
+    acts.push(['Saved','quiet',()=>cbNext()]);
+  }else if(cbD.ph==='ready'){
+    h+=`<div class="cb-seg" role="group" aria-label="Roll mode">${[['norm','Normal'],['adv','Advantage'],['dis','Disadvantage']].map(([m,t])=>`<button type="button" data-m="${m}" aria-pressed="${cbD.mode===m}">${t}</button>`).join('')}</div>
+      ${cbD.mode==='dis'&&cbD.why?`<p class="cb-dn warn">Disadvantage: ${esc(cbD.why)}.</p>`:''}
+      <div class="cb-roll">${CB_D20('?')}<div class="cb-tot"><span>d20 ${sg(a.atk.hit)}</span></div></div>
+      <label class="cb-table">Rolled at the table? <input id="cbd-t" type="number" inputmode="numeric" min="1" max="20" placeholder="d20" aria-label="Your physical d20 roll"><button type="button" class="cb-btn ghost" id="cbd-use">Use</button></label>`;
+    acts.push(['Roll d20','pri',()=>cbRollD20()]);
+  }else if(cbD.ph==='hit'){
+    const cls=cbD.k===20?' crit':cbD.k===1?' fumble':'';
+    h+=`<div class="cb-roll${anim?' anim':''}">${CB_D20(cbD.k).replace('class="cb-d20"','class="cb-d20'+(anim?' anim':'')+'"')}<div class="cb-tot${anim?' anim':''}${cls}"><b>${cbD.tot}</b><span>${cbD.k===20?'Critical hit':cbD.k===1?'Natural 1 · miss':'to hit'}</span></div></div>
+      <p class="cb-dn" style="text-align:center">${esc(cbD.det)}${cbD.k===20?' · damage dice are doubled':''}</p>`;
+    if(cbD.k!==1)acts.push(['Hit · roll damage','pri',()=>cbHit(true)],['Hit · I roll','ghost',()=>cbHit(false)]);
+    acts.push(['Miss',cbD.k===1?'pri':'quiet',()=>cbNext()]);
+  }else{
+    const g=cbD.dmg;
+    const chips=g.rolls.map((r,i)=>`<span class="cb-die${r.hex?' hex':''}" style="animation-delay:${i*90}ms" title="d${r.s}${r.hex?' Hex':''}">${r.r}</span>`).join('')+(g.flat?`<span class="cb-die flat" style="animation-delay:${g.rolls.length*90}ms">${sg(g.flat)}</span>`:'');
+    h+=`<div class="cb-roll${anim?' anim':''}"><div class="cb-dice-row">${chips}</div><div class="cb-tot${anim?' anim':''}${g.crit?' crit':''}"><b>${g.tot}</b><span>${esc(g.type)} damage${g.crit?' · crit':''}${g.half?' · halved':''}</span></div></div>
+      <p class="cb-dn" style="text-align:center">Tell the DM: <b>${g.tot} ${esc(g.type.toLowerCase())}</b>.${g.rolls.some(r=>r.hex)?' Includes Hex 1d6 necrotic.':''}</p>`;
+    acts.push([cbD.beam<cbD.beams?'Next beam':'Done','pri',()=>cbNext()]);
+  }
+  h+='<div class="cb-dacts"></div>';
+  w.innerHTML=h;
+  const bar=w.querySelector('.cb-dacts');
+  acts.forEach(([t,cls,fn])=>{const b=document.createElement('button');b.type='button';b.className='cb-btn '+cls;b.textContent=t;b.onclick=fn;bar.appendChild(b)});
+  $('cbd-x').onclick=()=>{cbD=null;renderCombat()};
+  w.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{cbD.mode=b.dataset.m;renderCbDice()});
+  const ti=$('cbd-t');
+  if(ti){const use=()=>{const v=parseInt(ti.value,10);if(v>=1&&v<=20)cbRollD20(v);else ti.focus()};$('cbd-use').onclick=use;ti.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();use()}}}
+  const first=bar.querySelector('.pri');if(first&&!w.contains(document.activeElement))first.focus({preventScroll:true});
+}
+$('cb-add').onsubmit=e=>{
+  e.preventDefault();
+  const c=CB(),i=$('cb-add-n');let n=i.value.trim();if(!n)return i.focus();
+  if(c.foes.some(f=>f.name.toLowerCase()===n.toLowerCase()))n+=' #'+(c.foes.filter(f=>f.name.toLowerCase().startsWith(n.toLowerCase())).length+1);
+  const f={id:uid(),name:n,ft:30,ang:(c.foes.length*137+60)%360,w:0,hits:0,dm:'',cond:[]};
+  c.foes.push(f);if(!cbSel())c.sel=f.id;
+  i.value='';save();renderCombat();i.focus();
+};
 
 /* ---------- story ---------- */
 const THREADS=[
@@ -3309,7 +3894,7 @@ $('gold').oninput=e=>{S.gold=parseInt(e.target.value,10)||0;save()};
 $('lang').oninput=e=>{S.lang=e.target.value;save()};
 $('notes').oninput=e=>{S.notes=e.target.value;save()};
 
-function renderAll(){levelSync();renderWeapons();renderLevel();renderClassFeats();renderOptions();renderGuide();renderPortrait();renderStory();renderJournal();renderEquip();renderHP();renderFx();renderAbil();renderSkills();renderVitals();renderAttacks();renderSpells()}
+function renderAll(){levelSync();renderWeapons();renderLevel();renderClassFeats();renderOptions();renderGuide();renderPortrait();renderStory();renderJournal();renderEquip();renderHP();renderFx();renderAbil();renderSkills();renderVitals();renderAttacks();renderSpells();if(!$('tab-combat').hidden)renderCombat()}
 /* ---------- class features panel ---------- */
 const BEFORE_KEY=KEY+'-before-level';
 // Keep a copy of the whole sheet from just before a level change, as a safety net.
@@ -4054,7 +4639,8 @@ if(location.hash==='#reference')startTab='ref';
 if(location.hash==='#guide')startTab='guide';
 if(location.hash==='#story')startTab='story';
 if(location.hash==='#journal')startTab='journal';
-showTab(['options','ref','guide','story','journal'].includes(startTab)?startTab:'sheet');
+if(location.hash==='#combat')startTab='combat';
+showTab(['combat','options','ref','guide','story','journal'].includes(startTab)?startTab:'sheet');
 })();
 </script>
 </body>
