@@ -531,6 +531,7 @@ body:has(dialog[open]){overflow:hidden}
 .j-grp[data-k="neutral"],.j-grp[data-k="unknown"]{border-left-color:var(--line)}
 .boost{display:inline-flex;align-items:center;gap:3px;margin-left:6px;white-space:nowrap;padding:0 6px 0 4px;border-radius:999px;font:600 .72rem/1.5 var(--mono);color:var(--accent);background:var(--accent-soft);vertical-align:middle;cursor:help}
 .boost svg{width:11px;height:11px;fill:currentColor}
+.conc .boost{border:1px solid var(--accent);background:var(--surface)}
 td .boost{margin:3px 0 0;display:flex;width:max-content}
 .boost-n{color:var(--accent);font-weight:700}
 .btn.primary .boost-n{color:inherit}
@@ -881,6 +882,7 @@ td .boost{margin:3px 0 0;display:flex;width:max-content}
           <strong id="conc-name">Nothing</strong>
           <button class="btn small" id="conc-save">Con save</button>
           <button class="btn small" id="conc-drop" hidden>Drop</button>
+          <span class="boost" id="conc-em" title="Eldritch Mind: Constitution saves to keep Concentration roll twice and keep the higher" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5l1.6 4.2 4.4 1.3-4.4 1.3L8 14.5 6.4 8.3 2 7l4.4-1.3z"/></svg>Eldritch Mind · Advantage</span>
         </div>
         <div class="spells" id="spells"></div>
       </section>
@@ -1292,7 +1294,7 @@ $('hp-dmg').onclick=()=>{
       dsResult();
     }
   }
-  if(S.conc)toast('Concentration check',`DC ${Math.min(30,Math.max(10,Math.floor(total/2)))} Con save for ${S.conc}`,'!');
+  if(S.conc)toast('Concentration check',`DC ${Math.min(30,Math.max(10,Math.floor(total/2)))} Con save for ${S.conc}`+(hasInv('Eldritch Mind')?', with Advantage (Eldritch Mind)':''),'!');
   save();renderAll();
 };
 $('hp-heal').onclick=()=>{
@@ -1626,7 +1628,7 @@ function renderSpells(){
   spellList().forEach(sp=>{
     if(sp.g){const h=document.createElement('div');h.className='label group-title';h.textContent=sp.g;w.appendChild(h);return}
     const el=document.createElement('details');el.className='spell';el.dataset.n=sp.n;if(open.has(sp.n))el.open=true;
-    const tags=(sp.c?'<span class="tag c">Conc.</span>':'')+(sp.ritual?'<span class="tag">Ritual</span>':'')+(sp.patron?'<span class="tag">Patron</span>':'')
+    const tags=(sp.c?`<span class="tag c"${hasInv('Eldritch Mind')?' title="Concentration. Eldritch Mind gives your saves to keep it Advantage."':''}>Conc.</span>`:'')+(sp.ritual?'<span class="tag">Ritual</span>':'')+(sp.patron?'<span class="tag">Patron</span>':'')
       +(agon(sp)?`<span class="boost" title="Agonizing Blast: ${sg(agon(sp))} damage on each beam" aria-label="Agonizing Blast ${sg(agon(sp))}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5l1.6 4.2 4.4 1.3-4.4 1.3L8 14.5 6.4 8.3 2 7l4.4-1.3z"/></svg>Agonizing Blast ${sg(agon(sp))}</span>`:'')
       +(sp.sc==='beams'&&hasInv('Repelling Blast')?'<span class="tag on" title="Each beam that hits pushes the target 10 ft">Repelling</span>':'')
       +(sp.sc==='beams'&&hasInv('Eldritch Spear')?'<span class="tag on" title="Eldritch Spear extends the range">Spear</span>':'');
@@ -1658,7 +1660,7 @@ function renderSpells(){
   $('conc-name').textContent=S.conc||'Nothing';
   $('conc').classList.toggle('active',!!S.conc);
   $('conc-drop').hidden=!S.conc;
-  $('conc-save').textContent=hasInv('Eldritch Mind')?'Con save · Advantage':'Con save';$('conc-save').title=hasInv('Eldritch Mind')?'Eldritch Mind: roll twice, keep the higher':'';
+  $('conc-save').textContent='Con save';$('conc-em').hidden=!hasInv('Eldritch Mind');
 }
 const slotsLeft=()=>Math.max(0,WL.slots(lvl())-S.slotsUsed);
 // One pip per pact slot: filled ones are ready. Click a filled pip to spend it, an empty one to get it back.
