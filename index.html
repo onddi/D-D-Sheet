@@ -1479,13 +1479,13 @@ const scaled=sp=>{
   return sp.dice;
 };
 // Rules text and meta lines with the current level's numbers filled in.
-function fillText(sp,str){
+function fillText(sp,str,rules){
   const t=tier();
   str=str.replace(/\{dc\}/g,8+PB+mod('cha')).replace(/\{beams\}/g,t===1?'one beam':['','one','two','three','four'][t]+' beams')
     .replace(/\{thp\}/g,aoaHp()).replace(/\{hexdur\}/g,HEX_DUR[WL.slotLvl(lvl())][1]).replace(/\{std\}/g,15*2**(t-1))
     .replace(/\{shd\}/g,['d8','d10','d12','2d6'][t-1]).replace(/\{tsr\}/g,t>1?(t-1)+'d6 at your level':'none yet')
     .replace(/\{dmg\}/g,sp.dice?diceStr(scaled(sp)):'').replace(/\{tgt\}/g,(sp.tg||1)+upBy(sp)).replace(/\{rays\}/g,3+upBy(sp)).replace(/\{aid\}/g,5*(upBy(sp)+1)).replace(/\{cha\}/g,sg(mod('cha')));
-  if(agon(sp))str+=` Agonizing Blast adds ${sg(agon(sp))} to each beam’s damage.`;
+  if(rules&&agon(sp))str+=` Agonizing Blast adds ${sg(agon(sp))} to each beam’s damage.`;
   // the first mention of a cantrip's base dice becomes the scaled dice
   if(sp.lvl===0&&sp.sc!=='beams'&&t>1)[sp.dice,sp.alt&&sp.alt.dice].forEach(x=>{if(x)x.forEach(([c,sd])=>{str=str.replace(new RegExp('\\b'+c+'d'+sd+'\\b'),(c*t)+'d'+sd)})});
   return str;
@@ -1496,7 +1496,7 @@ function growth(n){
   const T=['Lv 1–4','Lv 5–10','Lv 11–16','Lv 17+'],cur=tier()-1;
   const by=f=>T.map((l,i)=>[l,f(i),i===cur]);
   if(d.lvl===0){
-    if(d.sc==='beams')return by(i=>`${i+1} beam${i?'s':''} × 1d10`);
+    if(d.sc==='beams'){const ag=agon(d)?sg(agon(d)):'';return by(i=>`${i+1} beam${i?'s':''} × 1d10${ag}`)}
     if(n==='True Strike')return by(i=>i?`weapon +${i}d6 Radiant`:'weapon damage');
     if(n==='Spare the Dying')return by(i=>`${15*2**i} ft range`);
     if(n==='Shillelagh')return by(i=>['d8','d10','d12','2d6'][i]+' weapon die');
@@ -1607,9 +1607,12 @@ function renderSpells(){
   spellList().forEach(sp=>{
     if(sp.g){const h=document.createElement('div');h.className='label group-title';h.textContent=sp.g;w.appendChild(h);return}
     const el=document.createElement('details');el.className='spell';el.dataset.n=sp.n;if(open.has(sp.n))el.open=true;
-    const tags=(sp.c?'<span class="tag c">Conc.</span>':'')+(sp.ritual?'<span class="tag">Ritual</span>':'')+(sp.patron?'<span class="tag">Patron</span>':'');
+    const tags=(sp.c?'<span class="tag c">Conc.</span>':'')+(sp.ritual?'<span class="tag">Ritual</span>':'')+(sp.patron?'<span class="tag">Patron</span>':'')
+      +(agon(sp)?`<span class="tag on" title="Agonizing Blast adds your Charisma modifier to each beam">Agonizing ${sg(agon(sp))}</span>`:'')
+      +(sp.sc==='beams'&&hasInv('Repelling Blast')?'<span class="tag on" title="Each beam that hits pushes the target 10 ft">Repelling</span>':'')
+      +(sp.sc==='beams'&&hasInv('Eldritch Spear')?'<span class="tag on" title="Eldritch Spear extends the range">Spear</span>':'');
     el.innerHTML=`<summary><span class="nm">${sp.n}${tags}</span><span class="meta">${sp.m}</span><span class="acts"></span></summary><div class="body"><p></p></div>`;
-    el.querySelector('.body p').textContent=fillText(sp,sp.t);el.querySelector('.meta').textContent=fillText(sp,sp.m);
+    el.querySelector('.body p').textContent=fillText(sp,sp.t,true);el.querySelector('.meta').textContent=fillText(sp,sp.m);
     const gr=growthEl(sp.n);if(gr)el.querySelector('.body').appendChild(gr);
     const acts=el.querySelector('.acts');
     const mk=(label,fn,primary)=>{const b=document.createElement('button');b.className='btn small'+(primary?' primary':'');b.textContent=label;b.onclick=e=>{e.preventDefault();fn()};acts.appendChild(b)};
@@ -1622,7 +1625,8 @@ function renderSpells(){
     if(ar){
       if(ar.save)mk('DC '+dc+' '+ar.save,()=>toast(sp.n,`The target makes a ${ar.save} save against DC ${dc}.`,'DC'),false);
       else if(ar.hit!=null)mk(ar.beams>1?`Attack ×${ar.beams}`:'Attack',()=>attackRoll(sp.n,ar.hit,ar.beams),sp.lvl===0);
-      mk('Damage',()=>dmg(sp.n,ar.dice,ar.flat,ar.type,!!ar.save));
+      // the damage button shows the dice, with any bonus (Agonizing Blast) and Hex included
+      mk('Damage '+diceStr(ar.dice)+(ar.flat?sg(ar.flat):'')+(hexApplies()&&!ar.save?' +1d6':'')+(ar.beams>1?' each':''),()=>dmg(sp.n,ar.dice,ar.flat,ar.type,!!ar.save));
       if(ar.alt)mk(ar.alt.label,()=>dmg(sp.n,ar.alt.dice,0,ar.type,!!ar.save));
     }
     if(sp.heal)mk('Heal',()=>{const x=scaled(sp)[0],r=[];for(let i=0;i<x[0];i++)r.push(d(x[1]));const t=r.reduce((a,b)=>a+b,0)+mod('cha');toast(sp.n+' healing',`${x[0]}d${x[1]} [${r.join(',')}] ${sg(mod('cha'))}`,'+'+t)});
@@ -1634,6 +1638,7 @@ function renderSpells(){
   $('conc-name').textContent=S.conc||'Nothing';
   $('conc').classList.toggle('active',!!S.conc);
   $('conc-drop').hidden=!S.conc;
+  $('conc-save').textContent=hasInv('Eldritch Mind')?'Con save · Advantage':'Con save';$('conc-save').title=hasInv('Eldritch Mind')?'Eldritch Mind: roll twice, keep the higher':'';
 }
 const slotsLeft=()=>Math.max(0,WL.slots(lvl())-S.slotsUsed);
 // One pip per pact slot: filled ones are ready. Click a filled pip to spend it, an empty one to get it back.
@@ -1740,7 +1745,7 @@ function spellCard(k,n,label){
   el.querySelector('.mt').textContent=d.m?fillText(Object.assign({n:n},d),d.m):'';
   el.querySelector('.sd').textContent=o.s||'';
   const fx=el.querySelector('.facts');spellFacts(n).forEach(t=>{const x=document.createElement('span');x.textContent=t;fx.appendChild(x)});
-  const full=el.querySelector('.full');full.textContent=d.t?fillText(Object.assign({n:n},d),d.t):'';
+  const full=el.querySelector('.full');full.textContent=d.t?fillText(Object.assign({n:n},d),d.t,true):'';
   const gr=growthEl(n);if(gr){gr.hidden=true;full.after(gr)}
   const more=el.querySelector('.x');more.setAttribute('aria-expanded','false');
   more.onclick=()=>{full.hidden=!full.hidden;if(gr)gr.hidden=full.hidden;more.textContent=full.hidden?'More':'Less';more.setAttribute('aria-expanded',String(!full.hidden))};
@@ -1845,7 +1850,7 @@ function renderBook(){
         const d=SPELL_DB[o.n];
         const f=document.createElement('div');f.className='full';
         const m=document.createElement('span');m.className='mt';m.textContent=d?fillText(Object.assign({n:o.n},d),d.m):'';
-        const t=document.createElement('p');t.textContent=d?fillText(Object.assign({n:o.n},d),d.t):o.s;
+        const t=document.createElement('p');t.textContent=d?fillText(Object.assign({n:o.n},d),d.t,true):o.s;
         f.append(m,t);const gr=growthEl(o.n);if(gr)f.appendChild(gr);row.appendChild(f);
       }
       list.appendChild(row);
@@ -3235,7 +3240,7 @@ function luWhy(st,k,n){
 }
 function luFull(st,k,n){
   if(k==='invocations'){const x=INV_DETAIL[n]||{};return [x.g||'',x.a?'For Ash: '+x.a:''].filter(Boolean).join(' ')}
-  const d=spOf(n);return (d.m?fillText(d,d.m)+'. ':'')+fillText(d,d.t||'');
+  const d=spOf(n);return (d.m?fillText(d,d.m)+'. ':'')+fillText(d,d.t||'',true);
 }
 function luHpGain(st){const g=st.hp==='roll'&&st.roll?st.roll:5;return Math.max(1,g+mod('con'))}
 function luChanges(st){
@@ -3620,7 +3625,7 @@ function pickTip(n){
   if(!t)t=(CANTRIPS.find(c=>c[0]===n)||RITUALS.find(r=>r[0]===n)||[])[4]||(WL_SPELLS.find(w=>w[1]===n)||[])[5]||(INV_DETAIL[n]||{}).g||'';
   const sp=SPELL_DB[n]?spOf(n):{n:n,lvl:0};
   const L=lvl();
-  return fillText(sp,t).replace(/\{mac\}/g,13+mod('dex')).replace(/\{steps\}/g,Math.max(1,mod('cha'))).replace(/\{pool\}/g,1+L).replace(/\{dob\}/g,Math.max(1,mod('cha')+L));
+  return fillText(sp,t,true).replace(/\{mac\}/g,13+mod('dex')).replace(/\{steps\}/g,Math.max(1,mod('cha'))).replace(/\{pool\}/g,1+L).replace(/\{dob\}/g,Math.max(1,mod('cha')+L));
 }
 const gi=n=>'<i>'+esc(n)+'</i>';
 const gList=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
