@@ -582,6 +582,17 @@ td .boost{margin:3px 0 0;display:flex;width:max-content}
 .qn-new{font-weight:500;color:var(--accent)}
 .qn-foot{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
 .qn-prev{min-height:1.2em;flex:1;min-width:0}
+.j-sumed{min-height:64px}
+.j-det summary{cursor:pointer;font-size:.86rem;color:var(--muted)}
+.j-det-in{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.log-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.log-it{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px dashed var(--line)}
+.log-it:first-child{border-top:0;padding-top:2px}
+.log-av{display:flex;flex:none}
+.log-av .ent-av+.ent-av{margin-left:-10px;box-shadow:0 0 0 2px var(--surface)}
+.log-fact{color:var(--accent);background:var(--accent-soft);cursor:default;font-size:15px}
+.log-it .j-top{gap:4px 8px}
+.log-it textarea{min-height:60px;margin-top:4px}
 .j-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .j-tools input{flex:1 1 240px;min-width:0;padding:7px 10px}
 .j-sum{white-space:pre-wrap;overflow-wrap:anywhere;margin:0}
@@ -1033,7 +1044,7 @@ td .boost{margin:3px 0 0;display:flex;width:max-content}
 <script>
 (function(){
 const KEY='ash-sheet-v1';
-const APP_VERSION='2026-11-06.3';
+const APP_VERSION='2026-11-06.4';
 const AB=[['str','Strength'],['dex','Dexterity'],['con','Constitution'],['int','Intelligence'],['wis','Wisdom'],['cha','Charisma']];
 const SAVES=['wis','cha'];
 // Level. pv is a preview level that is never saved; lvl() is what every number on the sheet follows.
@@ -2535,21 +2546,24 @@ function renderJournal(){
     p.innerHTML='<h2>No sessions yet</h2><p class="fine">Press <b>New session</b> at the start of each game night. Each session gets a summary plus notes on characters, learned facts, and leads and places. <b>People &amp; places</b> gathers every character and lead across sessions, each with its own timeline.</p>';
     body.appendChild(p);return;
   }
-  renderQuickNote(body);
-  if(j.view==='all')renderJAll(body);else renderJSession(body,jSession(j.cur));
+  if(j.view==='all'){renderQuickNote(body);renderJAll(body)}else renderJSession(body,jSession(j.cur));
   if(jFocus){const f=body.querySelector(`[data-jadd="${jFocus}"] input, [data-jadd="${jFocus}"] textarea`);if(f)f.focus();jFocus=null}
 }
 function renderJSession(body,x){
   const j=J();
   const p=document.createElement('section');p.className='panel';
   p.innerHTML=`<div class="panel-head"><h2></h2><span class="j-del"></span></div>
+    <details class="j-det"><summary></summary><div class="j-det-in">
     <div class="j-meta">
       <div class="field"><label class="label" for="j-title">Title</label><input id="j-title" placeholder="e.g. Arrival at Hollowmere"></div>
       <div class="field"><label class="label" for="j-date">Played</label><input id="j-date" type="date"></div>
     </div>
     <label class="label" for="j-sum">What happened</label>
-    <textarea id="j-sum" placeholder="The session in your own words: where you went, who you met, what changed"></textarea>`;
-  p.querySelector('h2').textContent='Session '+x.n;
+    <textarea id="j-sum" class="j-sumed" placeholder="The session in your own words: where you went, who you met, what changed"></textarea></div></details>`;
+  p.querySelector('h2').textContent='Session '+x.n+(x.title?': '+x.title:'');
+  // the details fold away once filled in, so the quick note stays near the top
+  const det=p.querySelector('.j-det');det.open=!x.title&&!x.sum;
+  det.querySelector('summary').textContent='Session details'+(x.date?' · '+fmtDate(x.date):'')+(x.sum?' · '+x.sum.split('\n')[0].slice(0,60)+(x.sum.length>60?'…':''):'');
   const ti=p.querySelector('#j-title'),da=p.querySelector('#j-date'),su=p.querySelector('#j-sum');
   ti.value=x.title||'';da.value=x.date||'';su.value=x.sum||'';
   ti.oninput=()=>{x.title=ti.value;save()};ti.onchange=renderJChips;
@@ -2563,9 +2577,80 @@ function renderJSession(body,x){
     save();renderJournal();toast('Session deleted',sessLabel(x),'✗');
   }));
   body.appendChild(p);
-  const g=document.createElement('div');g.className='j-grid';
-  JCATS.forEach(c=>g.appendChild(ENT_CATS.includes(c.id)?entPanel(c,ents().filter(e=>e.cat===c.id&&entInSession(e,x.id)),{sid:x.id}):jPanel(c,j.entries.filter(e=>e.sid===x.id&&e.cat===c.id),{sid:x.id})));
-  body.appendChild(g);
+  renderQuickNote(body);
+  renderSessionLog(body,x);
+}
+// Everything added in a session, newest first: notes on people and places, and learned facts.
+// Notes written together by one quick note (several @mentions) show as one entry.
+let logEdit=null;
+function sessionLog(sid){
+  const items=[],groups={};let legacy=0;
+  // entries from before notes had a time keep their order, below the timed ones
+  const when=x=>x.at||(-1e12+(legacy++));
+  ents().forEach(e=>e.notes.forEach(n=>{
+    if(n.sid!==sid)return;
+    if(n.g&&groups[n.g]){groups[n.g].parts.push({e:e,n:n});return}
+    const it={kind:'note',at:when(n),parts:[{e:e,n:n}]};if(n.g)groups[n.g]=it;items.push(it);
+  }));
+  J().entries.forEach(f=>{if(f.sid===sid&&f.cat==='facts')items.push({kind:'fact',at:when(f),f:f})});
+  return items.sort((a,b)=>b.at-a.at);
+}
+// Keep a record's summary in step when a note it came from is edited or removed.
+function sumReplace(e,oldT,newT){
+  const lines=(e.sum||'').split('\n');
+  for(let i=lines.length-1;i>=0;i--)if(lines[i].trim()==='- '+oldT.trim()){if(newT==null)lines.splice(i,1);else lines[i]='- '+newT;e.sum=lines.join('\n');return}
+}
+function renderSessionLog(body,x){
+  const items=sessionLog(x.id);
+  const p=document.createElement('section');p.className='panel j-log';
+  p.innerHTML='<div class="panel-head"><h2>Session log</h2><span class="fine"></span></div><ol class="log-list"></ol>';
+  p.querySelector('.fine').textContent=items.length?`${items.length} entr${items.length===1?'y':'ies'}, newest first`:'';
+  const ol=p.querySelector('ol');
+  if(!items.length){const e=document.createElement('p');e.className='s-empty';e.textContent='Nothing noted this session yet. Use Quick note above: @mention someone, or write a learned fact.';p.appendChild(e)}
+  items.forEach(it=>{
+    const li=document.createElement('li');li.className='log-it';
+    const key=it.kind==='fact'?it.f.id:it.parts[0].n.id;
+    const av=document.createElement('div');av.className='log-av';
+    if(it.kind==='fact'){const f=document.createElement('span');f.className='ent-av log-fact';f.style.setProperty('--av','34px');f.textContent='✦';av.appendChild(f)}
+    else it.parts.slice(0,3).forEach(pt=>{const a=entAvatar(pt.e,34);a.onclick=()=>openEnt(pt.e);av.appendChild(a)});
+    const tx=document.createElement('div');tx.className='j-txt';
+    const top=document.createElement('div');top.className='j-top';
+    if(it.kind==='fact'){const t=document.createElement('span');t.className='pill';t.textContent='Learned fact';top.appendChild(t)}
+    else it.parts.forEach(pt=>{
+      const c=JCAT(pt.e.cat),kd=kindOf(c,pt.e.k);
+      const b=document.createElement('button');b.type='button';b.className='ent-name';b.textContent=pt.e.name;b.onclick=()=>openEnt(pt.e);top.appendChild(b);
+      const tg=document.createElement('span');tg.className='pill j-tag';tg.dataset.k=kd[0];tg.textContent=kd[1];top.appendChild(tg);
+    });
+    const at=it.kind==='fact'?it.f.at:it.parts[0].n.at;
+    if(at){const tm=document.createElement('span');tm.className='sess';tm.textContent=new Date(at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});top.appendChild(tm)}
+    tx.appendChild(top);
+    const text=it.kind==='fact'?it.f.d:it.parts[0].n.t;
+    if(logEdit===key){
+      const ta=document.createElement('textarea');ta.value=text;tx.appendChild(ta);
+      const bar=document.createElement('div');bar.className='toolbar';bar.innerHTML='<button class="btn small primary" type="button">Save</button><button class="btn small" type="button">Cancel</button>';
+      bar.children[0].onclick=()=>{
+        const v=ta.value.trim();if(!v){ta.focus();return}
+        if(it.kind==='fact')it.f.d=v;
+        else it.parts.forEach(pt=>{const old=pt.n.t;pt.n.t=pt.n===it.parts[0].n||old===text?v:old;sumReplace(pt.e,old,pt.n.t)});
+        logEdit=null;save();renderJournal();
+      };
+      bar.children[1].onclick=()=>{logEdit=null;renderJournal()};
+      tx.appendChild(bar);setTimeout(()=>ta.focus(),0);
+    }else{
+      const d=richText(text);d.classList.add('d');tx.appendChild(d);
+      // a note that went to several records with different wording shows the others too
+      if(it.kind==='note')it.parts.slice(1).forEach(pt=>{if(pt.n.t!==text){const o=document.createElement('span');o.className='sess';o.textContent=`${pt.e.name}: ${pt.n.t}`;tx.appendChild(o)}});
+    }
+    const acts=document.createElement('span');acts.className='j-acts';
+    const ed=document.createElement('button');ed.type='button';ed.className='x';ed.textContent='Edit';ed.onclick=()=>{logEdit=key;renderJournal()};
+    acts.append(ed,delBtn(()=>{
+      if(it.kind==='fact')J().entries=J().entries.filter(y=>y!==it.f);
+      else it.parts.forEach(pt=>{pt.e.notes=pt.e.notes.filter(y=>y!==pt.n);sumReplace(pt.e,pt.n.t,null)});
+      save();renderJournal();
+    }));
+    li.append(av,tx,acts);ol.appendChild(li);
+  });
+  body.appendChild(p);
 }
 // The type selector and title/details fields, shared by the add and edit forms.
 function jFields(f,c,e){
@@ -2976,11 +3061,12 @@ function qnSubmit(text){
   const p=qnParse(text);
   if(p.bad.length){toast('Who is that?',`No match for @${p.bad[0]}. Pick a name from the list, or create it there.`,'@','fumble');return false}
   if(!p.targets.length){
-    const f={id:uid(),sid:sid,cat:'facts',t:'',d:p.whole,done:false};J().entries.push(f);
+    const f={id:uid(),sid:sid,cat:'facts',t:'',d:p.whole,done:false,at:Date.now()};J().entries.push(f);
     qnLast={facts:[f.id],ents:[]};toast('Learned fact added',p.whole,'✦');
   }else{
     qnLast={facts:[],ents:[]};
-    p.targets.forEach(({e,t})=>{const n={id:uid(),sid:sid,t:t};qnLast.ents.push({id:e.id,sum:e.sum,note:n.id});e.sum=addBullet(e.sum,t);e.notes.push(n)});
+    const at=Date.now(),g=uid();
+    p.targets.forEach(({e,t})=>{const n={id:uid(),sid:sid,t:t,at:at,g:g};qnLast.ents.push({id:e.id,sum:e.sum,note:n.id});e.sum=addBullet(e.sum,t);e.notes.push(n)});
     toast('Added to '+gList(p.targets.map(x=>x.e.name)),p.targets[0].t,'✦');
   }
   save();return true;
