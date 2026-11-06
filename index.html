@@ -1251,7 +1251,7 @@ button.cb-chip:hover{border-color:var(--k-red);color:#ffd6d6}
 <script>
 (function(){
 const KEY='ash-sheet-v1';
-const APP_VERSION='2026-11-06.6';
+const APP_VERSION='2026-11-06.7';
 const AB=[['str','Strength'],['dex','Dexterity'],['con','Constitution'],['int','Intelligence'],['wis','Wisdom'],['cha','Charisma']];
 const SAVES=['wis','cha'];
 // Level. pv is a preview level that is never saved; lvl() is what every number on the sheet follows.
@@ -2940,7 +2940,7 @@ function cbHit(roll,half){
     tot=Math.max(0,half?Math.floor(tot/2):tot);
     cbD.dmg={tot:tot,rolls:rolls,flat:a.atk.flat||0,crit:crit,half:!!half,type:a.atk.type||''};cbD.ph='dmg';cbD.anim=true;
     if(f)f.dmg=(f.dmg||0)+tot;
-  }else{save();return cbNext()}
+  }else{cbD.ph='mine';cbD.half=!!half}
   save();renderCombat();
 }
 function cbNext(){
@@ -2974,6 +2974,16 @@ function renderCbDice(){
       <p class="cb-dn" style="text-align:center">${esc(cbD.det)}${cbD.k===20?' · damage dice are doubled':''}</p>`;
     if(cbD.k!==1)acts.push(['Hit · roll damage for me','pri',()=>cbHit(true)],['Hit · I’ll roll damage','ghost',()=>cbHit(false)]);
     acts.push(['Miss',cbD.k===1?'pri':'quiet',()=>cbNext()]);
+  }else if(cbD.ph==='mine'){
+    // you roll the dice at the table; the total is optional, but it keeps the foe's damage count honest
+    const crit=a.kind==='atk'&&cbD.crit,f2=cbFoe(cbD.fid);
+    const parts=a.atk.dice.map(([n,sd])=>`${crit?n*2:n}d${sd}`).concat(a.kind==='atk'&&cbHexed(f2)?[`${crit?2:1}d6 Hex`]:[]);
+    const what=parts.join(' + ')+(a.atk.flat?' '+sg(a.atk.flat).replace(/^([+-])/,'$1 '):'');
+    h+=`<p class="cb-dn">Roll <b>${esc(what)}</b>${crit?' (critical: dice doubled)':''}${cbD.half?', then halve it':''}.</p>
+      <label class="cb-table" style="justify-content:center;font-size:13px">Damage dealt <input id="cbd-m" type="number" inputmode="numeric" min="0" placeholder="0" aria-label="Damage you rolled" style="width:90px;font-size:22px;text-align:center"></label>`;
+    const log=()=>{const v=parseInt($('cbd-m').value,10);if(v>=0&&f2){f2.dmg=(f2.dmg||0)+v;save()}cbNext()};
+    acts.push(['Log damage','pri',log],['Skip','quiet',()=>cbNext()]);
+    cbD.mineLog=log;
   }else{
     const g=cbD.dmg;
     const chips=g.rolls.map((r,i)=>`<span class="cb-die${r.hex?' hex':''}" style="animation-delay:${i*90}ms" title="d${r.s}${r.hex?' Hex':''}">${r.r}</span>`).join('')+(g.flat?`<span class="cb-die flat" style="animation-delay:${g.rolls.length*90}ms">${sg(g.flat)}</span>`:'');
@@ -2987,6 +2997,7 @@ function renderCbDice(){
   acts.forEach(([t,cls,fn])=>{const b=document.createElement('button');b.type='button';b.className='cb-btn '+cls;b.textContent=t;b.onclick=fn;bar.appendChild(b)});
   $('cbd-x').onclick=()=>{cbD=null;renderCombat()};
   w.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{cbD.mode=b.dataset.m;renderCbDice()});
+  const mi=$('cbd-m');if(mi){mi.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();cbD.mineLog()}};setTimeout(()=>mi.focus({preventScroll:true}),0)}
   const ti=$('cbd-t');
   if(ti){const use=()=>{const v=parseInt(ti.value,10);if(v>=1&&v<=20)cbRollD20(v);else ti.focus()};$('cbd-use').onclick=use;ti.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();use()}}}
   const first=bar.querySelector('.pri');if(first&&!w.contains(document.activeElement))first.focus({preventScroll:true});
