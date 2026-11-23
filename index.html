@@ -1363,7 +1363,7 @@ button.cb-chip:hover{border-color:var(--k-red);color:#ffd6d6}
 <script>
 (function(){
 const KEY='ash-sheet-v1';
-const APP_VERSION='2026-11-07.1';
+const APP_VERSION='2026-11-23.1';
 const AB=[['str','Strength'],['dex','Dexterity'],['con','Constitution'],['int','Intelligence'],['wis','Wisdom'],['cha','Charisma']];
 const SAVES=['wis','cha'];
 // Level. pv is a preview level that is never saved; lvl() is what every number on the sheet follows.
@@ -2782,7 +2782,10 @@ function cbActions(){
   return out;
 }
 // How an action fares against the selected foe right now.
+// Archfey: Steps of the Fey casts Misty Step without a slot, Charisma modifier times per Long Rest
+const cbFreeSteps=()=>B().patron==='Archfey'&&lvl()>=3?Math.max(0,Math.max(1,mod('cha'))-((S.pt||{}).steps||0)):0;
 function cbStatus(a,f,c){
+  if(a.n==='Misty Step'&&cbFreeSteps())return c.eco[a.k]?{t:cbFreeSteps()+' FREE',cls:'ok'}:{t:'SPENT',cls:'spent'};
   if(a.slot&&!slotsLeft())return {t:'NO SLOT',cls:'off'};
   const r=cbReach(a,f,c);
   return c.eco[a.k]?r:Object.assign({},r,{t:'SPENT',cls:'spent'});
@@ -3090,6 +3093,10 @@ function renderCbTurn(){
 let cbD=null;
 function cbUse(a){
   const c=CB(),f=cbTgt(),st=cbStatus(a,f,c);
+  if(a.n==='Misty Step'&&cbFreeSteps()){
+    S.pt=S.pt||{};S.pt.steps=(S.pt.steps||0)+1;c.eco[a.k]=false;save();renderAll();
+    toast('Steps of the Fey',`Misty Step without a slot (${cbFreeSteps()} free left). Refreshing Step: an ally gains 1d10 temp HP. Taunting Step: creatures near where you left have Disadvantage on attacks against others.`,'✦');return;
+  }
   if(f&&f.ally&&(a.kind!=='util'||a.n==='Hex')){toast(a.n,`${f.name} is in your party. Pick a foe on the radar to attack.`,'—');return}
   if(st.t==='NO SLOT'){toast(a.n,'No pact slot left. Take a short rest.','—','fumble');return}
   if(a.sp&&(a.slot||a.sp.c||a.sp.dur||a.sp.aoa||a.sp.lasting)){
