@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ash, Changeling Warlock</title>
+<script>try{document.documentElement.dataset.skin=localStorage.getItem('ash-sheet-v1-skin')||'glade'}catch(e){document.documentElement.dataset.skin='glade'}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
@@ -28,7 +29,7 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.45;padding-inline:16px;padding-block:20px 120px}
-.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
 h1,h2{font-family:var(--display);font-weight:700;margin:0;text-wrap:balance}
 h1{font-size:2.6rem;line-height:1}
 h2{font-size:1.35rem;letter-spacing:.01em}
@@ -891,6 +892,186 @@ button.cb-chip:hover{border-color:var(--k-red);color:#ffd6d6}
 }
 @media (prefers-reduced-motion:reduce){.cb *,.cb *::before{animation:none!important}}
 .cb .cut.cb-tg,.cb .cut.cb-foe{border-radius:16px 4px 16px 4px}
+/* ---------- layout: the three things you use most sit side by side ---------- */
+.grid{grid-template-columns:minmax(0,290px) minmax(0,1fr) minmax(0,440px)}
+@media (max-width:1040px){.grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.col3{grid-column:1/-1}}
+@media (max-width:700px){
+  .grid{display:flex;flex-direction:column}
+  .grid>.col{display:contents}
+  .grid>.col>.panel{order:20}
+  #p-hp{order:1}#p-atk{order:2}#p-spells{order:3}#p-abil{order:4}#p-skills{order:5}
+}
+/* header portrait: tap to change it */
+.hdr-port{position:relative;width:64px;height:76px;flex:none;padding:0;border:2px solid var(--ink);border-radius:32px 32px 8px 8px;background:var(--sunk);overflow:hidden;display:grid;place-items:center}
+.hdr-port img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hdr-port .ph{font-family:var(--display);font-weight:700;font-size:1.9rem;color:var(--muted)}
+.hdr-port:hover{border-color:var(--accent)}
+.skin{height:34px;align-self:center;margin-right:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:0 8px;font:inherit;font-size:.82rem}
+.skin-deco{display:none}
+.panel.flash{animation:pflash 1.4s ease-out}
+@keyframes pflash{0%{box-shadow:0 0 0 3px var(--accent)}100%{box-shadow:0 0 0 0 transparent}}
+
+/* attacks: the numbers you read out are big */
+#attacks .rb{display:inline-flex;flex-direction:column;align-items:center;line-height:1.05;padding:4px 10px;min-width:3.6em}
+#attacks .rb b{font-size:1.15rem}
+#attacks .rb small{font-family:var(--body);font-size:.62rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+#attacks .rb .hx{font-style:normal;color:var(--accent);font-size:.9em}
+#attacks strong{font-size:1rem}
+
+/* spells: name, what it does, then the numbers; casting is a small wand */
+.spell summary{grid-template-columns:minmax(0,1fr) auto}
+.spell .sp-main{display:flex;flex-direction:column;gap:2px;min-width:0}
+.spell .sp-ef{font-size:.9rem;line-height:1.35}
+.spell .sp-ef .kw{font-weight:700;color:var(--ink)}
+.spell .meta{grid-column:auto}
+.spell .acts{grid-row:auto;align-items:center;flex-wrap:nowrap}
+.spell.on{border-color:var(--accent)}
+.spill{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-width:3.6em;padding:3px 9px;border:1px solid var(--line);border-radius:10px;background:var(--surface);line-height:1.05;white-space:nowrap}
+.spill b{font-family:var(--mono);font-size:1.02rem;font-weight:600}
+.spill b .ag{font-style:normal;color:var(--accent)}.spill b .hx{font-style:normal;color:var(--accent);font-size:.85em}
+.spill small{font-size:.6rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+button.spill:hover{border-color:var(--accent)}
+.spill.run{border-color:var(--accent);background:var(--accent-soft)}
+.wand{display:inline-flex;align-items:center;gap:4px;height:30px;min-width:30px;justify-content:center;padding:0 7px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--accent)}
+.wand svg{width:15px;height:15px;fill:none;stroke:currentColor}.wand svg .f{fill:currentColor;stroke:none}
+.wand span{font-size:.72rem;font-weight:600}
+.wand:hover{border-color:var(--accent);background:var(--accent-soft)}
+.wand.free{border-color:var(--good);color:var(--good)}
+.slotbtn{border:0;background:none;color:var(--muted);font-size:.72rem;text-decoration:underline;padding:0 2px}
+
+/* the active concentration spell */
+.conc{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;padding:12px 14px}
+.conc .conc-top{grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline}
+.conc-left{font-size:.8rem;font-weight:600;color:var(--muted)}
+.conc #conc-name{grid-column:1/-1;font-family:var(--display);font-size:1.6rem;line-height:1.1}
+.conc-on{grid-column:1/-1;font-size:.92rem}.conc-on b{font-weight:700}
+.conc-ef{grid-column:1/-1;font-size:.95rem;line-height:1.4}
+.conc-ef .kw{font-weight:700}
+.conc-acts{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+#conc-save small{font-weight:500;opacity:.8}
+
+/* ================= Moonlit glade skin =================
+   Everything below only applies with data-skin="glade" on <html>. Delete the block (or pick Classic) to go back. */
+:root[data-skin="glade"]{
+  --bg:#0a120f; --surface:rgba(22,24,30,.82); --sunk:#0d1411; --ink:#ecf3e6; --muted:#a3b39d; --line:rgba(147,221,140,.18);
+  --accent:#ecca78; --accent-soft:rgba(236,202,120,.12); --on-accent:#1b1406;
+  --danger:#ef8396; --danger-soft:rgba(228,106,126,.16); --good:#93dd8c; --warn:#f0b56a; --warn-soft:rgba(240,181,106,.14);
+  --lav:#cdb2ff; --rose:#ff9ecf; --gold:#ecca78; --leaf:#93dd8c;
+  --display:"Cinzel Decorative","Cinzel",Georgia,serif; --label:"Cinzel",Georgia,serif;
+  --body:"Cormorant Garamond",Georgia,serif; --mono:"Cormorant Garamond",Georgia,serif;
+  color-scheme:dark;
+}
+[data-skin="glade"] body{font-size:16.5px;background:
+  radial-gradient(ellipse 50% 28% at 55% 4%,rgba(61,45,104,.9) 0%,transparent 70%),
+  radial-gradient(ellipse 40% 40% at 4% 60%,rgba(28,58,38,.8) 0%,transparent 70%),
+  radial-gradient(ellipse 40% 30% at 98% 35%,rgba(27,44,60,.8) 0%,transparent 70%),#0a120f;background-attachment:fixed}
+/* stars and fireflies, then a soft aurora */
+[data-skin="glade"] body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.8;background-image:
+  radial-gradient(1.6px 1.6px at 8% 12%,#fff4c2 50%,transparent 51%),radial-gradient(1.2px 1.2px at 23% 38%,#fff4c2 50%,transparent 51%),
+  radial-gradient(2px 2px at 41% 8%,#e6d6ff 50%,transparent 51%),radial-gradient(1.2px 1.2px at 57% 27%,#fff4c2 50%,transparent 51%),
+  radial-gradient(1.8px 1.8px at 72% 14%,#fff4c2 50%,transparent 51%),radial-gradient(1.2px 1.2px at 88% 31%,#e6d6ff 50%,transparent 51%),
+  radial-gradient(1.6px 1.6px at 94% 66%,#fff4c2 50%,transparent 51%),radial-gradient(1.2px 1.2px at 63% 78%,#fff4c2 50%,transparent 51%),
+  radial-gradient(1.8px 1.8px at 33% 88%,#e6d6ff 50%,transparent 51%),radial-gradient(1.2px 1.2px at 12% 72%,#fff4c2 50%,transparent 51%),
+  radial-gradient(6px 6px at 17% 52%,rgba(255,244,194,.35) 0%,transparent 70%),radial-gradient(6px 6px at 82% 48%,rgba(255,244,194,.3) 0%,transparent 70%),
+  radial-gradient(5px 5px at 49% 62%,rgba(147,221,140,.35) 0%,transparent 70%);animation:gladeTwinkle 6s ease-in-out infinite alternate}
+[data-skin="glade"] body::after{content:"";position:fixed;left:-10%;right:-10%;top:-140px;height:340px;pointer-events:none;z-index:0;opacity:.45;filter:blur(34px);
+  background:linear-gradient(100deg,transparent 10%,rgba(147,221,140,.35) 30%,rgba(205,178,255,.45) 50%,rgba(255,158,207,.3) 65%,transparent 85%)}
+@keyframes gladeTwinkle{from{opacity:.55}to{opacity:.95}}
+[data-skin="glade"] .wrap{position:relative;z-index:1}
+[data-skin="glade"] .skin-deco{display:block;position:absolute;left:-30px;top:-22px;width:calc(100% + 60px);height:40px;pointer-events:none}
+:root[data-skin="glade"],[data-skin="glade"] body{overflow-x:clip}
+[data-skin="glade"] .head{position:relative;border-bottom:1px solid rgba(236,202,120,.3)}
+[data-skin="glade"] h1{font-family:var(--display);font-weight:900;font-size:3rem;color:#f7efd6;text-shadow:0 0 24px rgba(236,202,120,.45),0 0 2px rgba(255,255,255,.6)}
+[data-skin="glade"] h2{font-family:var(--display);font-weight:700;font-size:1.3rem;color:var(--gold);text-shadow:0 0 14px rgba(236,202,120,.28)}
+[data-skin="glade"] .ident p{font-style:italic;font-size:1.05rem}[data-skin="glade"] .ident .true{color:var(--lav)}
+[data-skin="glade"] .label,[data-skin="glade"] th,[data-skin="glade"] .tag{font-family:var(--label)}
+[data-skin="glade"] .fine{font-style:italic}
+[data-skin="glade"] .hdr-port{width:78px;height:92px;border:0;border-radius:40px 40px 8px 8px;background:radial-gradient(circle at 50% 30%,#4a3d6e,#1a1428 70%);
+  box-shadow:0 0 0 2px #ecca78,0 0 0 4px rgba(205,178,255,.25),0 0 30px rgba(205,178,255,.45)}
+[data-skin="glade"] .hdr-port .ph{font-family:var(--display);font-weight:900;color:#f4ecd0;opacity:.85}
+[data-skin="glade"] .rest,[data-skin="glade"] .skin{border-radius:16px 4px 16px 4px;border-color:rgba(147,221,140,.25);background:rgba(16,28,20,.7);color:var(--gold)}
+[data-skin="glade"] .rest span{font-family:var(--label);color:var(--muted)}
+[data-skin="glade"] .skin{border-style:dashed;border-color:rgba(236,202,120,.45);font-style:italic;font-weight:600}
+[data-skin="glade"] .tabs button{font-family:var(--label)}
+/* panels: leaf corners, a shimmering edge */
+[data-skin="glade"] .panel,[data-skin="glade"] .vital{position:relative;border-radius:22px 6px 22px 6px;border:1px solid rgba(236,202,120,.16);
+  background:linear-gradient(170deg,rgba(34,31,48,.86),rgba(13,18,16,.86));box-shadow:0 18px 40px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.04)}
+[data-skin="glade"] .panel::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;pointer-events:none;opacity:.55;
+  background:conic-gradient(from 210deg,rgba(236,202,120,.6),rgba(205,178,255,.4),rgba(147,221,140,.35),rgba(255,158,207,.4),rgba(236,202,120,.6));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+[data-skin="glade"] .vital{border-radius:16px 4px 16px 4px}
+[data-skin="glade"] .vital .label{color:var(--lav)}
+[data-skin="glade"] .vital .v,[data-skin="glade"] .hpline .big,[data-skin="glade"] .ab .mod{font-family:var(--display);font-weight:700;color:#f7efd6}
+[data-skin="glade"] .hpline .big{font-size:3rem;font-weight:900;text-shadow:0 0 20px rgba(147,221,140,.35)}
+[data-skin="glade"] .btn{border-radius:999px;background:rgba(18,32,22,.7);border-color:rgba(147,221,140,.3);font-weight:600}
+[data-skin="glade"] .btn.primary{background:linear-gradient(180deg,#f6dc8c,#d6aa4c);border-color:#ecca78;color:#1b1406}
+[data-skin="glade"] .btn.danger{border-color:rgba(228,106,126,.6);background:rgba(90,30,44,.45);color:#ffd1d8}
+[data-skin="glade"] input,[data-skin="glade"] textarea,[data-skin="glade"] select{background:rgba(10,14,12,.65);border-color:rgba(147,221,140,.25);border-radius:12px;font-family:var(--body)}
+[data-skin="glade"] .ab{border-radius:40px 40px 10px 10px;background:linear-gradient(180deg,rgba(40,52,42,.6),rgba(14,18,16,.6));border-color:rgba(147,221,140,.2);padding-top:10px}
+[data-skin="glade"] .ab .save.prof{color:var(--leaf)}
+[data-skin="glade"] .dot{border-color:#4a5a40}[data-skin="glade"] .dot.on{background:var(--leaf);border-color:var(--leaf);border-radius:50% 0;transform:rotate(45deg) scale(.95)}
+[data-skin="glade"] .row{border-bottom-style:solid;border-bottom-color:rgba(255,255,255,.04)}
+[data-skin="glade"] .rb{font-family:var(--body);font-weight:700;font-size:1.05rem;border-radius:999px;background:rgba(20,30,22,.7);border-color:rgba(147,221,140,.25)}
+[data-skin="glade"] .hpbar{height:14px;border-radius:999px;background:rgba(255,255,255,.06)}
+[data-skin="glade"] .hpbar .fill{background:linear-gradient(90deg,#2f7a48,#93dd8c 70%,#e2ffc6);box-shadow:0 0 14px rgba(147,221,140,.55)}
+[data-skin="glade"] .hpbar .temp{background:#9fd3ff}
+[data-skin="glade"] .chip{background:transparent;border-color:rgba(147,221,140,.35);font-style:italic}
+/* attacks: gold to-hit, big dice */
+[data-skin="glade"] #attacks td{border-bottom:1px solid rgba(255,255,255,.05)}
+[data-skin="glade"] #attacks strong{font-family:var(--label);font-size:1.05rem;color:#f7efd6}
+[data-skin="glade"] #attacks .note{font-style:italic;font-size:.9rem}
+[data-skin="glade"] #attacks .rb{border-radius:14px;padding:4px 12px}
+[data-skin="glade"] #attacks td:nth-child(2) .rb{border-color:rgba(236,202,120,.45);background:rgba(236,202,120,.08)}
+[data-skin="glade"] #attacks td:nth-child(2) .rb b{font-family:var(--display);font-weight:900;font-size:1.35rem;color:var(--gold)}
+[data-skin="glade"] #attacks td:nth-child(3) .rb b{font-size:1.35rem;color:#f7efd6}
+[data-skin="glade"] #attacks .rb small{font-family:var(--label);font-size:.55rem;color:var(--muted)}
+[data-skin="glade"] #attacks .rb .hx,[data-skin="glade"] .spill b .hx{color:var(--lav)}
+/* spells */
+[data-skin="glade"] .spell{border-radius:16px 4px 16px 4px;background:rgba(10,14,12,.45);border-color:rgba(255,255,255,.05)}
+[data-skin="glade"] .spell .nm{font-family:var(--label);font-weight:700;font-size:1.02rem;color:#f7efd6}
+[data-skin="glade"] .spell .sp-ef{font-size:1.02rem;color:#cfdac9}
+[data-skin="glade"] .spell .sp-ef .kw{color:var(--gold)}
+[data-skin="glade"] .spell .meta{font-style:italic;font-size:.85rem}
+[data-skin="glade"] .spell.on{border-color:rgba(205,178,255,.6);box-shadow:0 0 18px rgba(140,106,214,.25)}
+[data-skin="glade"] .group-title{color:var(--lav);display:flex;align-items:center;gap:8px}
+[data-skin="glade"] .group-title::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(205,178,255,.35),transparent)}
+[data-skin="glade"] .spill{border-radius:12px;border-color:rgba(236,202,120,.3);background:rgba(236,202,120,.06)}
+[data-skin="glade"] .spill b{font-family:var(--body);font-weight:700;font-size:1.2rem;color:var(--gold)}
+[data-skin="glade"] .spill.hit b{font-family:var(--display);font-weight:900;font-size:1.15rem}
+[data-skin="glade"] .spill.dmg b{color:#f7efd6}
+[data-skin="glade"] .spill small{font-family:var(--label);font-size:.52rem}
+[data-skin="glade"] .spill.run{border-color:rgba(205,178,255,.6);background:rgba(140,106,214,.2)}[data-skin="glade"] .spill.run b{color:#ecdfff}
+[data-skin="glade"] .wand{border-color:rgba(236,202,120,.35);background:rgba(236,202,120,.06)}
+[data-skin="glade"] .wand.free{border-color:rgba(147,221,140,.5);background:rgba(147,221,140,.08)}
+[data-skin="glade"] .tag{border-radius:999px;font-family:var(--body);font-style:italic;text-transform:none;letter-spacing:0;font-size:.78rem;padding:0 8px}
+[data-skin="glade"] .boost{font-family:var(--body);font-style:italic}
+[data-skin="glade"] .pip{border-color:#f7efd6;background:#f7efd6;border-radius:50%;box-shadow:inset -7px -2px 0 0 #1b1830,0 0 10px rgba(247,239,214,.5)}
+[data-skin="glade"] .pip.spent{background:transparent;box-shadow:none;opacity:.6}
+/* the active spell glows */
+[data-skin="glade"] .conc.active{position:relative;overflow:hidden;border-radius:20px 6px 20px 6px;border:1px solid rgba(205,178,255,.75);
+  background:radial-gradient(ellipse at 85% 0%,rgba(205,178,255,.35),transparent 60%),linear-gradient(160deg,rgba(70,48,120,.88),rgba(24,16,40,.94));
+  box-shadow:0 0 34px rgba(140,106,214,.45),inset 0 0 30px rgba(205,178,255,.12)}
+[data-skin="glade"] .conc.active::after{content:"";position:absolute;right:-26px;top:-26px;width:130px;height:130px;opacity:.28;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%23ecdfff' stroke-width='1.5'%3E%3Ccircle cx='50' cy='50' r='46'/%3E%3Ccircle cx='50' cy='50' r='34' stroke-dasharray='3 5'/%3E%3Cpath d='M50 8 86 71H14Z'/%3E%3Cpath d='M28 50c8-12 36-12 44 0-8 12-36 12-44 0Z'/%3E%3Ccircle cx='50' cy='50' r='5' fill='%23ecdfff'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat}
+[data-skin="glade"] .conc .label{color:#ecdfff;padding:2px 8px;border-radius:999px;background:rgba(205,178,255,.2);border:1px solid rgba(205,178,255,.5)}
+[data-skin="glade"] .conc-left{font-style:italic;font-size:.95rem;color:#ecdfff}
+[data-skin="glade"] .conc #conc-name{font-family:var(--display);font-weight:900;font-size:2rem;color:#fbf6ff;text-shadow:0 0 16px rgba(205,178,255,.8)}
+[data-skin="glade"] .conc-on{color:#ecdfff;font-size:1.05rem}[data-skin="glade"] .conc-on b{font-family:var(--label);color:#fff}
+[data-skin="glade"] .conc-ef{color:#e2d6f4;font-size:1.08rem}[data-skin="glade"] .conc-ef .kw{color:var(--rose)}
+[data-skin="glade"] #conc-save{background:linear-gradient(180deg,#f2e8ff,#c9b0ff);border:0;color:#24163e;box-shadow:0 0 16px rgba(205,178,255,.55)}
+[data-skin="glade"] #conc-drop{border-color:rgba(236,223,255,.4);background:rgba(255,255,255,.05);color:#ecdfff}
+[data-skin="glade"] .roll{background:linear-gradient(160deg,#2b2142,#121a16);color:var(--ink);border:1px solid rgba(236,202,120,.35)}
+[data-skin="glade"] .roll .r{font-family:var(--display);color:var(--gold)}
+[data-skin="glade"] dialog{background:#141a17;color:var(--ink);border:1px solid rgba(236,202,120,.3);border-radius:22px 6px 22px 6px}
+@media (prefers-reduced-motion:reduce){[data-skin="glade"] body::before{animation:none}}
+@media (max-width:640px){
+  .head{flex-wrap:wrap;align-items:center}
+  .head .rests{width:100%;justify-content:flex-end}
+  .hdr-port,[data-skin="glade"] .hdr-port{width:58px;height:68px}
+  [data-skin="glade"] h1{font-size:2.3rem}
+  [data-skin="glade"] .ident p{font-size:.95rem}
+}
+
 /* roll log */
 .log{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:min(340px,calc(100vw - 32px));display:flex;flex-direction:column;gap:6px;z-index:10;pointer-events:none}
 .roll{pointer-events:auto;background:var(--ink);color:var(--bg);border-radius:8px;padding:9px 12px;box-shadow:0 6px 20px rgba(0,0,0,.25);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;animation:pop .18s ease-out}
@@ -907,13 +1088,15 @@ button.cb-chip:hover{border-color:var(--k-red);color:#ffd6d6}
 <div class="wrap">
   <header class="head">
     <div class="who">
-      <img id="hdr-portrait" class="avatar" alt="Portrait of Ash" hidden>
+      <button type="button" class="hdr-port" id="hdr-port" title="Portrait: tap to change it" aria-label="Portrait. Tap to change it"><img id="hdr-portrait" alt="Portrait of Ash" hidden><span class="ph" id="hdr-port-empty" aria-hidden="true">A</span></button>
       <div class="ident">
         <h1>Ash</h1>
         <p>Changeling Warlock <span id="lvl-n">1</span> · Charlatan · Pact of the Tome · Chaotic Neutral <span class="true">· true name unknown</span></p>
       </div>
     </div>
+    <svg class="skin-deco" viewBox="0 0 1300 40" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#2f4a33" stroke-width="2.2" stroke-linecap="round"><path d="M0 20c80 10 120-14 200-6s110 26 190 14"/><path d="M1300 20c-80 10-120-14-200-6s-110 26-190 14"/></g><g fill="#3f6a42"><path d="M60 24c5-9 16-9 20 0-5 7-15 7-20 0Z"/><path d="M150 12c5-9 16-9 20 0-5 7-15 7-20 0Z"/><path d="M300 22c5-9 16-9 20 0-5 7-15 7-20 0Z"/><path d="M1220 24c5-9 16-9 20 0-5 7-15 7-20 0Z"/><path d="M1130 12c5-9 16-9 20 0-5 7-15 7-20 0Z"/><path d="M980 22c5-9 16-9 20 0-5 7-15 7-20 0Z"/></g><g fill="#ff9ecf"><circle cx="110" cy="18" r="4"/><circle cx="1190" cy="18" r="4"/><circle cx="360" cy="28" r="3"/></g><g fill="#ecca78"><circle cx="110" cy="18" r="1.6"/><circle cx="1190" cy="18" r="1.6"/></g></svg>
     <div class="rests" role="group" aria-label="Level and rest">
+      <select class="skin" id="skin" aria-label="Theme"><option value="glade">✦ Moonlit glade</option><option value="classic">Classic</option></select>
       <button class="rest" id="btn-lvlup" title="Level up" aria-label="Level up"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg><span>Up</span></button>
 <button class="rest lvl" id="lvl-btn" type="button" title="Level history, undo and previews of other levels"><b id="lvl-v">1</b><span>Level</span></button>
       <button class="rest" id="btn-short" title="Short rest: 1 hour, restores the pact slot" aria-label="Short rest"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12M6 21h12M7 3c0 5 10 5 10 9s-10 4-10 9M17 3c0 5-10 5-10 9s10 4 10 9"/></svg><span>Short</span></button>
@@ -1135,29 +1318,14 @@ button.cb-chip:hover{border-color:var(--k-red);color:#ffd6d6}
     <button class="vital click" id="v-sa-btn" data-tip="sa"><span class="label">Spell Attack</span><span class="v" id="v-sa">+5</span><small>Click to roll</small></button>
   </section>
 
-  <section class="panel fxbar" id="fx-panel" aria-label="Active effects" hidden>
-    <div class="panel-head">
-      <h2>Active effects</h2>
-      <div class="fx-time" role="group" aria-label="Advance game time">
-        <span class="label">Advance time</span>
-        <button class="btn small" data-adv="6">+1 round</button>
-        <button class="btn small" data-adv="60">+1 min</button>
-        <button class="btn small" data-adv="600">+10 min</button>
-        <button class="btn small" data-adv="3600">+1 hour</button>
-      </div>
-    </div>
-    <div class="fx-list" id="fx-list"></div>
-    <p class="fine">1 round is 6 seconds, so 10 rounds make a minute. In combat, press +1 round when your turn comes back around. Rests advance time automatically.</p>
-  </section>
-
   <div class="grid">
-    <!-- column 1 -->
+    <!-- column 1: rolls -->
     <div class="col">
-      <section class="panel">
+      <section class="panel" id="p-abil">
         <div class="panel-head"><h2>Abilities</h2><span class="fine">Click a modifier to roll a check</span></div>
         <div class="abil" id="abil"></div>
       </section>
-      <section class="panel">
+      <section class="panel" id="p-skills">
         <div class="panel-head"><h2>Skills</h2><span class="fine">Dot toggles proficiency</span></div>
         <div class="rows" id="skills"></div>
       </section>
@@ -1165,11 +1333,43 @@ button.cb-chip:hover{border-color:var(--k-red);color:#ffd6d6}
         <h2>Tools</h2>
         <div class="rows" id="tools"></div>
       </section>
+      <section class="panel">
+        <h2>Changeling Traits</h2>
+        <dl class="kv">
+          <dt>Type</dt><dd>Fey · Medium or Small</dd>
+          <dt>Shapechanger</dt><dd>As an Action, change your appearance and voice: coloration, hair, sex, height (Medium or Small), even another species. You can't copy a specific person you've never seen, and you keep the same limb arrangement. Gear and stats don't change. Lasts until you change again or die.</dd>
+          <dt>Instincts</dt><dd>Proficiency in Insight and Persuasion.</dd>
+        </dl>
+        <p class="fine">From <em>Monsters of the Multiverse</em>; confirm with your DM for a 2024 game.</p>
+      </section>
+      <section class="panel">
+        <h2>Languages</h2>
+        <div class="field"><label class="label" for="lang">Known</label><input id="lang" style="flex:1;min-width:0" value="Common, (choose two)"></div>
+        <p class="fine">2024 rules: Common plus two standard languages of your choice.</p>
+      </section>
+      <section class="panel" id="p-port">
+        <div class="panel-head"><h2>Portrait</h2><span class="fine">Drop an image on the frame</span></div>
+        <div class="portrait" id="pt-box">
+          <img id="pt-img" alt="Portrait of Ash" hidden>
+          <span id="pt-empty">No portrait yet. Upload an image, drop one here, or paste a link.</span>
+        </div>
+        <div class="toolbar">
+          <label class="btn small" for="pt-file" style="cursor:pointer">Upload image</label>
+          <input id="pt-file" type="file" accept="image/*" hidden>
+          <button class="btn small danger" id="pt-remove" hidden>Remove</button>
+        </div>
+        <div class="field">
+          <label class="label" for="pt-url">Image link</label>
+          <input id="pt-url" type="url" placeholder="https://…" style="flex:1;min-width:0">
+          <button class="btn small" id="pt-url-btn">Use link</button>
+        </div>
+        <p class="fine" id="pt-note">Uploaded images are shrunk and saved with the sheet, so they appear in backups too. A link shows the image from another website, so it disappears if that site removes it or blocks embedding.</p>
+      </section>
     </div>
 
-    <!-- column 2 -->
+    <!-- column 2: staying alive and hitting things -->
     <div class="col">
-      <section class="panel">
+      <section class="panel" id="p-hp">
         <div class="panel-head"><h2>Hit Points</h2><div class="chips" id="hp-chips"></div></div>
         <div class="hpline">
           <span class="big num" id="hp-cur">10</span><span class="muted num">/ <span id="hp-max">10</span></span>
@@ -1196,8 +1396,7 @@ button.cb-chip:hover{border-color:var(--k-red);color:#ffd6d6}
         </div>
         <p class="fine" id="aoa-note" hidden>Armor of Agathys: a creature that hits you with a melee attack takes <span id="aoa-n">5</span> Cold damage while you have its temp HP.</p>
       </section>
-
-      <section class="panel">
+      <section class="panel" id="p-atk">
         <h2>Attacks</h2>
         <div class="field" id="hex-row" hidden><label><input type="checkbox" id="hex-on" checked> Target is under Hex (+1d6 Necrotic)</label></div>
         <div class="tbl">
@@ -1213,57 +1412,6 @@ button.cb-chip:hover{border-color:var(--k-red);color:#ffd6d6}
           <div class="toolbar"><button class="btn small" type="button" id="wpn-add">Add weapon</button></div>
         </details>
       </section>
-
-      <section class="panel">
-        <div class="panel-head"><h2>Spellcasting</h2><span class="toolbar"><span class="fine">Charisma · Arcane focus</span><button class="btn small" id="book-edit">Change book</button></span></div>
-        <div class="slots">
-          <span class="label" id="slot-lbl">Pact slot (1st level)</span>
-          <span class="pips" id="pips"></span>
-          <button class="btn small" type="button" id="mc-btn" hidden>Magical Cunning</button>
-          <span class="fine">Returns on a Short or Long Rest</span>
-        </div>
-        <div class="conc" id="conc">
-          <span class="label">Concentrating</span>
-          <strong id="conc-name">Nothing</strong>
-          <button class="btn small" id="conc-save">Con save</button>
-          <button class="btn small" id="conc-drop" hidden>Drop</button>
-          <span class="boost" id="conc-em" title="Eldritch Mind: Constitution saves to keep Concentration roll twice and keep the higher" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5l1.6 4.2 4.4 1.3-4.4 1.3L8 14.5 6.4 8.3 2 7l4.4-1.3z"/></svg>Eldritch Mind · Advantage</span>
-        </div>
-        <div class="spells" id="spells"></div>
-      </section>
-    </div>
-
-    <!-- column 3 -->
-    <div class="col col3">
-      <section class="panel">
-        <div class="panel-head"><h2>Portrait</h2><span class="fine">Drop an image on the frame</span></div>
-        <div class="portrait" id="pt-box">
-          <img id="pt-img" alt="Portrait of Ash" hidden>
-          <span id="pt-empty">No portrait yet. Upload an image, drop one here, or paste a link.</span>
-        </div>
-        <div class="toolbar">
-          <label class="btn small" for="pt-file" style="cursor:pointer">Upload image</label>
-          <input id="pt-file" type="file" accept="image/*" hidden>
-          <button class="btn small danger" id="pt-remove" hidden>Remove</button>
-        </div>
-        <div class="field">
-          <label class="label" for="pt-url">Image link</label>
-          <input id="pt-url" type="url" placeholder="https://…" style="flex:1;min-width:0">
-          <button class="btn small" id="pt-url-btn">Use link</button>
-        </div>
-        <p class="fine" id="pt-note">Uploaded images are shrunk and saved with the sheet, so they appear in backups too. A link shows the image from another website, so it disappears if that site removes it or blocks embedding.</p>
-      </section>
-
-      <section class="panel">
-        <h2>Changeling Traits</h2>
-        <dl class="kv">
-          <dt>Type</dt><dd>Fey · Medium or Small</dd>
-          <dt>Shapechanger</dt><dd>As an Action, change your appearance and voice: coloration, hair, sex, height (Medium or Small), even another species. You can't copy a specific person you've never seen, and you keep the same limb arrangement. Gear and stats don't change. Lasts until you change again or die.</dd>
-          <dt>Instincts</dt><dd>Proficiency in Insight and Persuasion.</dd>
-        </dl>
-        <p class="fine">From <em>Monsters of the Multiverse</em>; confirm with your DM for a 2024 game.</p>
-      </section>
-
       <section class="panel">
         <h2>Class &amp; features</h2>
         <dl class="kv">
@@ -1274,13 +1422,6 @@ button.cb-chip:hover{border-color:var(--k-red);color:#ffd6d6}
         </dl>
         <div id="cls-feats" class="cls-feats"></div>
       </section>
-
-      <section class="panel">
-        <h2>Languages</h2>
-        <div class="field"><label class="label" for="lang">Known</label><input id="lang" style="flex:1;min-width:0" value="Common, (choose two)"></div>
-        <p class="fine">2024 rules: Common plus two standard languages of your choice.</p>
-      </section>
-
       <section class="panel">
         <div class="panel-head"><h2>Equipment</h2><span class="fine">Edit a name or count in place</span></div>
         <ul class="eq" id="eq-list"></ul>
@@ -1295,13 +1436,46 @@ button.cb-chip:hover{border-color:var(--k-red);color:#ffd6d6}
         </div>
         <p class="fine">23 GP assumes the Warlock's 100 GP option (gear bought) plus Charlatan's 15 GP.</p>
       </section>
-
       <section class="panel">
         <h2>Notes</h2>
         <label class="label" for="notes">Quick notes: current disguise, reminders. Session notes go in the Journal tab.</label>
         <textarea id="notes" placeholder="Current face: …"></textarea>
       </section>
+    </div>
 
+    <!-- column 3: magic -->
+    <div class="col col3">
+      <section class="panel" id="p-spells">
+        <div class="panel-head"><h2>Spellcasting</h2><span class="toolbar"><span class="fine">Charisma · Arcane focus</span><button class="btn small" id="book-edit">Change book</button></span></div>
+        <div class="slots">
+          <span class="label" id="slot-lbl">Pact slot (1st level)</span>
+          <span class="pips" id="pips"></span>
+          <button class="btn small" type="button" id="mc-btn" hidden>Magical Cunning</button>
+          <span class="fine">Returns on a Short or Long Rest</span>
+        </div>
+        <div class="conc" id="conc">
+          <div class="conc-top"><span class="label">Concentrating</span><span class="conc-left" id="conc-left"></span></div>
+          <strong id="conc-name">Nothing</strong>
+          <div class="conc-on" id="conc-on" hidden></div>
+          <div class="conc-ef" id="conc-ef"></div>
+          <div class="conc-acts"><button class="btn small" id="conc-save">Con save</button><span class="boost" id="conc-em" title="Eldritch Mind: Constitution saves to keep Concentration roll twice and keep the higher" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5l1.6 4.2 4.4 1.3-4.4 1.3L8 14.5 6.4 8.3 2 7l4.4-1.3z"/></svg>Eldritch Mind · Advantage</span><button class="btn small" id="conc-drop" hidden>End</button></div>
+        </div>
+        <div class="spells" id="spells"></div>
+      </section>
+      <section class="panel fxbar" id="fx-panel" aria-label="Active effects" hidden>
+        <div class="panel-head">
+          <h2>Active effects</h2>
+          <div class="fx-time" role="group" aria-label="Advance game time">
+            <span class="label">Advance time</span>
+            <button class="btn small" data-adv="6">+1 round</button>
+            <button class="btn small" data-adv="60">+1 min</button>
+            <button class="btn small" data-adv="600">+10 min</button>
+            <button class="btn small" data-adv="3600">+1 hour</button>
+          </div>
+        </div>
+        <div class="fx-list" id="fx-list"></div>
+        <p class="fine">1 round is 6 seconds, so 10 rounds make a minute. In combat, press +1 round when your turn comes back around. Rests advance time automatically.</p>
+      </section>
       <section class="panel">
         <div class="panel-head"><h2>Save &amp; backup</h2><span class="fine" id="save-status" aria-live="polite"></span></div>
         <p class="fine">Changes save automatically in this browser. Clearing browser data, a private window, or opening the sheet in another browser or device starts fresh, so keep a backup.</p>
@@ -1363,7 +1537,7 @@ button.cb-chip:hover{border-color:var(--k-red);color:#ffd6d6}
 <script>
 (function(){
 const KEY='ash-sheet-v1';
-const APP_VERSION='2026-11-23.1';
+const APP_VERSION='2026-11-23.2';
 const AB=[['str','Strength'],['dex','Dexterity'],['con','Constitution'],['int','Intelligence'],['wis','Wisdom'],['cha','Charisma']];
 const SAVES=['wis','cha'];
 // Level. pv is a preview level that is never saved; lvl() is what every number on the sheet follows.
@@ -1747,8 +1921,9 @@ function renderAttacks(){
   rows.forEach(a=>{
     const tr=document.createElement('tr');
     // Hex only adds to attack rolls, never to saving-throw damage
-    const dl=d=>d.map(([c,s])=>`${c}d${s}`).join('+')+(a.flat?(a.boost?`<span class="boost-n" title="Agonizing Blast">${sg(a.flat)}</span>`:sg(a.flat)):'')+(hexApplies()&&!a.save?' +1d6':'')+(a.beams>1?' each':'');
-    tr.innerHTML=`<td><strong></strong><span class="note"></span></td><td>${a.save?`<span class="dc num">DC ${dc} ${a.save}</span>`:`<button class="rb">${sg(a.hit)}</button>`}</td><td><button class="rb">${dl(a.dice)}</button>${a.alt?` <button class="rb">${dl(a.alt.dice)} ${a.alt.label}</button>`:''}</td>`;
+    const dl=d=>d.map(([c,s])=>`${c}d${s}`).join('+')+(a.flat?(a.boost?`<span class="boost-n" title="Agonizing Blast">${sg(a.flat)}</span>`:sg(a.flat)):'')+(hexApplies()&&!a.save?' <i class="hx">+1d6</i>':'')+(a.beams>1?' each':'');
+    const ty=(a.type||'damage').toLowerCase()+(hexApplies()&&!a.save?' · hex':'');
+    tr.innerHTML=`<td><strong></strong><span class="note"></span></td><td>${a.save?`<span class="rb"><b>DC ${dc}</b><small>${a.save}</small></span>`:`<button class="rb"><b>${sg(a.hit)}</b><small>to hit</small></button>`}</td><td><button class="rb"><b>${dl(a.dice)}</b><small>${esc(ty)}</small></button>${a.alt?` <button class="rb"><b>${dl(a.alt.dice)}</b><small>${esc(a.alt.label)}</small></button>`:''}</td>`;
     tr.querySelector('strong').textContent=a.n;tr.querySelector('.note').textContent=a.note;
     if(a.boost){const bz=document.createElement('span');bz.className='boost';bz.title=`Agonizing Blast: ${sg(a.flat)} damage on each beam`;bz.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5l1.6 4.2 4.4 1.3-4.4 1.3L8 14.5 6.4 8.3 2 7l4.4-1.3z"/></svg>Agonizing Blast '+sg(a.flat);tr.querySelector('.note').after(bz)}
     const bs=[...tr.querySelectorAll('.rb')];
@@ -1855,6 +2030,103 @@ const SPELL_DB={
  'Detect Thoughts':{lvl:2,c:true,dur:60,save:'wis',m:'Action · Self · Conc. up to 1 min',t:'You sense creatures within 30 ft with an Intelligence of 4 or higher and read the surface thoughts of one you can see. As a Magic action you can probe deeper: it makes a Wisdom save (DC {dc}), and on a failure you learn its reasoning, emotions and something that looms large in its mind.'},
  'Dissonant Whispers':{lvl:1,save:'wis',dice:[[3,6]],up:[1,6],type:'Psychic',m:'Action · 60 ft · Instant',note:'Wis save · on a failure it flees',t:'One creature you choose that can hear you makes a Wisdom save (DC {dc}). On a failure it takes {dmg} Psychic damage and must immediately use its Reaction, if it has one, to move as far from you as it can. On a success it takes half damage only.'}
 };
+// One-line effects for the spell list: what the spell does at the table, with the parts to read out in *stars*.
+// Placeholders are filled by fillText ({dc}, {dmg}, {thp}, {beams}, {tgt}, {rays}, {aid}, {hexdur}, {std}, {cha}).
+const SPELL_FX={
+ 'Eldritch Blast':'{beams} of force: each is its own attack for *1d10 force*',
+ 'Minor Illusion':'a *sound* or a *5-ft image* for 1 minute; Study (DC {dc}) sees through it',
+ 'Hex':'*+1d6 necrotic* on every hit against the target, and *Disadvantage* on one ability’s checks',
+ 'Armor of Agathys':'*{thp} temp HP*; whoever hits you in melee takes *{thp} cold*',
+ 'Acid Splash':'5-ft sphere: *Dex save DC {dc}* or *{dmg} acid*',
+ 'Blade Ward':'attacks against you subtract *1d4*',
+ 'Chill Touch':'*{dmg} necrotic*, and it *can’t heal* until your next turn ends',
+ 'Dancing Lights':'up to *4 lights*, each dim light 10 ft; move them 60 ft as a Bonus Action',
+ 'Druidcraft':'a small nature trick: *forecast weather*, bloom a flower, light a candle',
+ 'Elementalism':'a small elemental trick: *breeze, dust, embers, mist* or shape a 1-ft cube',
+ 'Fire Bolt':'*{dmg} fire*; unattended flammable objects *ignite*',
+ 'Friends':'*Wis save DC {dc}* or *Charmed* by you; it knows afterwards',
+ 'Guidance':'an ally adds *+1d4* to checks with one skill',
+ 'Light':'an object sheds *bright light 20 ft*, dim 20 ft more, for an hour',
+ 'Mage Hand':'a spectral hand within *30 ft* moves, opens or fetches up to *10 lb*',
+ 'Mending':'repairs *one break or tear* up to 1 ft',
+ 'Message':'a *whispered message* to a creature within 120 ft, and its reply',
+ 'Mind Sliver':'*Int save DC {dc}* or *{dmg} psychic* and *−1d4* on its next save',
+ 'Poison Spray':'*{dmg} poison* (many monsters resist it)',
+ 'Prestidigitation':'a *harmless trick*: spark, scent, clean, chill, mark or light',
+ 'Produce Flame':'a flame in your hand: *bright light 20 ft*, or hurl it for *{dmg} fire*',
+ 'Ray of Frost':'*{dmg} cold*, and its *Speed drops 10 ft*',
+ 'Resistance':'an ally *reduces damage of one type by 1d4*, once per turn',
+ 'Sacred Flame':'*Dex save DC {dc}* or *{dmg} radiant*; cover doesn’t help',
+ 'Shillelagh':'your club or staff uses *Charisma* and deals a *{shd}* die',
+ 'Shocking Grasp':'*{dmg} lightning*, and it *can’t make Opportunity Attacks*',
+ 'Sorcerous Burst':'*{dmg}* of a type you choose; *8s explode* for more dice',
+ 'Spare the Dying':'a creature at 0 HP becomes *Stable*, up to *{std} ft* away',
+ 'Starry Wisp':'*{dmg} radiant*, and it *glows* and can’t turn invisible',
+ 'Thaumaturgy':'a *minor wonder*: booming voice, flickering flames, tremors, glowing eyes',
+ 'Thorn Whip':'*{dmg} piercing* and *pull it 10 ft* toward you',
+ 'Thunderclap':'everyone within 5 ft: *Con save DC {dc}* or *{dmg} thunder*',
+ 'Toll the Dead':'*Wis save DC {dc}* or *{dmg} necrotic*, more if it’s hurt',
+ 'True Strike':'a weapon attack using *Charisma*, dealing *radiant* if you like',
+ 'Vicious Mockery':'*Wis save DC {dc}* or *{dmg} psychic* and *Disadvantage* on its next attack',
+ 'Word of Radiance':'chosen creatures within 5 ft: *Con save DC {dc}* or *{dmg} radiant*',
+ 'Alarm':'warns you when anything enters a *20-ft cube*, for 8 hours',
+ 'Comprehend Languages':'*understand any language* you hear or read, for an hour',
+ 'Detect Magic':'sense *magic within 30 ft* and see its auras',
+ 'Detect Poison and Disease':'sense *poison, venom and disease* within 30 ft',
+ 'Find Familiar':'a *spirit familiar*: see through its eyes, deliver touch spells',
+ 'Identify':'learn a magic item’s *properties, charges and curses*',
+ 'Illusory Script':'a message only *chosen readers* can understand, for 10 days',
+ 'Purify Food and Drink':'*removes poison and rot* in a 5-ft sphere',
+ 'Speak with Animals':'*talk with Beasts* for 10 minutes',
+ 'Tenser’s Floating Disk':'a floating disk carries *500 lb* and follows you',
+ 'Unseen Servant':'an *invisible helper* fetches, cleans and carries for an hour',
+ 'Arms of Hadar':'everyone within 10 ft: *Str save DC {dc}* or *{dmg} necrotic* and *no reactions*',
+ 'Bane':'up to *{tgt}* creatures: *Cha save DC {dc}* or *−1d4* on attacks and saves',
+ 'Charm Person':'up to *{tgt}* Humanoids: *Wis save DC {dc}* or *Charmed* for an hour',
+ 'Expeditious Retreat':'*Dash* now and as a *Bonus Action* each turn',
+ 'Hellish Rebuke':'when you’re hurt: *Dex save DC {dc}* or *{dmg} fire*, half on a success',
+ 'Protection from Evil and Good':'fiends, fey, undead and more have *Disadvantage* against the target',
+ 'Tasha’s Hideous Laughter':'*Wis save DC {dc}* or *Prone and Incapacitated* with laughter',
+ 'Witch Bolt':'*{dmg} lightning*, then *1d12* each turn as a Bonus Action',
+ 'Cloud of Daggers':'a 5-ft cube of blades: *{dmg} slashing* to anyone in it',
+ 'Crown of Madness':'*Wis save DC {dc}* or a Humanoid *attacks whoever you choose*',
+ 'Darkness':'*15-ft sphere of magical darkness*; darkvision can’t see in it',
+ 'Enthrall':'listeners: *Wis save DC {dc}* or *Disadvantage on Perception* except against you',
+ 'Hold Person':'up to *{tgt}* Humanoids: *Wis save DC {dc}* or *Paralyzed*; hits within 5 ft are crits',
+ 'Invisibility':'up to *{tgt}* creatures turn *Invisible* until they attack or cast',
+ 'Mind Spike':'*Wis save DC {dc}* or *{dmg} psychic*, half on a success; you *always know where it is*',
+ 'Mirror Image':'*3 duplicates*: each hit against you may strike an image instead',
+ 'Misty Step':'teleport *30 ft* to a space you can see',
+ 'Ray of Enfeeblement':'*Con save DC {dc}* or *Disadvantage on Strength* rolls',
+ 'Spider Climb':'up to *{tgt}* creatures *climb walls and ceilings* at full speed',
+ 'Suggestion':'*Wis save DC {dc}* or it *follows a reasonable suggestion* for up to 8 hours',
+ 'Calm Emotions':'Humanoids in 20 ft: *Cha save DC {dc}* or *calm* (ends charm and fear, or hostility)',
+ 'Faerie Fire':'20-ft cube: *Dex save DC {dc}* or glow; attacks against them have *Advantage*',
+ 'Phantasmal Force':'*Int save DC {dc}* or it believes an illusion that deals *{dmg} psychic* each turn',
+ 'Sleep':'5-ft sphere: *Wis save DC {dc}* or *Incapacitated*, then *Unconscious* on a second failure',
+ 'Aid':'up to 3 creatures gain *+{aid} max and current HP* for 8 hours',
+ 'Cure Wounds':'a creature you touch regains *{dmg} {cha} HP*',
+ 'Guiding Bolt':'*{dmg} radiant*, and the next attack against it has *Advantage*',
+ 'Lesser Restoration':'ends *Blinded, Deafened, Paralyzed or Poisoned*',
+ 'Burning Hands':'15-ft cone: *Dex save DC {dc}* or *{dmg} fire*, half on a success',
+ 'Command':'up to *{tgt}* creatures: *Wis save DC {dc}* or obey *one word*',
+ 'Scorching Ray':'*{rays} rays*, each its own attack for *2d6 fire*',
+ 'Detect Thoughts':'read *surface thoughts*; probe deeper with *Wis save DC {dc}*',
+ 'Dissonant Whispers':'*Wis save DC {dc}* or *{dmg} psychic* and it *flees*; half on a success'
+};
+// The number worth a glance for spells that don't attack, force a save or heal.
+const SPELL_KEY={
+ 'Minor Illusion':['1 min','lasts'],'Hex':['1d6','per hit'],'Armor of Agathys':['{thp}','temp HP'],'Blade Ward':['−1d4','to hit you'],
+ 'Dancing Lights':['4','lights'],'Guidance':['1d4','bonus'],'Light':['20 ft','bright'],'Mage Hand':['30 ft','reach'],'Message':['120 ft','range'],
+ 'Resistance':['1d4','less dmg'],'Spare the Dying':['{std} ft','range'],'Alarm':['8 h','lasts'],'Comprehend Languages':['1 h','lasts'],
+ 'Detect Magic':['30 ft','radius'],'Detect Poison and Disease':['30 ft','radius'],'Find Familiar':['100 ft','link'],'Tenser’s Floating Disk':['500 lb','carries'],
+ 'Unseen Servant':['1 h','lasts'],'Expeditious Retreat':['Dash','bonus'],'Darkness':['15 ft','radius'],'Invisibility':['{tgt}','creatures'],
+ 'Mirror Image':['3','images'],'Misty Step':['30 ft','teleport'],'Spider Climb':['{tgt}','creatures'],'Aid':['+{aid}','HP'],
+ 'Lesser Restoration':['1','condition'],'Protection from Evil and Good':['10 min','lasts'],'Speak with Animals':['10 min','lasts'],
+ 'Illusory Script':['10 days','lasts'],'Shillelagh':['{shd}','die']
+};
+// *word* becomes highlighted text; everything else is escaped.
+function fxHtml(sp,str){return esc(fillText(sp,str)).replace(/\*([^*]+)\*/g,'<b class="kw">$1</b>')}
 // Spells each patron always prepares from Warlock level 3 (higher-level patron spells aren't on the sheet yet).
 const PATRON_SPELLS={'Archfey':['Calm Emotions','Faerie Fire','Misty Step','Phantasmal Force','Sleep'],'Celestial':['Aid','Cure Wounds','Guiding Bolt','Lesser Restoration','Light','Sacred Flame'],'Fiend':['Burning Hands','Command','Scorching Ray','Suggestion'],'Great Old One':['Detect Thoughts','Dissonant Whispers','Phantasmal Force','Tasha’s Hideous Laughter']};
 // Ash's class choices live in S.build and change on level up (or with Edit build).
@@ -2014,42 +2286,68 @@ document.querySelectorAll('[data-adv]').forEach(b=>b.onclick=()=>advance(+b.data
 function renderSpells(){
   const w=$('spells');const open=new Set([...w.querySelectorAll('details[open]')].map(x=>x.dataset.n));w.innerHTML='';
   const dc=8+PB+mod('cha');
+  const SPARK='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5l1.6 4.2 4.4 1.3-4.4 1.3L8 14.5 6.4 8.3 2 7l4.4-1.3z"/></svg>';
+  const WAND='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 14 10 6" stroke-width="1.6" stroke-linecap="round"/><path class="f" d="M11 1l.8 2.2L14 4l-2.2.8L11 7l-.8-2.2L8 4l2.2-.8Z"/></svg>';
   spellList().forEach(sp=>{
     if(sp.g){const h=document.createElement('div');h.className='label group-title';h.textContent=sp.g;w.appendChild(h);return}
     const el=document.createElement('details');el.className='spell';el.dataset.n=sp.n;if(open.has(sp.n))el.open=true;
     const tags=(sp.c?`<span class="tag c"${hasInv('Eldritch Mind')?' title="Concentration. Eldritch Mind gives your saves to keep it Advantage."':''}>Conc.</span>`:'')+(sp.ritual?'<span class="tag">Ritual</span>':'')+(sp.patron?'<span class="tag">Patron</span>':'')
-      +(agon(sp)?`<span class="boost" title="Agonizing Blast: ${sg(agon(sp))} damage on each beam" aria-label="Agonizing Blast ${sg(agon(sp))}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5l1.6 4.2 4.4 1.3-4.4 1.3L8 14.5 6.4 8.3 2 7l4.4-1.3z"/></svg>Agonizing Blast ${sg(agon(sp))}</span>`:'')
+      +(agon(sp)?`<span class="boost" title="Agonizing Blast: ${sg(agon(sp))} damage on each beam" aria-label="Agonizing Blast ${sg(agon(sp))}">${SPARK}Agonizing Blast ${sg(agon(sp))}</span>`:'')
       +(sp.sc==='beams'&&hasInv('Repelling Blast')?'<span class="tag on" title="Each beam that hits pushes the target 10 ft">Repelling</span>':'')
       +(sp.sc==='beams'&&hasInv('Eldritch Spear')?'<span class="tag on" title="Eldritch Spear extends the range">Spear</span>':'');
-    el.innerHTML=`<summary><span class="nm">${sp.n}${tags}</span><span class="meta">${sp.m}</span><span class="acts"></span></summary><div class="body"><p></p></div>`;
+    const fxTxt=SPELL_FX[sp.n];
+    el.innerHTML=`<summary><span class="sp-main"><span class="nm">${sp.n}${tags}</span>${fxTxt?`<span class="sp-ef">${fxHtml(sp,fxTxt)}</span>`:''}<span class="meta"></span></span><span class="acts"></span></summary><div class="body"><p></p></div>`;
     el.querySelector('.body p').textContent=fillText(sp,sp.t,true);el.querySelector('.meta').textContent=fillText(sp,sp.m);
     const gr=growthEl(sp.n);if(gr)el.querySelector('.body').appendChild(gr);
     const acts=el.querySelector('.acts');
-    const mk=(label,fn,primary)=>{const b=document.createElement('button');b.className='btn small'+(primary?' primary':'');b.textContent=label;b.onclick=e=>{e.preventDefault();fn()};acts.appendChild(b);return b};
+    // a pill shows the number to read out; when it's a roll, tapping it rolls
+    const pill=(big,small,fn,cls,title)=>{const b=document.createElement(fn?'button':'span');if(fn)b.type='button';b.className='spill'+(cls?' '+cls:'');b.innerHTML=`<b>${big}</b><small>${small}</small>`;if(title)b.title=title;if(fn)b.onclick=e=>{e.preventDefault();fn()};acts.appendChild(b);return b};
+    const wand=(title,fn,label)=>{const b=document.createElement('button');b.type='button';b.className='wand';b.title=title;b.setAttribute('aria-label',title);b.innerHTML=WAND+(label?`<span>${label}</span>`:'');b.onclick=e=>{e.preventDefault();fn()};acts.appendChild(b);return b};
     const ar=atkRow(sp);
-    const run=fxList().find(f=>f.n===sp.n)||(sp.c&&S.conc===sp.n);
-    if(run)mk('Active',()=>toast(sp.n+' is active',sp.n==='Hex'?'To curse a new target after this one drops, use a Bonus Action. No slot needed.':'End it under Active effects if you want to cast it again.','✦'),false);
-    else if(sp.ritual){mk('Ritual',()=>cast(sp,true),true);mk('Use slot',()=>cast(sp))}
-    // spells of level 1+ spend a slot through Cast; cantrips only need it when they start a lasting effect
-    else if(sp.lvl>=1||sp.c||sp.dur||sp.lasting)mk('Cast',()=>cast(sp),!ar&&!sp.heal);
     if(ar){
-      if(ar.save)mk('DC '+dc+' '+ar.save,()=>toast(sp.n,`The target makes a ${ar.save} save against DC ${dc}.`,'DC'),false);
-      else if(ar.hit!=null)mk(ar.beams>1?`Attack ×${ar.beams}`:'Attack',()=>attackRoll(sp.n,ar.hit,ar.beams),sp.lvl===0);
-      // the damage button shows the dice, with any bonus (Agonizing Blast) and Hex included
-      const db=mk('',()=>dmg(sp.n,ar.dice,ar.flat,ar.type,!!ar.save));
-      db.innerHTML='Damage '+diceStr(ar.dice)+(ar.flat?(agon(sp)?`<span class="boost-n" title="Agonizing Blast">${sg(ar.flat)}</span>`:sg(ar.flat)):'')+(hexApplies()&&!ar.save?' +1d6':'')+(ar.beams>1?' each':'');
-      if(ar.alt)mk(ar.alt.label,()=>dmg(sp.n,ar.alt.dice,0,ar.type,!!ar.save));
+      if(ar.save)pill('DC '+dc,ar.save,()=>toast(sp.n,`The target makes a ${ar.save} save against DC ${dc}.`,'DC'),'dc');
+      else if(ar.hit!=null)pill(sg(ar.hit),ar.beams>1?`to hit ×${ar.beams}`:'to hit',()=>attackRoll(sp.n,ar.hit,ar.beams),'hit','Roll the attack');
+      const dmgTxt=diceStr(ar.dice)+(ar.flat?(agon(sp)?`<i class="ag">${sg(ar.flat)}</i>`:sg(ar.flat)):'')+(hexApplies()&&!ar.save?' <i class="hx">+1d6</i>':'');
+      pill(dmgTxt,(ar.type||'damage').toLowerCase()+(ar.beams>1?' each':''),()=>dmg(sp.n,ar.dice,ar.flat,ar.type,!!ar.save),'dmg','Roll the damage');
+      if(ar.alt)pill(diceStr(ar.alt.dice),ar.alt.label,()=>dmg(sp.n,ar.alt.dice,0,ar.type,!!ar.save),'dmg');
+    }else if(sp.heal){
+      const x=scaled(sp)[0];
+      pill(`${x[0]}d${x[1]}${sg(mod('cha'))}`,'healing',()=>{const r=[];for(let i=0;i<x[0];i++)r.push(d(x[1]));const t=r.reduce((a,b)=>a+b,0)+mod('cha');toast(sp.n+' healing',`${x[0]}d${x[1]} [${r.join(',')}] ${sg(mod('cha'))}`,'+'+t)},'dmg','Roll the healing');
+    }else if(sp.save){
+      pill('DC '+dc,sp.save.slice(0,3),()=>toast(sp.n,`The target makes a ${sp.save.charAt(0).toUpperCase()+sp.save.slice(1)} save against DC ${dc}.`,'DC'),'dc');
+    }else if(SPELL_KEY[sp.n]){
+      const [a,b]=SPELL_KEY[sp.n];pill(esc(fillText(sp,a)),fillText(sp,b));
     }
-    if(sp.heal)mk('Heal',()=>{const x=scaled(sp)[0],r=[];for(let i=0;i<x[0];i++)r.push(d(x[1]));const t=r.reduce((a,b)=>a+b,0)+mod('cha');toast(sp.n+' healing',`${x[0]}d${x[1]} [${r.join(',')}] ${sg(mod('cha'))}`,'+'+t)});
-    const fx=fxList().find(f=>f.n===sp.n);
-    if(fx){const run=fx,t=document.createElement('span');t.className='tag on';t.textContent=run.lasting?'Summoned':'Active \u00b7 '+fmtLeft(run.left);el.querySelector('.nm').appendChild(t)}
+    const run=fxList().find(f=>f.n===sp.n)||(sp.c&&S.conc===sp.n);
+    const free=sp.n==='Misty Step'&&typeof cbFreeSteps==='function'?cbFreeSteps():0;
+    if(run){
+      const fx=fxList().find(f=>f.n===sp.n);
+      const b=document.createElement('button');b.type='button';b.className='spill run';
+      b.innerHTML=`<b>${fx&&fx.lasting?'Here':'Active'}</b><small>${fx&&!fx.lasting&&fx.left!=null?fmtLeft(fx.left)+' left':'running'}</small>`;
+      b.onclick=e=>{e.preventDefault();toast(sp.n+' is active',sp.n==='Hex'?'To curse a new target after this one drops, use a Bonus Action. No slot needed.':'End it under Active effects if you want to cast it again.','✦')};
+      acts.appendChild(b);el.classList.add('on');
+    }
+    else if(free)wand(`Free Misty Step (Steps of the Fey): ${free} left`,()=>{S.pt=S.pt||{};S.pt.steps=(S.pt.steps||0)+1;save();renderAll();toast('Steps of the Fey','Misty Step without a slot. Refreshing Step: an ally gains 1d10 temp HP. Taunting Step: creatures near where you left have Disadvantage on attacks against others.','✦')},free+' free').classList.add('free');
+    else if(sp.ritual){wand('Cast as a ritual: 10 extra minutes, no slot',()=>cast(sp,true),'ritual');const b=document.createElement('button');b.type='button';b.className='slotbtn';b.textContent='slot';b.title='Cast it now with a pact slot';b.onclick=e=>{e.preventDefault();cast(sp)};acts.appendChild(b)}
+    // spells of level 1+ spend a slot through Cast; cantrips only need it when they start a lasting effect
+    else if(sp.lvl>=1||sp.c||sp.dur||sp.lasting)wand(sp.lvl>=1?`Cast ${sp.n} (uses a pact slot)`:`Cast ${sp.n}`,()=>cast(sp));
     w.appendChild(el);
   });
   renderSlots();
-  $('conc-name').textContent=S.conc||'Nothing';
-  $('conc').classList.toggle('active',!!S.conc);$('conc').hidden=!S.conc;
-  $('conc-drop').hidden=!S.conc;
-  $('conc-save').textContent='Con save';$('conc-em').hidden=!hasInv('Eldritch Mind');
+  renderConc();
+}
+// While concentrating, the spell takes over the top of Spellcasting: what it does, how long is left, the save to keep it.
+function renderConc(){
+  const box=$('conc');box.hidden=!S.conc;box.classList.toggle('active',!!S.conc);
+  $('conc-name').textContent=S.conc||'Nothing';$('conc-drop').hidden=!S.conc;
+  $('conc-save').innerHTML=`Con save <small>${sg(mod('con'))}${hasInv('Eldritch Mind')?' · advantage':''}</small>`;
+  $('conc-em').hidden=!hasInv('Eldritch Mind');
+  if(!S.conc)return;
+  const sp=spOf(S.conc),fx=fxList().find(f=>f.n===S.conc);
+  $('conc-left').textContent=fx&&fx.left!=null?fmtLeft(fx.left)+' left':'';
+  const c=S.combat,foe=c&&S.conc==='Hex'&&c.hex&&Array.isArray(c.foes)?c.foes.find(f=>f.id===c.hex):null;
+  const on=$('conc-on');on.hidden=!foe;if(foe)on.innerHTML='cursing <b></b>',on.querySelector('b').textContent=foe.name;
+  $('conc-ef').innerHTML=SPELL_FX[S.conc]?fxHtml(sp,SPELL_FX[S.conc]):'';
 }
 const slotsLeft=()=>Math.max(0,WL.slots(lvl())-S.slotsUsed);
 // One pip per pact slot: filled ones are ready. Click a filled pip to spend it, an empty one to get it back.
@@ -4025,6 +4323,7 @@ function renderPortrait(){
     if(img.getAttribute('src')!==p.src){img.src=p.src;hdr.src=p.src}
     img.hidden=false;hdr.hidden=false;
   }else{img.removeAttribute('src');hdr.removeAttribute('src');img.hidden=true;hdr.hidden=true}
+  $('hdr-port-empty').hidden=!!p;
   $('pt-empty').hidden=!!p;$('pt-remove').hidden=!p;
   $('pt-box').classList.toggle('has',!!p);
   if(p&&p.kind==='url')$('pt-url').value=p.src;
@@ -4852,6 +5151,11 @@ function renderLevel(){
   $('pv-sum').textContent=L>real?`What's new by level ${L} (${n} changes)`:'Lower than your current level';
 }
 $('lvl-btn').onclick=openHistory;
+// the header portrait jumps to the Portrait panel, where it's changed
+$('hdr-port').onclick=()=>{showTab('sheet');const pn=$('p-port');pn.scrollIntoView({behavior:'smooth',block:'center'});pn.classList.remove('flash');void pn.offsetWidth;pn.classList.add('flash')};
+// themes: each is one block of CSS keyed on data-skin, so switching (or going back to Classic) is one setting
+$('skin').value=document.documentElement.dataset.skin||'glade';
+$('skin').onchange=e=>{document.documentElement.dataset.skin=e.target.value;try{localStorage.setItem(KEY+'-skin',e.target.value)}catch(err){}};
 $('pv-exit').onclick=()=>setPreview(pvSnap?pvSnap.level||1:1);
 
 levelSync();
