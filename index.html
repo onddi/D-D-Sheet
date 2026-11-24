@@ -390,6 +390,7 @@ textarea{width:100%;min-height:110px;padding:8px;resize:vertical}
 .plan-dirs{display:flex;flex-direction:column;gap:6px}
 .plan-tl summary{cursor:pointer;font-size:.86rem;font-weight:600}
 .lu-pat.fit{border-color:var(--accent)}
+.lu-pat .pill{align-self:flex-start}
 /* class features and level up */
 .cls-feats{display:flex;flex-direction:column;gap:12px;border-top:1px solid var(--line);padding-top:10px}
 .cf-sec{display:flex;flex-direction:column;gap:6px}
@@ -450,6 +451,12 @@ body:has(dialog[open]){overflow:hidden}
 .dlg::backdrop{background:rgba(0,0,0,.5)}
 .dlg-in{padding:16px;display:flex;flex-direction:column;gap:12px}
 .dlg-sum{margin:0;padding:10px 12px;background:var(--accent-soft);border-radius:8px}
+.lu-notes{padding:12px 14px;border:1px solid var(--accent);border-radius:10px;background:var(--surface)}
+.lu-notes ol{margin:8px 0 6px;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.lu-notes .h{font-weight:700}
+.next-lv{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.next-lv .tx{flex:1;min-width:240px}
+.next-lv ul{margin:6px 0 0;padding-left:18px}
 .dlg h3{margin:0;font-family:var(--display);font-size:1.25rem}
 .bk-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:8px}
 .bk-cmp{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
@@ -1350,6 +1357,7 @@ button.spill:hover{border-color:var(--accent)}
   </div>
 
   <div id="tab-sheet">
+  <section class="panel next-lv" id="next-lv" hidden aria-label="Next level"></section>
   <section class="vitals" aria-label="Core stats">
     <div class="vital" tabindex="0" data-tip="ac"><span class="label">Armor Class</span><span class="v" id="v-ac">14</span><small id="v-acs">Studded leather</small></div>
     <button class="vital click" id="v-init-btn" data-tip="init"><span class="label">Initiative</span><span class="v" id="v-init">+2</span><small>Click to roll</small></button>
@@ -1579,7 +1587,7 @@ button.spill:hover{border-color:var(--accent)}
 <script>
 (function(){
 const KEY='ash-sheet-v1';
-const APP_VERSION='2026-11-24.1';
+const APP_VERSION='2026-11-24.2';
 const AB=[['str','Strength'],['dex','Dexterity'],['con','Constitution'],['int','Intelligence'],['wis','Wisdom'],['cha','Charisma']];
 const SAVES=['wis','cha'];
 // Level. pv is a preview level that is never saved; lvl() is what every number on the sheet follows.
@@ -4469,7 +4477,17 @@ $('gold').oninput=e=>{S.gold=parseInt(e.target.value,10)||0;save()};
 $('lang').oninput=e=>{S.lang=e.target.value;save()};
 $('notes').oninput=e=>{S.notes=e.target.value;save()};
 
-function renderAll(){levelSync();renderWeapons();renderLevel();renderClassFeats();renderOptions();renderGuide();renderPortrait();renderStory();renderJournal();renderEquip();renderHP();renderFx();renderAbil();renderSkills();renderVitals();renderAttacks();renderSpells();if(!$('tab-combat').hidden)renderCombat()}
+function renderNextLv(){
+  const box=$('next-lv'),L=S.level||1,sg=LU_SUGGEST[L+1];
+  let hide=false;try{hide=localStorage.getItem(KEY+'-nextlv')===String(L+1)}catch(e){}
+  box.hidden=!sg||!!pv||hide;if(box.hidden)return;
+  box.innerHTML='<div class="tx"><h2></h2><ul></ul></div><span class="toolbar"><button class="btn small primary" type="button">Level up now</button><button class="btn small" type="button">Hide</button></span>';
+  box.querySelector('h2').textContent=`Ready for level ${L+1}`;
+  const short={'Hit points':'Average +7','Patron':'Archfey (free Misty Steps, 5 patron spells)','New prepared spell (3 → 4)':'Mirror Image, or Suggestion'};
+  sg.steps.filter(([h])=>short[h]).forEach(([h])=>{const li=document.createElement('li');li.innerHTML='<b></b> ';li.querySelector('b').textContent=h+':';li.append(short[h]);box.querySelector('ul').appendChild(li)});
+  const [go,hd]=box.querySelectorAll('button');go.onclick=()=>openLevelUp('up');hd.onclick=()=>{try{localStorage.setItem(KEY+'-nextlv',String(L+1))}catch(e){}renderNextLv()};
+}
+function renderAll(){renderNextLv();levelSync();renderWeapons();renderLevel();renderClassFeats();renderOptions();renderGuide();renderPortrait();renderStory();renderJournal();renderEquip();renderHP();renderFx();renderAbil();renderSkills();renderVitals();renderAttacks();renderSpells();if(!$('tab-combat').hidden)renderCombat()}
 /* ---------- class features panel ---------- */
 const BEFORE_KEY=KEY+'-before-level';
 // Keep a copy of the whole sheet from just before a level change, as a safety net.
@@ -4565,6 +4583,19 @@ function renderHistory(){
 
 /* ---------- level up and build editing ---------- */
 // lu: the open dialog. draft holds the picks; slot is the pick the list below fills.
+// Our notes for upcoming levels: shown at the top of Level up, on the matching choices, and as a reminder on the sheet.
+const LU_SUGGEST={
+ 3:{title:'Level 3: what to choose',
+    steps:[
+     ['Hit points','Take the <b>average (+7)</b>: max HP goes 17 → 24. It can never roll low.'],
+     ['Patron','<b>Archfey</b> fits a Feywild campaign and a changeling. <b>Steps of the Fey</b>: Misty Step without a slot, 3 times per Long Rest (your Charisma +3), each with a bonus: 1d10 temp HP for you or an ally, or foes near where you left attack others at Disadvantage. Always prepared, free: Calm Emotions, Faerie Fire, Misty Step, Phantasmal Force, Sleep.'],
+     ['New prepared spell (3 → 4)','<b>Mirror Image</b>: three duplicates make attacks miss, and it needs <b>no concentration</b>, so it works alongside Hex. Social alternative: <b>Suggestion</b>. Skip Misty Step and Sleep: Archfey gives them.'],
+     ['Optional','You may swap one cantrip, one prepared spell and one invocation. No new cantrip or invocation at level 3.'],
+     ['Automatic','Pact slots become 2nd level (still 2, back on a Short Rest): Hex lasts up to 4 h, Armor of Agathys gives 10 temp HP.']],
+    tip:'Concentration crunch: Hex, Faerie Fire, Sleep, Phantasmal Force and Calm Emotions all need concentration, and you can hold one. Big group fight: open with Faerie Fire or Sleep. Long fight against one foe: Hex.',
+    patron:'Archfey',hp:'avg',
+    picks:{'Mirror Image':'Our pick: no concentration','Suggestion':'Social option','Misty Step':'Archfey already gives this','Sleep':'Archfey already gives this'}}
+};
 let lu=null;
 const LU_KINDS={cantrips:['Warlock cantrips','Cantrip'],prepared:['Prepared spells','Spell'],invocations:['Invocations','Invocation']};
 const ASI_LV=[4,8,12,16];
@@ -4627,6 +4658,12 @@ function renderLU(st){
   const add=(cls,html)=>{const e=document.createElement('div');e.className=cls;if(html)e.innerHTML=html;body.appendChild(e);return e};
   if(st.mode==='up'){
     const ch=levelChanges(st.to);
+    const sg3=LU_SUGGEST[st.to];
+    if(sg3){
+      const n=add('lu-notes');n.innerHTML='<b></b><ol></ol><p class="fine"></p>';n.querySelector('b').textContent=sg3.title+' · our notes';
+      sg3.steps.forEach(([h,t])=>{const li=document.createElement('li');li.innerHTML='<span class="h"></span> '+t;li.querySelector('.h').textContent=h+':';n.querySelector('ol').appendChild(li)});
+      n.querySelector('.fine').textContent=sg3.tip;
+    }
     const s=add('dlg-sum');s.innerHTML='<b></b><ul class="lu-auto"></ul>';s.querySelector('b').textContent=`What level ${st.to} brings automatically`;
     (ch.length?ch:['More Hit Points and a hit die']).forEach(t=>{const li=document.createElement('li');li.textContent=t;s.querySelector('ul').appendChild(li)});
     // hit points
@@ -4636,6 +4673,7 @@ function renderLU(st){
     const rollB=document.createElement('button');rollB.type='button';rollB.textContent=st.roll?`Rolled ${st.roll}: +${Math.max(1,st.roll+mod('con'))}`:`Roll 1d8 ${sg(mod('con'))}`;rollB.setAttribute('aria-pressed',String(st.hp==='roll'));
     rollB.onclick=()=>{if(!st.roll)st.roll=d(8);st.hp='roll';renderLU(st)};
     seg.append(avgB,rollB);
+    const sgH=LU_SUGGEST[st.to];if(sgH&&sgH.hp==='avg'){const t=document.createElement('span');t.className='pill ok';t.textContent='Suggested';avgB.append(' ',t)}
     hp.querySelector('.fine').textContent=`Max HP ${maxHP()} → ${maxHP()+luHpGain(st)}. You also gain a hit die. The roll happens once, so the result stays.`;
   }else if(st.mode==='edit'){
     add('dlg-sum').textContent=`Change Ash’s Warlock picks for level ${st.to}: fix a pick, fill an empty slot or swap a spell. This doesn’t add a level or touch the Book of Shadows.`;
@@ -4650,6 +4688,7 @@ function renderLU(st){
       b.querySelector('.f').textContent='Level 3: '+x.feats.filter(f=>f[0]===3).map(f=>f[1]).join(', ');
       b.querySelector('.sp').textContent='Spells: '+(PATRON_SPELLS[x.n]||[]).join(', ');
       if(st.dir&&dirsOf(x.n).includes(st.dir)){b.classList.add('fit');const t=document.createElement('span');t.className='pill ok';t.textContent='Fits '+dirName(st.dir);b.insertBefore(t,b.children[1])}
+      const sp3=LU_SUGGEST[st.to];if(st.mode==='up'&&sp3&&sp3.patron===x.n){b.classList.add('fit');const t=document.createElement('span');t.className='pill ok';t.textContent='Suggested';b.insertBefore(t,b.children[1])}
       b.onclick=()=>{st.patron=x.n;changed()};p.querySelector('.lu-pats').appendChild(b);
     });
   }
@@ -4704,6 +4743,8 @@ function renderLU(st){
     const opts=all.filter(o=>q?[o.n,o.mt,o.s].join(' ').toLowerCase().includes(q):(grps.length<2||o.grp===st.cat));
     // picks that fit the chosen direction come first
     if(st.dir)opts.sort((a,b)=>dirsOf(b.n).includes(st.dir)-dirsOf(a.n).includes(st.dir));
+    const sp5=st.mode==='up'&&LU_SUGGEST[st.to];
+    if(sp5&&k==='prepared'){const rank=n=>{const v=sp5.picks[n];return !v?1:/already/.test(v)?2:0};opts.sort((a,b)=>rank(a.n)-rank(b.n))}
     opts.forEach(o=>{
       const row=document.createElement('div');row.className='bk-opt'+(o.n===cur?' cur':'');
       const why=o.n===cur?'':luWhy(st,k,o.n);
@@ -4712,6 +4753,8 @@ function renderLU(st){
       if(st.dir&&dirsOf(o.n).includes(st.dir)){const x=document.createElement('span');x.className='pill ok';x.textContent='Fits '+dirName(st.dir);row.querySelector('.nm').append(' ',x)}
       const pl=st.mode!=='plan'&&curPlan();
       if(pl&&pl.draft[k].includes(o.n)){const x=document.createElement('span');x.className='pill';x.textContent='In your plan';row.querySelector('.nm').append(' ',x)}
+      const sp4=st.mode==='up'&&LU_SUGGEST[st.to];
+      if(sp4&&k==='prepared'&&sp4.picks[o.n]){const x=document.createElement('span');const skip=/already/.test(sp4.picks[o.n]);x.className='pill'+(skip?'':' ok');x.textContent=sp4.picks[o.n];row.querySelector('.nm').append(' ',x)}
       const op=OPTS.find(x=>x[1]===o.n&&x[0]!=='bc'&&x[0]!=='rit');if(op)o.s=op[3];
       row.querySelector('.mt').textContent=o.mt;row.querySelector('.sd').textContent=o.s;
       if(why){const x=document.createElement('span');x.className='why';x.textContent=why;row.insertBefore(x,row.querySelector('.acts'))}
