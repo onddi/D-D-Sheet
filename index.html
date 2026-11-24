@@ -1140,7 +1140,7 @@ button.spill:hover{border-color:var(--accent)}
       <button type="button" class="hdr-port" id="hdr-port" title="Portrait: tap to change it" aria-label="Portrait. Tap to change it"><img id="hdr-portrait" alt="Portrait of Ash" hidden><span class="ph" id="hdr-port-empty" aria-hidden="true">A</span></button>
       <div class="ident">
         <h1>Ash</h1>
-        <p>Changeling Warlock <span id="lvl-n">1</span> · Charlatan · Pact of the Tome · Chaotic Neutral <span class="true">· true name unknown</span></p>
+        <p>Changeling Warlock <span id="lvl-n">1</span> · Charlatan<span id="hdr-pat"></span> · Pact of the Tome · Chaotic Neutral <span class="true">· true name unknown</span></p>
       </div>
     </div>
     <svg class="skin-deco" viewBox="0 0 1300 40" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#2f4a33" stroke-width="2.2" stroke-linecap="round"><path d="M0 20c80 10 120-14 200-6s110 26 190 14"/><path d="M1300 20c-80 10-120-14-200-6s-110 26-190 14"/></g><g fill="#3f6a42"><path d="M60 24c5-9 16-9 20 0-5 7-15 7-20 0Z"/><path d="M150 12c5-9 16-9 20 0-5 7-15 7-20 0Z"/><path d="M300 22c5-9 16-9 20 0-5 7-15 7-20 0Z"/><path d="M1220 24c5-9 16-9 20 0-5 7-15 7-20 0Z"/><path d="M1130 12c5-9 16-9 20 0-5 7-15 7-20 0Z"/><path d="M980 22c5-9 16-9 20 0-5 7-15 7-20 0Z"/></g><g fill="#ff9ecf"><circle cx="110" cy="18" r="4"/><circle cx="1190" cy="18" r="4"/><circle cx="360" cy="28" r="3"/></g><g fill="#ecca78"><circle cx="110" cy="18" r="1.6"/><circle cx="1190" cy="18" r="1.6"/></g></svg>
@@ -1587,7 +1587,7 @@ button.spill:hover{border-color:var(--accent)}
 <script>
 (function(){
 const KEY='ash-sheet-v1';
-const APP_VERSION='2026-11-24.2';
+const APP_VERSION='2026-11-24.3';
 const AB=[['str','Strength'],['dex','Dexterity'],['con','Constitution'],['int','Intelligence'],['wis','Wisdom'],['cha','Charisma']];
 const SAVES=['wis','cha'];
 // Level. pv is a preview level that is never saved; lvl() is what every number on the sheet follows.
@@ -1611,7 +1611,7 @@ const DEF_BUILD={cantrips:['Eldritch Blast','Minor Illusion'],prepared:['Hex','A
 const DEF_WEAPONS=[{n:'Dagger',die:'1d4',bonus:0,ab:'fin',type:'Piercing',note:'Finesse, light, thrown 20/60'}];
 const DEF_BOOK={cantrips:['Guidance','Shocking Grasp','Mage Hand'],rituals:['Find Familiar','Comprehend Languages']};
 const DEF_EQUIP=['Studded Leather Armor','Dagger','Arcane Focus (crystal, styled as charred bone)','Book of Shadows','Fine Clothes','Costume','Forgery Kit','Thieves’ Tools','Explorer’s Pack','Incense for Find Familiar (10 GP per casting)'].map(n=>({n:n,q:1}));
-const DEF={ab:{str:8,dex:14,con:14,int:10,wis:12,cha:17},prof:Object.assign({},DEFAULT_PROF),level:1,hp:10,temp:0,hd:1,slotsUsed:0,conc:null,aoa:false,hexOn:true,ds:{},fx:[],equip:DEF_EQUIP,weapons:DEF_WEAPONS,book:DEF_BOOK,build:DEF_BUILD,history:[],journal:{sessions:[],entries:[],ents:[],cur:null,view:'session'},gold:23,lang:'Common, (choose two)',notes:''};
+const DEF={ab:{str:8,dex:14,con:14,int:10,wis:12,cha:17},prof:Object.assign({},DEFAULT_PROF),level:1,hp:10,temp:0,hd:1,slotsUsed:0,conc:null,aoa:false,hexOn:true,ds:{},fx:[],equip:DEF_EQUIP,weapons:DEF_WEAPONS,book:DEF_BOOK,build:DEF_BUILD,history:[],journal:{sessions:[],entries:[],ents:[],cur:null,view:'session'},gold:23,lang:'Common, (choose two)',notes:'',patronName:'Baba Yaga'};
 const clone=o=>JSON.parse(JSON.stringify(o));
 // Fill in fields that saves from older versions of the sheet don't have yet.
 let JMIG=false; // set when an older journal was converted, so the original can be kept
@@ -2189,6 +2189,8 @@ const PATRON_SPELLS={'Archfey':['Calm Emotions','Faerie Fire','Misty Step','Phan
 // Ash's class choices live in S.build and change on level up (or with Edit build).
 const B=()=>S.build;
 const hasInv=n=>B().invocations.includes(n);
+// The patron's name in the story (the DM's Baba Yaga) can differ from the rules it uses (Archfey).
+const patronLabel=()=>{const n=(S.patronName||'').trim();return !B().patron?n:n&&n!==B().patron?`${n} (${B().patron})`:B().patron};
 const patronSpells=()=>B().patron&&lvl()>=3?PATRON_SPELLS[B().patron]||[]:[];
 const knownCantrips=()=>B().cantrips.concat(patronSpells().filter(n=>SPELL_DB[n]&&SPELL_DB[n].lvl===0&&!B().cantrips.includes(n)));
 const preparedAll=()=>B().prepared.concat(patronSpells().filter(n=>SPELL_DB[n]&&SPELL_DB[n].lvl>0&&!B().prepared.includes(n)));
@@ -4483,7 +4485,7 @@ function renderNextLv(){
   box.hidden=!sg||!!pv||hide;if(box.hidden)return;
   box.innerHTML='<div class="tx"><h2></h2><ul></ul></div><span class="toolbar"><button class="btn small primary" type="button">Level up now</button><button class="btn small" type="button">Hide</button></span>';
   box.querySelector('h2').textContent=`Ready for level ${L+1}`;
-  const short={'Hit points':'Average +7','Patron':'Archfey (free Misty Steps, 5 patron spells)','New prepared spell (3 → 4)':'Mirror Image, or Suggestion'};
+  const short={'Hit points':'Average +7','Patron':'Baba Yaga, with Archfey rules (free Misty Steps, 5 patron spells)','New prepared spell (3 → 4)':'Mirror Image, or Suggestion'};
   sg.steps.filter(([h])=>short[h]).forEach(([h])=>{const li=document.createElement('li');li.innerHTML='<b></b> ';li.querySelector('b').textContent=h+':';li.append(short[h]);box.querySelector('ul').appendChild(li)});
   const [go,hd]=box.querySelectorAll('button');go.onclick=()=>openLevelUp('up');hd.onclick=()=>{try{localStorage.setItem(KEY+'-nextlv',String(L+1))}catch(e){}renderNextLv()};
 }
@@ -4505,7 +4507,11 @@ function renderClassFeats(){
   // patron
   if(B().patron){
     const pt=PATRONS.find(x=>x.n===B().patron);
-    const box=sec(`Patron · ${B().patron}`+(L<3?' (from level 3)':''));
+    const box=sec(`Patron · ${patronLabel()}`+(L<3?' (from level 3)':''));
+    const nm=document.createElement('div');nm.className='field';nm.innerHTML='<label class="label" for="pat-name">Patron in your story</label><input id="pat-name" style="flex:1;min-width:0" placeholder="e.g. Baba Yaga">';
+    const ni=nm.querySelector('input');ni.value=S.patronName||'';ni.onchange=()=>{S.patronName=ni.value.trim();save();renderAll()};
+    const nf=document.createElement('p');nf.className='fine';nf.textContent=`Uses the ${B().patron} rules: features and patron spells below.`;
+    box.append(nm,nf);
     if(pt)pt.feats.filter(f=>f[0]<=L).forEach(([fl,name,text])=>{
       const d=item(box,`${name} (Lv ${fl})`,text);
       S.pt=S.pt||{};
@@ -4588,7 +4594,7 @@ const LU_SUGGEST={
  3:{title:'Level 3: what to choose',
     steps:[
      ['Hit points','Take the <b>average (+7)</b>: max HP goes 17 → 24. It can never roll low.'],
-     ['Patron','<b>Archfey</b> fits a Feywild campaign and a changeling. <b>Steps of the Fey</b>: Misty Step without a slot, 3 times per Long Rest (your Charisma +3), each with a bonus: 1d10 temp HP for you or an ally, or foes near where you left attack others at Disadvantage. Always prepared, free: Calm Emotions, Faerie Fire, Misty Step, Phantasmal Force, Sleep.'],
+     ['Patron','Your DM’s patron is <b>Baba Yaga</b>; use the <b>Archfey</b> rules for her, which fit a Feywild changeling. <b>Steps of the Fey</b>: Misty Step without a slot, 3 times per Long Rest (your Charisma +3), each with a bonus: 1d10 temp HP for you or an ally, or foes near where you left attack others at Disadvantage. Always prepared, free: Calm Emotions, Faerie Fire, Misty Step, Phantasmal Force, Sleep.'],
      ['New prepared spell (3 → 4)','<b>Mirror Image</b>: three duplicates make attacks miss, and it needs <b>no concentration</b>, so it works alongside Hex. Social alternative: <b>Suggestion</b>. Skip Misty Step and Sleep: Archfey gives them.'],
      ['Optional','You may swap one cantrip, one prepared spell and one invocation. No new cantrip or invocation at level 3.'],
      ['Automatic','Pact slots become 2nd level (still 2, back on a Short Rest): Hex lasts up to 4 h, Armor of Agathys gives 10 temp HP.']],
@@ -4688,7 +4694,7 @@ function renderLU(st){
       b.querySelector('.f').textContent='Level 3: '+x.feats.filter(f=>f[0]===3).map(f=>f[1]).join(', ');
       b.querySelector('.sp').textContent='Spells: '+(PATRON_SPELLS[x.n]||[]).join(', ');
       if(st.dir&&dirsOf(x.n).includes(st.dir)){b.classList.add('fit');const t=document.createElement('span');t.className='pill ok';t.textContent='Fits '+dirName(st.dir);b.insertBefore(t,b.children[1])}
-      const sp3=LU_SUGGEST[st.to];if(st.mode==='up'&&sp3&&sp3.patron===x.n){b.classList.add('fit');const t=document.createElement('span');t.className='pill ok';t.textContent='Suggested';b.insertBefore(t,b.children[1])}
+      const sp3=LU_SUGGEST[st.to];if(st.mode==='up'&&sp3&&sp3.patron===x.n){b.classList.add('fit');const t=document.createElement('span');t.className='pill ok';t.textContent=S.patronName?`Suggested · rules for ${S.patronName}`:'Suggested';b.insertBefore(t,b.children[1])}
       b.onclick=()=>{st.patron=x.n;changed()};p.querySelector('.lu-pats').appendChild(b);
     });
   }
@@ -5217,6 +5223,7 @@ function setPreview(l,plan){
 function renderLevel(){
   const L=lvl(),real=S.level||(pvSnap&&pvSnap.level)||1;
   $('lvl-n').textContent=L;
+  $('hdr-pat').textContent=B().patron&&L>=3?' · '+patronLabel():'';
   $('lvl-v').textContent=L;
   $('v-pb').textContent=sg(PB);$('v-pbl').textContent='Level '+L;
   $('pm-txt').textContent=`${WL.slots(L)} slot${WL.slots(L)>1?'s':''} at ${ord(WL.slotLvl(L))} level, back on a Short Rest. ${WL.prepared(L)} spells prepared and ${WL.cantrips(L)} Warlock cantrips.`;
