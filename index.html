@@ -1112,6 +1112,8 @@ button.spill:hover{border-color:var(--accent)}
 /* skills: proficient ones first, the rest on request */
 .skills-more{align-self:flex-start;border:0;background:none;padding:2px 0;color:var(--muted);font-size:.8rem;text-decoration:underline;text-underline-offset:3px}
 #skills:not(.all) .row.np{display:none}
+/* pop-up lists sit on a solid surface so the page doesn’t show through */
+[data-skin="glade"] .qn-dd,[data-skin="glade"] .qn-pop,[data-skin="glade"] .tip{background:#17151f;box-shadow:0 14px 34px rgba(0,0,0,.55)}
 @media (prefers-reduced-motion:reduce){[data-skin="glade"] body::before{animation:none}}
 @media (max-width:640px){
   .head{flex-wrap:wrap;align-items:center}
@@ -1587,7 +1589,7 @@ button.spill:hover{border-color:var(--accent)}
 <script>
 (function(){
 const KEY='ash-sheet-v1';
-const APP_VERSION='2026-11-24.4';
+const APP_VERSION='2026-11-24.5';
 const AB=[['str','Strength'],['dex','Dexterity'],['con','Constitution'],['int','Intelligence'],['wis','Wisdom'],['cha','Charisma']];
 const SAVES=['wis','cha'];
 // Level. pv is a preview level that is never saved; lvl() is what every number on the sheet follows.
@@ -4252,7 +4254,7 @@ function renderQuickNote(body){
   const x=jSession(sid);
   const p=document.createElement('section');p.className='panel qn';
   p.innerHTML=`<div class="panel-head"><h2>Quick note</h2><span class="fine"></span></div>
-    <div class="qn-box"><button type="button" class="qn-pk" title="Pick a character or place by type" aria-haspopup="listbox"><b>@</b><span>Pick</span></button><textarea rows="2" placeholder="Type @ to pick a character or place: “@Haldren is a viking”. No @ adds a learned fact."></textarea><ul class="qn-dd" role="listbox" hidden></ul><div class="qn-pop" hidden></div></div>
+    <div class="qn-box"><button type="button" class="qn-pk" title="Pick a character, goal or place by type" aria-haspopup="listbox"><b>@</b><span>Pick</span></button><textarea rows="2" placeholder="Type @ to tag a character, goal or place: “@Haldren is a viking”. No @ adds a learned fact."></textarea><ul class="qn-dd" role="listbox" hidden></ul><div class="qn-pop" hidden></div></div>
     <div class="qn-foot"><span class="fine qn-prev"></span><span class="toolbar"></span></div>`;
   p.querySelector('.panel-head .fine').textContent='Goes to '+sessLabel(x)+'. Enter adds it, Shift+Enter starts a new line.';
   const ta=p.querySelector('textarea'),dd=p.querySelector('.qn-dd'),prev=p.querySelector('.qn-prev'),bar=p.querySelector('.qn-foot .toolbar');
@@ -4341,7 +4343,8 @@ function renderQuickNote(body){
       .sort((a,b)=>(b.name.toLowerCase().startsWith(q))-(a.name.toLowerCase().startsWith(q))||a.name.localeCompare(b.name));
     opts=list.map(e=>({e:e}));
     const nm=act.q.trim();
-    if(nm&&nm.split(/\s+/).length<=4&&!ents().some(e=>e.name.toLowerCase()===nm.toLowerCase()))opts.push({cat:'people',name:nm},{cat:'leads',name:nm});
+    // a new name can become a character, or a goal, quest, place or lead
+    if(nm&&nm.split(/\s+/).length<=6&&!ents().some(e=>e.name.toLowerCase()===nm.toLowerCase()))opts.push({cat:'people',name:nm},{cat:'leads',k:'goal',name:nm},{cat:'leads',k:'quest',name:nm},{cat:'leads',k:'place',name:nm},{cat:'leads',k:'lead',name:nm});
     if(!opts.length){close();return}
     idx=Math.min(idx,opts.length-1);
     dd.innerHTML='';
