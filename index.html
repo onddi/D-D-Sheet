@@ -1123,6 +1123,23 @@ button.spill:hover{border-color:var(--accent)}
   [data-skin="glade"] .ident p{font-size:.95rem}
 }
 
+/* shapechange */
+.shape-chip{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:2px 10px 2px 3px;border-radius:999px;border:1px solid var(--accent);background:var(--accent-soft);font-size:.82rem;font-weight:600}
+.shape-chip .ent-av{flex:none}
+.shape-dlg{width:min(560px,calc(100vw - 24px))}
+.shape-rule{margin:0 0 10px}
+.shape-now{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:var(--accent-soft);margin-bottom:10px}
+.shape-now b{font-size:1.05rem}
+.shape-list{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:4px;max-height:min(46vh,420px);overflow:auto}
+.shape-list li button{width:100%;display:flex;align-items:center;gap:10px;text-align:left;padding:7px 9px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.shape-list li button:hover,.shape-list li button[aria-current="true"]{border-color:var(--accent)}
+.shape-list .nm{flex:1;min-width:0;font-weight:600}
+.shape-list .sm{font-size:.78rem;color:var(--muted);font-weight:400;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.shape-new{display:flex;gap:8px;margin-top:12px}.shape-new input{flex:1;min-width:0;padding:7px 10px}
+.shape-grp{margin-top:10px}
+[data-skin="glade"] .shape-chip{border-color:rgba(205,178,255,.6);background:rgba(140,106,214,.22);color:#ecdfff}
+[data-skin="glade"] .hdr-port.disguised{box-shadow:0 0 0 2px #cdb2ff,0 0 0 4px rgba(205,178,255,.3),0 0 30px rgba(205,178,255,.6)}
+
 /* roll log */
 .log{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:min(340px,calc(100vw - 32px));display:flex;flex-direction:column;gap:6px;z-index:10;pointer-events:none}
 .roll{pointer-events:auto;background:var(--ink);color:var(--bg);border-radius:8px;padding:9px 12px;box-shadow:0 6px 20px rgba(0,0,0,.25);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;animation:pop .18s ease-out}
@@ -1143,6 +1160,7 @@ button.spill:hover{border-color:var(--accent)}
       <div class="ident">
         <h1>Ash</h1>
         <p>Changeling Warlock <span id="lvl-n">1</span> · Charlatan<span id="hdr-pat"></span> · Pact of the Tome · Chaotic Neutral <span class="true">· true name unknown</span></p>
+        <button type="button" class="shape-chip" id="shape-chip" hidden></button>
       </div>
     </div>
     <svg class="skin-deco" viewBox="0 0 1300 40" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#2f4a33" stroke-width="2.2" stroke-linecap="round"><path d="M0 20c80 10 120-14 200-6s110 26 190 14"/><path d="M1300 20c-80 10-120-14-200-6s-110 26-190 14"/></g><g fill="#3f6a42"><path d="M60 24c5-9 16-9 20 0-5 7-15 7-20 0Z"/><path d="M150 12c5-9 16-9 20 0-5 7-15 7-20 0Z"/><path d="M300 22c5-9 16-9 20 0-5 7-15 7-20 0Z"/><path d="M1220 24c5-9 16-9 20 0-5 7-15 7-20 0Z"/><path d="M1130 12c5-9 16-9 20 0-5 7-15 7-20 0Z"/><path d="M980 22c5-9 16-9 20 0-5 7-15 7-20 0Z"/></g><g fill="#ff9ecf"><circle cx="110" cy="18" r="4"/><circle cx="1190" cy="18" r="4"/><circle cx="360" cy="28" r="3"/></g><g fill="#ecca78"><circle cx="110" cy="18" r="1.6"/><circle cx="1190" cy="18" r="1.6"/></g></svg>
@@ -1150,6 +1168,7 @@ button.spill:hover{border-color:var(--accent)}
       <select class="skin" id="skin" aria-label="Theme"><option value="glade">✦ Moonlit glade</option><option value="classic">Classic</option></select>
       <button class="rest" id="btn-lvlup" title="Level up" aria-label="Level up"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg><span>Up</span></button>
 <button class="rest lvl" id="lvl-btn" type="button" title="Level history, undo and previews of other levels"><b id="lvl-v">1</b><span>Level</span></button>
+      <button class="rest" id="btn-shape" type="button" title="Shapechange: take the face and voice of someone you’ve met" aria-label="Shapechange"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6c4-2 12-2 16 0-.5 7-3.5 12-8 12S4.5 13 4 6Z"/><path d="M8 10c1-1 2.5-1 3.5 0M12.5 10c1-1 2.5-1 3.5 0M9.5 14c1.5 1 3.5 1 5 0"/></svg><span>Face</span></button>
       <button class="rest" id="btn-short" title="Short rest: 1 hour, restores the pact slot" aria-label="Short rest"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12M6 21h12M7 3c0 5 10 5 10 9s-10 4-10 9M17 3c0 5-10 5-10 9s10 4 10 9"/></svg><span>Short</span></button>
       <button class="rest" id="btn-long" title="Long rest: 8 hours, restores HP, hit die and pact slot" aria-label="Long rest"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg><span>Long</span></button>
     </div>
@@ -1392,6 +1411,7 @@ button.spill:hover{border-color:var(--accent)}
           <dt>Shapechanger</dt><dd>As an Action, change your appearance and voice: coloration, hair, sex, height (Medium or Small), even another species. You can't copy a specific person you've never seen, and you keep the same limb arrangement. Gear and stats don't change. Lasts until you change again or die.</dd>
           <dt>Instincts</dt><dd>Proficiency in Insight and Persuasion.</dd>
         </dl>
+        <div class="toolbar"><button class="btn small primary" type="button" id="shape-open">Shapechange…</button><span class="fine" id="shape-now"></span></div>
         <p class="fine">From <em>Monsters of the Multiverse</em>; confirm with your DM for a 2024 game.</p>
       </section>
       <section class="panel">
@@ -1547,6 +1567,12 @@ button.spill:hover{border-color:var(--accent)}
   </div>
 </div>
 
+<dialog class="dlg shape-dlg" id="shape-dlg" aria-labelledby="shape-h">
+  <div class="dlg-in">
+    <div class="panel-head"><h2 id="shape-h">Shapechange</h2><button class="x" type="button" id="shape-x">Close</button></div>
+    <div id="shape-body"></div>
+  </div>
+</dialog>
 <dialog class="dlg" id="rest-dlg" aria-labelledby="rest-h">
   <div class="dlg-in">
     <div class="panel-head"><h2 id="rest-h"></h2><button class="x" type="button" id="rest-x">Close</button></div>
@@ -1589,7 +1615,7 @@ button.spill:hover{border-color:var(--accent)}
 <script>
 (function(){
 const KEY='ash-sheet-v1';
-const APP_VERSION='2026-11-24.5';
+const APP_VERSION='2026-11-24.6';
 const AB=[['str','Strength'],['dex','Dexterity'],['con','Constitution'],['int','Intelligence'],['wis','Wisdom'],['cha','Charisma']];
 const SAVES=['wis','cha'];
 // Level. pv is a preview level that is never saved; lvl() is what every number on the sheet follows.
@@ -3623,6 +3649,78 @@ $('face-form').addEventListener('submit',e=>{
   $('face-name').value='';$('face-where').value='';save();renderStory();
 });
 
+
+/* ---------- shapechange ---------- */
+// Changeling Shapechanger: Ash wears the face and voice of someone they've met (journal characters), a made-up face, or their own.
+const shapeEnt=()=>S.shape&&S.shape.eid?ents().find(e=>e.id===S.shape.eid)||null:null;
+function setShape(sh){
+  const was=S.shape&&S.shape.n;
+  S.shape=sh;
+  if(sh){
+    // log it on the Story tab, unless it's the same face again in a row
+    S.faces=S.faces||[];const last=S.faces[S.faces.length-1];
+    const sess=jSession(qnSid());
+    if(!last||last.n!==sh.n)S.faces.push({n:sh.n,w:sess?sessLabel(sess):'',d:stamp()});
+    toast('Ash now looks like '+sh.n,'Shapechanger: an Action. Clothes and gear stay the same, so check your costume.','✦');
+  }else if(was)toast('Back to Ash’s own face','The disguise is dropped (an Action).','↺');
+  save();renderShape();renderPortrait();renderStory();
+}
+function renderShape(){
+  const sh=S.shape,e=shapeEnt(),chip=$('shape-chip');
+  chip.hidden=!sh;chip.innerHTML='';
+  if(sh){if(e)chip.appendChild(entAvatar(e,22));const t=document.createElement('span');t.textContent='Looks like '+sh.n;chip.appendChild(t);chip.title='Shapechanged. Tap to change or drop the disguise.'}
+  $('shape-now').textContent=sh?'Currently: '+sh.n:'Wearing your own face';
+}
+let shapeQ='';
+function renderShapeDlg(){
+  const w=$('shape-body');w.innerHTML='';
+  const sh=S.shape,cur=shapeEnt();
+  const rule=document.createElement('p');rule.className='fine shape-rule';
+  rule.textContent='As an Action, change your appearance and voice. You can copy someone you have seen. Your clothes and gear don’t change.';
+  w.appendChild(rule);
+  if(sh){
+    const now=document.createElement('div');now.className='shape-now';
+    if(cur)now.appendChild(entAvatar(cur,40));
+    const t=document.createElement('div');t.style.flex='1';t.innerHTML='<span class="label">Wearing</span><br><b></b>';t.querySelector('b').textContent=sh.n;now.appendChild(t);
+    const drop=document.createElement('button');drop.type='button';drop.className='btn small';drop.textContent='Back to my own face';drop.onclick=()=>{setShape(null);closeShape()};now.appendChild(drop);
+    w.appendChild(now);
+  }
+  const q=document.createElement('input');q.type='search';q.placeholder='Search characters you’ve met';q.value=shapeQ;q.style.cssText='width:100%;padding:7px 10px';q.setAttribute('aria-label','Search characters');
+  w.appendChild(q);
+  const box=document.createElement('div');w.appendChild(box);
+  const fill=()=>{
+    box.innerHTML='';const s2=shapeQ.trim().toLowerCase();
+    const c=JCAT('people');
+    const people=ents().filter(e=>e.cat==='people'&&!e.done&&(!s2||e.name.toLowerCase().includes(s2)||(e.sum||'').toLowerCase().includes(s2)));
+    if(!people.length){const p=document.createElement('p');p.className='s-empty';p.textContent=ents().some(e=>e.cat==='people')?'No one matches.':'No characters in the journal yet. Add people there, or make up a face below.';box.appendChild(p);return}
+    c.groups.forEach(([gn,test])=>{
+      const list=people.filter(e=>test(e.k||'unknown'));if(!list.length)return;
+      const h=document.createElement('div');h.className='label shape-grp';h.textContent=gn;box.appendChild(h);
+      const ul=document.createElement('ul');ul.className='shape-list';
+      list.forEach(e=>{
+        const li=document.createElement('li'),b=document.createElement('button');b.type='button';
+        if(sh&&sh.eid===e.id)b.setAttribute('aria-current','true');
+        b.appendChild(entAvatar(e,34));
+        const t=document.createElement('span');t.className='nm';t.textContent=e.name;
+        const sm=document.createElement('span');sm.className='sm';sm.textContent=(e.sum||'').replace(/^-\s*/,'').split('\n')[0];t.appendChild(sm);b.appendChild(t);
+        b.onclick=()=>{setShape({n:e.name,eid:e.id});closeShape()};
+        li.appendChild(b);ul.appendChild(li);
+      });
+      box.appendChild(ul);
+    });
+  };
+  q.oninput=()=>{shapeQ=q.value;fill()};
+  fill();
+  const nw=document.createElement('form');nw.className='shape-new';
+  nw.innerHTML='<input placeholder="Or a made-up face, e.g. Brother Oswin" aria-label="A made-up face"><button class="btn small primary" type="submit">Wear it</button>';
+  nw.onsubmit=ev=>{ev.preventDefault();const v=nw.querySelector('input').value.trim();if(!v)return nw.querySelector('input').focus();setShape({n:v,eid:null});closeShape()};
+  w.appendChild(nw);
+  setTimeout(()=>q.focus(),0);
+}
+function openShape(){shapeQ='';renderShapeDlg();const d=$('shape-dlg');if(!d.open)d.showModal()}
+function closeShape(){const d=$('shape-dlg');if(d.open)d.close()}
+$('btn-shape').onclick=openShape;$('shape-open').onclick=openShape;$('shape-chip').onclick=openShape;$('shape-x').onclick=closeShape;
+
 /* ---------- equipment ---------- */
 function removeItem(it){S.equip=S.equip.filter(x=>x!==it);save();renderEquip()}
 function renderEquip(){
@@ -4386,6 +4484,10 @@ function renderPortrait(){
     img.hidden=false;hdr.hidden=false;
   }else{img.removeAttribute('src');hdr.removeAttribute('src');img.hidden=true;hdr.hidden=true}
   $('hdr-port-empty').hidden=!!p;
+  const se=typeof shapeEnt==='function'?shapeEnt():null,hp=$('hdr-port');
+  hp.classList.toggle('disguised',!!S.shape);
+  if(se&&se.img){hdr.src=se.img;hdr.hidden=false;$('hdr-port-empty').hidden=true}
+  hp.title=S.shape?`Looks like ${S.shape.n}. Tap to change your portrait`:'Portrait: tap to change it';
   $('pt-empty').hidden=!!p;$('pt-remove').hidden=!p;
   $('pt-box').classList.toggle('has',!!p);
   if(p&&p.kind==='url')$('pt-url').value=p.src;
@@ -4492,7 +4594,7 @@ function renderNextLv(){
   sg.steps.filter(([h])=>short[h]).forEach(([h])=>{const li=document.createElement('li');li.innerHTML='<b></b> ';li.querySelector('b').textContent=h+':';li.append(short[h]);box.querySelector('ul').appendChild(li)});
   const [go,hd]=box.querySelectorAll('button');go.onclick=()=>openLevelUp('up');hd.onclick=()=>{try{localStorage.setItem(KEY+'-nextlv',String(L+1))}catch(e){}renderNextLv()};
 }
-function renderAll(){renderNextLv();levelSync();renderWeapons();renderLevel();renderClassFeats();renderOptions();renderGuide();renderPortrait();renderStory();renderJournal();renderEquip();renderHP();renderFx();renderAbil();renderSkills();renderVitals();renderAttacks();renderSpells();if(!$('tab-combat').hidden)renderCombat()}
+function renderAll(){renderNextLv();renderShape();levelSync();renderWeapons();renderLevel();renderClassFeats();renderOptions();renderGuide();renderPortrait();renderStory();renderJournal();renderEquip();renderHP();renderFx();renderAbil();renderSkills();renderVitals();renderAttacks();renderSpells();if(!$('tab-combat').hidden)renderCombat()}
 /* ---------- class features panel ---------- */
 const BEFORE_KEY=KEY+'-before-level';
 // Keep a copy of the whole sheet from just before a level change, as a safety net.
