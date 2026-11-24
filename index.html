@@ -6,7 +6,7 @@
 <title>Ash, Changeling Warlock</title>
 <script>try{document.documentElement.dataset.skin=localStorage.getItem('ash-sheet-v1-skin')||'glade'}catch(e){document.documentElement.dataset.skin='glade'}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
 /* Layout: a working table-side sheet. Pewter "mirror" neutrals for a shapeshifter, one verdigris eldritch accent. Header strip, then a 3-column grid that stacks on phones. */
 :root{
@@ -958,7 +958,7 @@ button.spill:hover{border-color:var(--accent)}
   --danger:#ef8396; --danger-soft:rgba(228,106,126,.16); --good:#93dd8c; --warn:#f0b56a; --warn-soft:rgba(240,181,106,.14);
   --lav:#cdb2ff; --rose:#ff9ecf; --gold:#ecca78; --leaf:#93dd8c;
   --display:"Cinzel Decorative","Cinzel",Georgia,serif; --label:"Cinzel",Georgia,serif;
-  --body:"Cormorant Garamond",Georgia,serif; --mono:"Cormorant Garamond",Georgia,serif;
+  --body:"Source Sans 3",system-ui,sans-serif; --mono:"Source Sans 3",system-ui,sans-serif;
   color-scheme:dark;
 }
 [data-skin="glade"] body{font-size:16.5px;background:
@@ -1063,6 +1063,48 @@ button.spill:hover{border-color:var(--accent)}
 [data-skin="glade"] .roll{background:linear-gradient(160deg,#2b2142,#121a16);color:var(--ink);border:1px solid rgba(236,202,120,.35)}
 [data-skin="glade"] .roll .r{font-family:var(--display);color:var(--gold)}
 [data-skin="glade"] dialog{background:#141a17;color:var(--ink);border:1px solid rgba(236,202,120,.3);border-radius:22px 6px 22px 6px}
+/* --- balanced: the glade's character, with less to read at once ---
+   one readable font for text and numbers, Cinzel for names and labels, Cinzel Decorative only for titles;
+   gold for to-hit, lavender for concentration, green for proficiency; helper text behind ⓘ; quiet secondary buttons */
+[data-skin="glade"] body{font-size:15.5px}
+[data-skin="glade"] .fine,[data-skin="glade"] .ident p,[data-skin="glade"] .spell .meta,[data-skin="glade"] #attacks .note,[data-skin="glade"] .chip,[data-skin="glade"] .tag,[data-skin="glade"] .boost{font-style:normal}
+[data-skin="glade"] .label,[data-skin="glade"] th{font-family:var(--label);font-weight:700;text-transform:none;letter-spacing:.02em;font-size:.8rem}
+[data-skin="glade"] .vital .label{color:#b8a6e6}
+[data-skin="glade"] .vital .v,[data-skin="glade"] .hpline .big,[data-skin="glade"] .ab .mod,[data-skin="glade"] .rb,[data-skin="glade"] .spill b,
+[data-skin="glade"] #attacks .rb b,[data-skin="glade"] .spill.hit b,[data-skin="glade"] #attacks td:nth-child(2) .rb b{font-family:var(--mono);font-weight:600}
+[data-skin="glade"] .hpline .big{font-size:2.9rem;text-shadow:none}
+[data-skin="glade"] #attacks td:nth-child(2) .rb b,[data-skin="glade"] .spill.hit b{font-weight:700;font-size:1.2rem}
+[data-skin="glade"] #attacks td:nth-child(3) .rb b{font-size:1.15rem}
+[data-skin="glade"] .spill b{font-size:1.08rem;color:#f3ecd8}
+[data-skin="glade"] .spill.hit b{color:var(--gold)}
+[data-skin="glade"] .spill.hit{background:rgba(236,202,120,.08);box-shadow:0 0 14px rgba(236,202,120,.12)}
+[data-skin="glade"] .spill small,[data-skin="glade"] #attacks .rb small{font-family:var(--body);text-transform:none;letter-spacing:0;font-size:.7rem}
+[data-skin="glade"] .ab .label,[data-skin="glade"] #attacks strong,[data-skin="glade"] .spell .nm{font-family:var(--label);font-weight:700;letter-spacing:.02em}
+[data-skin="glade"] .spell .sp-ef{font-size:.95rem;color:#c6d0c1}
+[data-skin="glade"] .spell .sp-ef .kw{color:#f3ecd8;font-weight:600}
+[data-skin="glade"] .spell:not([open]) .meta{display:none}
+[data-skin="glade"] .tag{border:0;background:none;padding:0 0 0 4px;font-family:var(--label);font-size:.7rem;color:var(--muted)}
+[data-skin="glade"] .tag.c{color:#b8a6e6}
+[data-skin="glade"] .group-title{font-family:var(--label);text-transform:none;letter-spacing:.02em;font-size:.82rem}
+[data-skin="glade"] h2{text-shadow:0 0 12px rgba(236,202,120,.22)}
+[data-skin="glade"] .tabs button{text-transform:none;letter-spacing:0;font-family:var(--body);font-weight:600}
+/* the seven core numbers as one strip */
+[data-skin="glade"] .vitals{gap:0;border:1px solid rgba(236,202,120,.16);border-radius:16px 4px 16px 4px;overflow:hidden;background:linear-gradient(170deg,rgba(36,32,50,.85),rgba(18,24,21,.9))}
+[data-skin="glade"] .vitals .vital{border:0;border-radius:0;background:none;box-shadow:none}
+[data-skin="glade"] .vitals .vital+.vital{border-left:1px solid rgba(147,221,140,.12)}
+/* secondary buttons on the sheet are plain text; outlines stay on the numbers you tap */
+[data-skin="glade"] #tab-sheet .btn.small:not(.primary),[data-skin="glade"] .rest{border-color:transparent;background:transparent}
+[data-skin="glade"] #tab-sheet .btn.small:not(.primary):hover,[data-skin="glade"] .rest:hover{background:rgba(255,255,255,.06)}
+[data-skin="glade"] #tab-sheet .btn.small.danger{color:#f2a3ae}
+[data-skin="glade"] #tab-sheet #conc-save{border:0;background:linear-gradient(180deg,#f2e8ff,#c9b0ff);color:#24163e;box-shadow:0 0 16px rgba(205,178,255,.55)}
+/* helper text waits behind a small ⓘ */
+.hint-btn{display:none}
+[data-skin="glade"] .hint-btn{display:inline-grid;place-items:center;width:20px;height:20px;padding:0;border-radius:50%;border:1px solid rgba(147,221,140,.25);background:none;color:var(--muted);font:italic 600 12px Georgia,serif;flex:none}
+[data-skin="glade"] .hint-btn[aria-expanded="true"]{color:var(--gold);border-color:var(--gold)}
+[data-skin="glade"] .panel:not(.hints-open) .hint{display:none}
+/* skills: proficient ones first, the rest on request */
+.skills-more{align-self:flex-start;border:0;background:none;padding:2px 0;color:var(--muted);font-size:.8rem;text-decoration:underline;text-underline-offset:3px}
+#skills:not(.all) .row.np{display:none}
 @media (prefers-reduced-motion:reduce){[data-skin="glade"] body::before{animation:none}}
 @media (max-width:640px){
   .head{flex-wrap:wrap;align-items:center}
@@ -1537,7 +1579,7 @@ button.spill:hover{border-color:var(--accent)}
 <script>
 (function(){
 const KEY='ash-sheet-v1';
-const APP_VERSION='2026-11-23.4';
+const APP_VERSION='2026-11-24.1';
 const AB=[['str','Strength'],['dex','Dexterity'],['con','Constitution'],['int','Intelligence'],['wis','Wisdom'],['cha','Charisma']];
 const SAVES=['wis','cha'];
 // Level. pv is a preview level that is never saved; lvl() is what every number on the sheet follows.
@@ -1686,7 +1728,7 @@ function skillBonus(n,k){return mod(k)+(S.prof[n]?PB:0)}
 function renderSkills(){
   const w=$('skills');w.innerHTML='';
   SKILLS.forEach(([n,k])=>{
-    const r=document.createElement('div');r.className='row';const on=!!S.prof[n];
+    const r=document.createElement('div');const on=!!S.prof[n];r.className='row'+(on?'':' np');
     // The source label always comes from the build, so toggling never loses it.
     const base=DEFAULT_PROF[n];
     const src=on?(base||'Custom'):(base?base+' (off)':'');
@@ -1701,6 +1743,13 @@ function renderSkills(){
     r.querySelector('.rb').onclick=()=>d20(n,skillBonus(n,k));
     w.appendChild(r);
   });
+  // only proficient skills show until you ask for the rest (remembered per browser)
+  let all=false;try{all=localStorage.getItem(KEY+'-skall')==='1'}catch(e){}
+  w.classList.toggle('all',all);
+  const more=document.createElement('button');more.type='button';more.className='skills-more';
+  more.textContent=all?'Show proficient only':`Show all ${SKILLS.length} skills`;
+  more.onclick=()=>{try{localStorage.setItem(KEY+'-skall',all?'0':'1')}catch(e){}renderSkills()};
+  w.appendChild(more);
   const diverged=SKILLS.some(([n])=>!!S.prof[n]!==!!DEFAULT_PROF[n]);
   if(diverged){
     const f=document.createElement('div');f.className='rows-foot';
@@ -5151,6 +5200,18 @@ function renderLevel(){
   $('pv-sum').textContent=L>real?`What's new by level ${L} (${n} changes)`:'Lower than your current level';
 }
 $('lvl-btn').onclick=openHistory;
+(function(){
+  const hints=[...document.querySelectorAll('#tab-sheet .panel-head > .fine:not([id])')];
+  ['#p-atk > p.fine','#fx-panel > p.fine','#p-port > p.fine'].forEach(q=>document.querySelectorAll(q).forEach(x=>hints.push(x)));
+  const panels=new Set();
+  hints.forEach(h=>{h.classList.add('hint');const pn=h.closest('.panel');if(pn)panels.add(pn)});
+  panels.forEach(pn=>{
+    const head=pn.querySelector('.panel-head')||pn.querySelector('h2');if(!head)return;
+    const b=document.createElement('button');b.type='button';b.className='hint-btn';b.textContent='i';b.setAttribute('aria-label','Show tips for this section');b.setAttribute('aria-expanded','false');
+    b.onclick=()=>{const o=pn.classList.toggle('hints-open');b.setAttribute('aria-expanded',String(o))};
+    if(head.tagName==='H2'){const wrap=document.createElement('div');wrap.className='panel-head';head.replaceWith(wrap);wrap.append(head,b)}else head.appendChild(b);
+  });
+})();
 // the header portrait jumps to the Portrait panel, where it's changed
 $('hdr-port').onclick=()=>{showTab('sheet');const pn=$('p-port');pn.scrollIntoView({behavior:'smooth',block:'center'});pn.classList.remove('flash');void pn.offsetWidth;pn.classList.add('flash')};
 // themes: each is one block of CSS keyed on data-skin, so switching (or going back to Classic) is one setting
