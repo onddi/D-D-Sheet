@@ -1587,7 +1587,7 @@ button.spill:hover{border-color:var(--accent)}
 <script>
 (function(){
 const KEY='ash-sheet-v1';
-const APP_VERSION='2026-11-24.3';
+const APP_VERSION='2026-11-24.4';
 const AB=[['str','Strength'],['dex','Dexterity'],['con','Constitution'],['int','Intelligence'],['wis','Wisdom'],['cha','Charisma']];
 const SAVES=['wis','cha'];
 // Level. pv is a preview level that is never saved; lvl() is what every number on the sheet follows.
@@ -5084,12 +5084,13 @@ function guideCombat(c){
   if(hex&&ctl.length)st.push(`<b>Dangerous foe?</b> ${gNames(ctl.slice(0,3))} can take it out of the fight instead, but ${ctl.some(x=>spOf(x).c)?'Concentration spells end Hex':'it costs a slot'}.`);
   {
     let e='Take the Disengage action and walk away, or put <i>Shocking Grasp</i> in your book at the next rest.';
-    if(c.has('Shocking Grasp'))e='Use <i>Shocking Grasp</i> so it can’t make Opportunity Attacks, then walk away.';
+    if(c.has('Shocking Grasp'))e='Use <i>Shocking Grasp</i> so it can’t make Opportunity Attacks, then walk away.'+(c.feat('Steps of the Fey')?' Or a free <i>Misty Step</i> (Steps of the Fey) 30 ft away, then blast: pick <i>Taunting Step</i> so foes near where you stood attack your friends at Disadvantage.':'');
     else if(c.feat('Steps of the Fey'))e='A free Misty Step (Steps of the Fey) gets you out without a slot.';
     else if(c.has('Misty Step'))e='Bonus Action <i>Misty Step</i> 30 ft away, then attack.';
     else if(c.has('Arms of Hadar'))e='<i>Arms of Hadar</i> hits everyone around you and stops their Reactions, so you can leave.';
     if(ranged)st.push(`<b>Enemy next to you?</b> Ranged attacks have Disadvantage within 5 ft. ${e}`);
   }
+  if(c.has('Mirror Image'))st.push(`<b>Being focused?</b> <i>Mirror Image</i> (Action, 3 duplicates) needs no Concentration, so Hex keeps running.${c.feat('Steps of the Fey')?' A free Misty Step with <i>Refreshing Step</i> also gives you or an ally 1d10 temp HP.':''}`);
   if(grp.length)st.push(`<b>Enemies bunched up?</b> ${gNames(grp)} hit${grp.length>1?'':'s'} several at once.`);
   if(rea.length)st.push(`<b>When something hits you:</b> ${gi(rea[0])} as your Reaction (${diceStr(scaled(spOf(rea[0])))} Fire). It costs a slot, so only if one is free.`);
   if(heal.length)st.push(`<b>Ally going down?</b> ${gNames(heal)}.`);
@@ -5110,7 +5111,7 @@ function guideCombat(c){
     c.rit.length?`Book rituals (${gNames(c.rit)}) can use a slot instead of the extra 10 minutes.`:''].filter(Boolean))));
   // picks in play
   const inv=B().invocations,pf=c.pat?(PATRONS.find(x=>x.n===c.pat)||{feats:[]}).feats.filter(f=>f[0]<=c.L).map(f=>f[1]):[];
-  g.push(gPanel('Your picks in play',`${inv.length?'<span class="label">Invocations</span>'+gTips(inv):''}${pf.length?`<span class="label">Patron · ${esc(c.pat)}</span>`+gTips(pf):''}${c.prep.length?'<span class="label">Prepared spells</span>'+gTips(c.prep):''}`));
+  g.push(gPanel('Your picks in play',`${inv.length?'<span class="label">Invocations</span>'+gTips(inv):''}${pf.length?`<span class="label">Patron · ${esc(patronLabel())}</span>`+gTips(pf):''}${c.prep.length?'<span class="label">Prepared spells</span>'+gTips(c.prep):''}`));
   // mistakes worth catching, from the build
   const m=[];
   const bonusSlot=c.prep.filter(x=>x!=='Hex'&&c.kind(x)==='bonus');
@@ -5146,8 +5147,11 @@ function guideExplore(c){
   g.push(gPanel('Rituals',gUl(['Rituals cost no slot but take <b>10 extra minutes</b>. Plan them for quiet moments.'].concat(rits.map(n=>`${gi(n)}${c.rit.includes(n)?' (book)':''}: ${esc(pickTip(n))}`),[rits.length?'Cast one with your pact slot instead to skip the extra 10 minutes.':'No ritual spells right now. Pick some for your Book of Shadows at the next rest.','Casting a ritual interrupts a Short or Long Rest. Do it before or after.']))));
   if(c.has('Find Familiar')||hasInv('Pact of the Chain')){
     const touch=c.all.filter(x=>{const d=SPELL_DB[x];return d&&/Touch/.test(d.m)&&(d.atk||d.heal)});
-    g.push(gPanel('Your familiar',gUl(['A spirit in a small animal form (owl, cat, spider, raven and so on). You choose the form and its type: Celestial, Fey or Fiend'+(hasInv('Pact of the Chain')?'. Pact of the Chain adds special forms like an imp, pseudodragon, quasit or sprite':'')+'.','Within 100 ft you can talk to it telepathically, and as a Bonus Action see and hear through it until your next turn. Send it to scout.',`It can deliver your touch spells${touch.length?', like '+gNames(touch):''}, and can take the Help action.`,'If it drops to 0 HP it vanishes. Cast the spell again to bring it back.'+(c.has('Find Familiar')?' It takes about 1 hour 10 minutes as a ritual and burns 10 GP of incense.':'')])));
+    const summoned=fxList().some(f=>f.n==='Find Familiar');
+    g.push(gPanel('Your familiar',gUl((summoned||!c.has('Find Familiar')?[]:['<b>Not summoned yet.</b> Cast <i>Find Familiar</i> as a ritual at the next quiet moment (about 1 hour 10 minutes, 10 GP of incense). An owl can scout and take the Help action every turn.']).concat(['A spirit in a small animal form (owl, cat, spider, raven and so on). You choose the form and its type: Celestial, Fey or Fiend'+(hasInv('Pact of the Chain')?'. Pact of the Chain adds special forms like an imp, pseudodragon, quasit or sprite':'')+'.','Within 100 ft you can talk to it telepathically, and as a Bonus Action see and hear through it until your next turn. Send it to scout.',`It can deliver your touch spells${touch.length?', like '+gNames(touch):''}, and can take the Help action.`,'If it drops to 0 HP it vanishes. Cast the spell again to bring it back.'+(c.has('Find Familiar')?' It takes about 1 hour 10 minutes as a ritual and burns 10 GP of incense.':'')]))));
   }
+  const handy=S.equip.filter(it=>/one ?time|one use|single use|\bhp\b|berry|potion|scroll|charge|spell|climb/i.test(it.n)&&!/^incense/i.test(it.n));
+  if(handy.length)g.push(gPanel('Handy items',gUl(handy.map(it=>`<b>${esc(it.n)}</b>${it.q>1?` ×${it.q}`:''}`).concat(['From your Equipment list. Easy to forget in the moment: a one-use climb or a bit of healing can save a scene.']))));
   const tb=n=>sg(mod('dex')+PB);
   g.push(gPanel('Locks, forgery &amp; sneaking',gUl([`<i>Thieves’ Tools</i> (${tb()}) for locks and traps.`,`<i>Forgery Kit</i> (${tb()}) for fake papers, seals and letters. Pairs well with a stolen face.`,`<i>Stealth</i> (${sk('Stealth','dex')}) and <i>Sleight of Hand</i> (${sk('Sleight of Hand','dex')}) for slipping by and lifting things.`])));
   out.push(`<div class="g-grid">${g.join('')}</div>`);
